@@ -64,6 +64,10 @@ env:
 test:
 	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags="$(TAGS)" -coverprofile=coverage.txt -covermode=atomic ./...
 
+.PHONY: test-n-read
+test-n-read: test
+	@$(GO_EXEC) tool cover -func coverage.txt
+
 .PHONY: bench
 bench:
 	CGO_ENABLED=1 $(GO_EXEC) test -benchmem -run=^$$ -mod=readonly -count=1 -v -race -bench=. ./...

@@ -25,6 +25,6 @@ go.work
 
 # visual studio code local folder
 /.vscode/*
-!/.vscode/settings.json
+!/.vscode/sample.settings.json
 
 /coverage.txt
