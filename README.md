@@ -29,7 +29,7 @@ returned, found, err := p.Float32("float")        // returned: float32(2.12)  er
 returned, found, err := p.Int64("float")          // returned: int64(2)       err: ErrCastLostDecimals
 ```
 
-**Pick** is still in alpha version, a lot of changes going to happen both to api and structure.
+**Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.
 
 
 Special thanks to **Konstantinos Pittas** ([@kostaspt](https://github.com/daydroidmuchiri)) for helping me ... **pick** the name of the library.

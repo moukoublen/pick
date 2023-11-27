@@ -64,8 +64,9 @@ linters-settings:
         mapstructure: kebab
 
   # https://golangci-lint.run/usage/linters/#paralleltest
-  # paralleltest:
-  #   ignore-missing: true
+  paralleltest:
+    ignore-missing: true
+    ignore-missing-subtests: true
 
   # https://golangci-lint.run/usage/linters/#nolintlint
   nolintlint:
