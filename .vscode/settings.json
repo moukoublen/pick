@@ -1,0 +1,52 @@
+{
+  "search.exclude": {
+    "**/vendor": true
+  },
+  "[go]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": false,
+    "editor.formatOnSave": true
+  },
+  "[go.mod]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": false,
+    "editor.formatOnSave": true
+  },
+  "go.formatTool": "default",
+  "go.lintTool": "golangci-lint",
+  "go.lintFlags": [
+    "--fast"
+  ],
+  // "go.lintTool": "staticcheck",
+  // "go.lintFlags": [
+  //   "-checks=all,-ST1000"
+  // ],
+  "go.lintOnSave": "package",
+  "go.disableConcurrentTests": true,
+  "go.testTags": "test-e2e",
+  "go.testFlags": [
+    "-mod=readonly",
+    "-count=1",
+    "-p=1",
+    "-v",
+    "-race"
+  ],
+  // ~~Language Server~~ https://github.com/golang/tools/blob/master/gopls/doc/settings.md
+  "go.useLanguageServer": true,
+  "gopls": {
+    "build.buildFlags": [
+      //"-mod=readonly",
+      "-tags=test-e2e,other"
+    ],
+    "build.env": {
+      "GO111MODULE": "on"
+    },
+  },
+  "cSpell.words": [
+    "Anys",
+    "errorsx",
+    "gochecknoglobals",
+    "nolint",
+    "testingx"
+  ]
+}

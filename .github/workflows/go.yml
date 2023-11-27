@@ -1,0 +1,71 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+
+    # https://github.com/actions/checkout
+    - uses: actions/checkout@v4
+
+    # https://github.com/actions/setup-go
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        check-latest: true
+        cache: false
+
+    # https://github.com/actions/cache
+    - name: Cache Tools
+      id: cache-tools
+      uses: actions/cache@v3
+      with:
+        path: |
+          .ext/
+          ~/.cache/go-build
+          ~/go/pkg/
+        key: lint-job-tools-${{ runner.os }}-${{ hashFiles('**/go.sum', '**/Makefile') }}
+        restore-keys: |
+          go-and-tools-${{ runner.os }}
+
+    - name: Install Tools
+      if: steps.cache-tools.outputs.cache-hit != 'true'
+      run: make tools
+
+    - name: gofumpt
+      run: make gofumpt
+
+    - name: goimports
+      run: make goimports
+
+    - name: staticcheck
+      run: make staticcheck
+
+    - name: golangci-lint
+      run: make golangci-lint-github-actions
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.20', '1.21' ]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+        check-latest: true
+        cache: true
+
+    - name: Test
+      run: make test

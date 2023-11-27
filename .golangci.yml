@@ -1,0 +1,89 @@
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  go: '1.20'
+  timeout: 10m
+  concurrency: 4
+  issues-exit-code: 1
+  tests: true
+  build-tags:
+    - integration
+  skip-dirs-use-default: true
+  modules-download-mode: readonly
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+
+linters:
+  enable-all: true
+  disable:
+    - deadcode # deprecated
+    - exhaustivestruct # deprecated
+    - golint # deprecated
+    - ifshort # deprecated
+    - interfacer # deprecated
+    - maligned # deprecated
+    - nosnakecase # deprecated
+    - scopelint # deprecated
+    - structcheck # deprecated
+    - varcheck # deprecated
+    - nlreturn
+    - wsl
+    - lll
+    - wrapcheck
+    - varnamelen
+    - nonamedreturns
+    - testpackage
+    - funlen
+    - cyclop
+    - exhaustive
+    - exhaustruct # TODO: reconsider
+    - depguard    # TODO: reconsider
+    - godox       # TODO: reconsider
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters: [gochecknoglobals]
+
+linters-settings:
+
+  # https://golangci-lint.run/usage/linters/#tagliatelle
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: snake
+        yaml: camel
+        xml: camel
+        bson: camel
+        avro: snake
+        mapstructure: kebab
+
+  # https://golangci-lint.run/usage/linters/#paralleltest
+  paralleltest:
+    ignore-missing: true
+
+  # https://golangci-lint.run/usage/linters/#nolintlint
+  nolintlint:
+    allow-unused: true
+
+  # https://golangci-lint.run/usage/linters/#cyclop
+  cyclop:
+    max-complexity: 10
+    package-average: 0.5
+    skip-tests: true
+
+  # https://golangci-lint.run/usage/linters/#maintidx
+  maintidx:
+    under: 10
+
+  # https://golangci-lint.run/usage/linters/#govet
+  govet:
+    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment
