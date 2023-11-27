@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
@@ -126,16 +127,25 @@ func TestCastAttemptUsingReflect(t *testing.T) {
 }
 
 type castTestExpectedResult[Output any] struct {
-	shouldRun      bool
 	expectedResult Output
 	compareFn      func(x, y any) bool
 	errorAssertFn  func(*testing.T, error)
+	shouldRun      bool
 }
 
 // constructors for shortage.
 func newCastTestExpectedResultConstructor[Output any](compareFn func(x, y any) bool) func(result Output, errorAssertFn func(*testing.T, error)) castTestExpectedResult[Output] {
 	return func(result Output, errorAssertFn func(*testing.T, error)) castTestExpectedResult[Output] {
-		return castTestExpectedResult[Output]{shouldRun: true, expectedResult: result, compareFn: compareFn, errorAssertFn: errorAssertFn}
+		return castTestExpectedResult[Output]{expectedResult: result, compareFn: compareFn, errorAssertFn: errorAssertFn, shouldRun: true}
+	}
+}
+
+func splitBasedOnArch[Output any](for32bit, for64bit castTestExpectedResult[Output]) castTestExpectedResult[Output] {
+	switch runtime.GOARCH {
+	case "arm", "386":
+		return for32bit
+	default:
+		return for64bit
 	}
 }
 
@@ -312,6 +322,40 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(-2147483648, nil),
 			String:  exString("-2147483648", nil),
 		},
+		{
+			Input:   int64(math.MaxInt64),
+			Byte:    exByte(255, expectOverFlowError),
+			Int8:    exInt8(-1, expectOverFlowError),
+			Int16:   exInt16(-1, expectOverFlowError),
+			Int32:   exInt32(-1, expectOverFlowError),
+			Int64:   exInt64(math.MaxInt64, nil),
+			Int:     splitBasedOnArch(exInt(-1, expectOverFlowError), exInt(math.MaxInt64, nil)),
+			Uint8:   exUInt8(255, expectOverFlowError),
+			Uint16:  exUint16(0xffff, expectOverFlowError),
+			Uint32:  exUint32(0xffffffff, expectOverFlowError),
+			Uint64:  exUint64(0x7fffffffffffffff, nil),
+			Uint:    splitBasedOnArch(exUint(0xffffffff, expectOverFlowError), exUint(0x7fffffffffffffff, nil)),
+			Float32: exFloat32(math.MaxInt64, nil),
+			Float64: exFloat64(math.MaxInt64, nil),
+			String:  exString("9223372036854775807", nil),
+		},
+		{
+			Input:   int64(math.MinInt64),
+			Byte:    exByte(0, expectOverFlowError),
+			Int8:    exInt8(0, expectOverFlowError),
+			Int16:   exInt16(0, expectOverFlowError),
+			Int32:   exInt32(0, expectOverFlowError),
+			Int64:   exInt64(math.MinInt64, nil),
+			Int:     splitBasedOnArch(exInt(0, expectOverFlowError), exInt(math.MinInt64, nil)),
+			Uint8:   exUInt8(0, expectOverFlowError),
+			Uint16:  exUint16(0, expectOverFlowError),
+			Uint32:  exUint32(0, expectOverFlowError),
+			Uint64:  exUint64(0x8000000000000000, expectOverFlowError),
+			Uint:    splitBasedOnArch(exUint(0, expectOverFlowError), exUint(0x8000000000000000, expectOverFlowError)),
+			Float32: exFloat32(math.MinInt64, nil),
+			Float64: exFloat64(math.MinInt64, nil),
+			String:  exString("-9223372036854775808", nil),
+		},
 	}
 
 	caster := NewCaster()
@@ -348,6 +392,9 @@ func matrixSubTest[Output any](input any, castFn func(any) (Output, error), subT
 	return func(t *testing.T) {
 		t.Helper()
 		t.Parallel()
+		if !subTestCase.shouldRun {
+			t.SkipNow()
+		}
 
 		got, gotErr := castFn(input)
 		testingx.AssertError(t, subTestCase.errorAssertFn, gotErr)
