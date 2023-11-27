@@ -140,7 +140,7 @@ func newCastTestExpectedResultConstructor[Output any](compareFn func(x, y any) b
 }
 
 func TestCasterMatrix(t *testing.T) {
-	// t.Parallel()
+	t.Parallel()
 
 	// matrixExpectedResult constructor function aliases (prefix `ex` from expected result)
 	exByte := newCastTestExpectedResultConstructor[byte](reflect.DeepEqual)
@@ -325,7 +325,7 @@ func TestCasterMatrix(t *testing.T) {
 
 		name := fmt.Sprintf("index[%d]__inputType[%s]__inputValue[%#v]", idx, typeName, tc.Input)
 		t.Run(name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 			t.Run("caster_byte", matrixSubTest[byte](tc.Input, caster.AsByte, tc.Byte))
 			t.Run("caster_int8", matrixSubTest[int8](tc.Input, caster.AsInt8, tc.Int8))
 			t.Run("caster_int16", matrixSubTest[int16](tc.Input, caster.AsInt16, tc.Int16))
@@ -347,7 +347,8 @@ func TestCasterMatrix(t *testing.T) {
 func matrixSubTest[Output any](input any, castFn func(any) (Output, error), subTestCase castTestExpectedResult[Output]) func(*testing.T) {
 	return func(t *testing.T) {
 		t.Helper()
-		// t.Parallel()
+		t.Parallel()
+
 		got, gotErr := castFn(input)
 		testingx.AssertError(t, subTestCase.errorAssertFn, gotErr)
 
