@@ -507,7 +507,7 @@ func TestIntegerCaster(t *testing.T) {
 
 	for _, testCase := range tests {
 		tc := testCase
-		typeName := nilStr
+		typeName := "nil"
 		if tc.input != nil {
 			tp := reflect.TypeOf(tc.input)
 			typeName = tp.Name()

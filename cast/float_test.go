@@ -83,7 +83,7 @@ func TestFloatCaster(t *testing.T) {
 	for _, tc := range testsCases {
 		tc := tc
 
-		kd := nilStr
+		kd := "nil"
 		if tc.input != nil {
 			tp := reflect.TypeOf(tc.input)
 			kd = tp.Kind().String()

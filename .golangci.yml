@@ -47,7 +47,7 @@ linters:
 issues:
   exclude-rules:
     - path: _test\.go
-      linters: [gochecknoglobals]
+      linters: [gochecknoglobals, goconst, goerr113]
 
 linters-settings:
 
@@ -64,8 +64,8 @@ linters-settings:
         mapstructure: kebab
 
   # https://golangci-lint.run/usage/linters/#paralleltest
-  paralleltest:
-    ignore-missing: true
+  # paralleltest:
+  #   ignore-missing: true
 
   # https://golangci-lint.run/usage/linters/#nolintlint
   nolintlint:
