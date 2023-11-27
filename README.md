@@ -1,9 +1,11 @@
 # Pick
-**Pick** is a go package to access (using dot and array notation) and cast any kind of data, using best effort performance and best effort cast. It is an alternative to [stretchr/objx](https://github.com/stretchr/objx) trying to provide three main things:
+[![Go Report Card](https://goreportcard.com/badge/github.com/moukoublen/pick)](https://goreportcard.com/report/github.com/moukoublen/pick)
+
+**Pick** is a go package to access (using dot and array notation) and cast any kind of data, using best effort performance and best effort cast. It is an alternative to [stretchr/objx](https://github.com/stretchr/objx) aiming to provide three main things:
 
 1. Modular approach regarding the caster, traverser and selector format
 2. Best effort performance using `reflect` as last resort.
-3. Best effort cast trying to cast and convert between types as much as possible.
+3. Best effort cast aiming to cast and convert between types as much as possible.
 
 ### Examples
 ```golang
