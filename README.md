@@ -1,5 +1,7 @@
 # Pick
 [![Go Report Card](https://goreportcard.com/badge/github.com/moukoublen/pick)](https://goreportcard.com/report/github.com/moukoublen/pick)
+[![CI Status](https://github.com/moukoublen/pick/actions/workflows/go.yml/badge.svg)](https://github.com/moukoublen/pick/actions/workflows/go.yml)
+
 
 **Pick** is a go package to access (using dot and array notation) and cast any kind of data, using best effort performance and best effort cast. It is an alternative to [stretchr/objx](https://github.com/stretchr/objx) aiming to provide three main things:
 
