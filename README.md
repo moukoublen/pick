@@ -32,4 +32,4 @@ returned, found, err := p.Int64("float")          // returned: int64(2)       er
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.
 
 
-Special thanks to **Konstantinos Pittas** ([@kostaspt](https://github.com/daydroidmuchiri)) for helping me ... **pick** the name of the library.
+Special thanks to **Konstantinos Pittas** ([@kostaspt](https://github.com/kostaspt)) for helping me ... **pick** the name of the library.
