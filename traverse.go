@@ -130,13 +130,13 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	case selector.IsName():
 		key, err := d.caster.As(selector.Name, kindOfMapKey)
 		if err != nil {
-			return nil, false, errorsx.JoinErrors(ErrKeyCast, err)
+			return nil, false, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	case selector.IsIndex():
 		key, err := d.caster.As(selector.Index, kindOfMapKey)
 		if err != nil {
-			return nil, false, errorsx.JoinErrors(ErrKeyCast, err)
+			return nil, false, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	}
@@ -162,7 +162,7 @@ func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfIte
 		// try to cast to int
 		i, err := d.caster.AsInt(selector.Name)
 		if err != nil {
-			return nil, false, errorsx.JoinErrors(ErrKeyCast, err)
+			return nil, false, errors.Join(ErrKeyCast, err)
 		}
 		if i >= valueOfItem.Len() {
 			return nil, false, ErrIndexOutOfRange
