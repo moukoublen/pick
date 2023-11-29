@@ -7,16 +7,17 @@ import (
 	"github.com/moukoublen/pick/internal/testingx"
 )
 
-func TestDefaultParser(t *testing.T) {
+func TestDefaultSelectorFormat(t *testing.T) {
 	t.Parallel()
 	// type mapAlias map[string]any
 	name := NameSelectorKey
 	index := IndexSelectorKey
 
 	tests := []struct {
-		expectedError    func(*testing.T, error)
-		input            string
-		expectedSelector []SelectorKey
+		expectedError     func(*testing.T, error)
+		input             string
+		expectedSelector  []SelectorKey
+		expectedFormatted string
 	}{
 		{
 			input:            "",
@@ -75,16 +76,30 @@ func TestDefaultParser(t *testing.T) {
 		},
 	}
 
-	dp := defaultSelectorParser{}
+	dsf := DefaultSelectorFormat{}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
-			got, err := dp.Parse(tc.input)
+			got, err := dsf.Parse(tc.input)
 			testingx.AssertError(t, tc.expectedError, err)
 			if !reflect.DeepEqual(tc.expectedSelector, got) {
-				t.Errorf("For input: %s \nExpected: %v\nGot:      %v\n", tc.input, tc.expectedSelector, got)
+				t.Errorf("For input: %s \nExpected: %v\nGot     : %v\n", tc.input, tc.expectedSelector, got)
+			}
+
+			if tc.expectedError != nil {
+				return
+			}
+
+			// format and check formatted.
+			gotFormatted := dsf.Format(got)
+			expectedFormatted := tc.input
+			if tc.expectedFormatted != "" {
+				expectedFormatted = tc.expectedFormatted
+			}
+			if expectedFormatted != gotFormatted {
+				t.Errorf("For input: %s \nExpected formatted: %s\nGot formatted     : %s\n", tc.input, expectedFormatted, gotFormatted)
 			}
 		})
 	}

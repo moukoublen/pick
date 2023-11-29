@@ -5,20 +5,19 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	errorsx "github.com/moukoublen/pick/errors"
 )
 
 type DefaultTraverser struct {
 	caster              Caster
-	selectorFormatter   SelectorFormatter
 	skipItemDereference bool
 }
 
-func NewDefaultTraverser(caster Caster, selectorFormatter SelectorFormatter) DefaultTraverser {
+func NewDefaultTraverser(caster Caster) DefaultTraverser {
 	return DefaultTraverser{
 		caster:              caster,
-		selectorFormatter:   selectorFormatter,
 		skipItemDereference: false,
 	}
 }
@@ -42,7 +41,7 @@ func (d DefaultTraverser) get(obj any, selector []SelectorKey) (any, bool, error
 	for i, curSelector := range selector {
 		currentItem, found, err = d.getSingleSelector(currentItem, curSelector)
 		if err != nil {
-			return currentItem, found, newTraverseError("error trying to traverse", selector, i, d.selectorFormatter, err)
+			return currentItem, found, newTraverseError("error trying to traverse", selector, i, err)
 		}
 		if !found {
 			return nil, false, nil
@@ -202,20 +201,18 @@ func (d DefaultTraverser) deref(item any) any {
 }
 
 type TraverseError struct {
-	selectorFormatter SelectorFormatter
-	inner             error
-	msg               string
-	selector          []SelectorKey
-	selectorIndex     int
+	inner         error
+	msg           string
+	selector      []SelectorKey
+	selectorIndex int
 }
 
-func newTraverseError(msg string, selector []SelectorKey, selectorIndex int, selectorFormatter SelectorFormatter, inner error) *TraverseError {
+func newTraverseError(msg string, selector []SelectorKey, selectorIndex int, inner error) *TraverseError {
 	return &TraverseError{
-		msg:               msg,
-		selector:          selector,
-		selectorIndex:     selectorIndex,
-		selectorFormatter: selectorFormatter,
-		inner:             inner,
+		msg:           msg,
+		selector:      selector,
+		selectorIndex: selectorIndex,
+		inner:         inner,
 	}
 }
 
@@ -225,12 +222,37 @@ func (t *TraverseError) Unwrap() error {
 
 func (t *TraverseError) Error() string {
 	if t.inner != nil {
-		return fmt.Sprintf("selector: %s - %s: %s", t.selectorFormatter.FormatWithIndex(t.selector, t.selectorIndex), t.msg, t.inner.Error())
+		return fmt.Sprintf("selector: %s - %s: %s", formatErrorAt(t.selector, t.selectorIndex), t.msg, t.inner.Error())
 	}
-	return fmt.Sprintf("selector: %s - %s", t.selectorFormatter.FormatWithIndex(t.selector, t.selectorIndex), t.msg)
+	return fmt.Sprintf("selector: %s - %s", formatErrorAt(t.selector, t.selectorIndex), t.msg)
 }
 
 var (
 	ErrIndexOutOfRange = errors.New("index out of range")
 	ErrKeyCast         = errors.New("key cast error")
 )
+
+func formatErrorAt(s []SelectorKey, idx int) string {
+	sb := strings.Builder{}
+	for i, c := range s {
+		if c.IsIndex() {
+			if i == idx {
+				sb.WriteString(">")
+			}
+			sb.WriteString(fmt.Sprintf("[%d]", c.Index))
+		} else {
+			if i > 0 {
+				sb.WriteRune(nameSeparator)
+			}
+			if i == idx {
+				sb.WriteString(">")
+			}
+			sb.WriteString(c.Name)
+		}
+		if i == idx {
+			sb.WriteString("<")
+		}
+	}
+
+	return sb.String()
+}

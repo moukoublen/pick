@@ -18,7 +18,7 @@ type Traverser interface {
 func Wrap(data any) *Picker {
 	caster := cast.NewCaster()
 	formatter := DefaultSelectorFormat{}
-	return NewPicker(data, NewDefaultTraverser(caster, formatter), caster, formatter)
+	return NewPicker(data, NewDefaultTraverser(caster), caster, formatter)
 }
 
 func WrapJSON(js []byte) (*Picker, error) {
@@ -30,7 +30,7 @@ func WrapJSON(js []byte) (*Picker, error) {
 
 	caster := cast.NewCaster()
 	formatter := DefaultSelectorFormat{}
-	return NewPicker(m, NewDefaultTraverser(caster, formatter), caster, formatter), nil
+	return NewPicker(m, NewDefaultTraverser(caster), caster, formatter), nil
 }
 
 type Picker struct {

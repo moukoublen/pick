@@ -8,11 +8,6 @@ import (
 	"unicode"
 )
 
-type DefaultSelectorFormat struct {
-	defaultSelectorFormatter
-	defaultSelectorParser
-}
-
 type SelectorKeyType int
 
 const (
@@ -59,9 +54,9 @@ func IndexSelectorKey(idx int) SelectorKey {
 	}
 }
 
-type SelectorFormatter interface {
-	Format(selectorKeys []SelectorKey) string
-	FormatWithIndex(selectorKeys []SelectorKey, idx int) string
+type DefaultSelectorFormat struct {
+	defaultSelectorFormatter
+	defaultSelectorParser
 }
 
 type defaultSelectorFormatter struct{}
@@ -87,35 +82,6 @@ func (d defaultSelectorFormatter) Format(s []SelectorKey) string {
 	}
 
 	return sb.String()
-}
-
-func (d defaultSelectorFormatter) FormatWithIndex(s []SelectorKey, idx int) string {
-	sb := strings.Builder{}
-	for i, c := range s {
-		if c.IsIndex() {
-			if i == idx {
-				sb.WriteString(">")
-			}
-			sb.WriteString(fmt.Sprintf("[%d]", c.Index))
-		} else {
-			if i > 0 {
-				sb.WriteRune(nameSeparator)
-			}
-			if i == idx {
-				sb.WriteString(">")
-			}
-			sb.WriteString(c.Name)
-		}
-		if i == idx {
-			sb.WriteString("<")
-		}
-	}
-
-	return sb.String()
-}
-
-type SelectorParser interface {
-	Parse(selectorString string) ([]SelectorKey, error)
 }
 
 const (
