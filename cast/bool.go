@@ -39,15 +39,17 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 		return origin != 0, nil
 
 	case string:
-		return strconv.ParseBool(origin)
+		b, err := strconv.ParseBool(origin)
+		if err != nil {
+			return false, newCastError(err, input)
+		}
+		return b, nil
 	case json.Number:
 		n, err := origin.Float64()
 		if err != nil {
-			return false, err
+			return false, newCastError(err, input)
 		}
 		return bc.AsBool(n)
-	case json.RawMessage:
-		return bc.AsBool(string(origin))
 	case []byte:
 		return bc.AsBool(string(origin))
 
@@ -58,6 +60,11 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 		return false, nil
 
 	default:
+		// try to cast to basic (in case input is ~basic)
+		if basic, err := tryCastToBasicType(input); err == nil {
+			return bc.AsBool(basic)
+		}
+
 		return castAttemptUsingReflect[bool](input)
 	}
 }

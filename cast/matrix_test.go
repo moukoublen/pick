@@ -36,6 +36,8 @@ func splitBasedOnArch[Output any](for32bit, for64bit castTestExpectedResult[Outp
 func TestCasterMatrix(t *testing.T) {
 	t.Parallel()
 
+	type stringAlias string
+
 	// matrixExpectedResult constructor function aliases (prefix `ex` from expected result)
 	exByte := newCastTestExpectedResultConstructor[byte](reflect.DeepEqual)
 	exInt8 := newCastTestExpectedResultConstructor[int8](reflect.DeepEqual)
@@ -342,6 +344,74 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(123.321, nil),
 			String:  exString("123.321", nil),
 		},
+		{
+			Input:   stringAlias("23"),
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(23, nil),
+			Int16:   exInt16(23, nil),
+			Int32:   exInt32(23, nil),
+			Int64:   exInt64(23, nil),
+			Int:     exInt(23, nil),
+			Uint8:   exUInt8(23, nil),
+			Uint16:  exUint16(23, nil),
+			Uint32:  exUint32(23, nil),
+			Uint64:  exUint64(23, nil),
+			Uint:    exUint(23, nil),
+			Float32: exFloat32(23, nil),
+			Float64: exFloat64(23, nil),
+			String:  exString("23", nil),
+		},
+		{
+			Input:   float32(123),
+			Byte:    exByte(123, nil),
+			Int8:    exInt8(123, nil),
+			Int16:   exInt16(123, nil),
+			Int32:   exInt32(123, nil),
+			Int64:   exInt64(123, nil),
+			Int:     exInt(123, nil),
+			Uint8:   exUInt8(123, nil),
+			Uint16:  exUint16(123, nil),
+			Uint32:  exUint32(123, nil),
+			Uint64:  exUint64(123, nil),
+			Uint:    exUint(123, nil),
+			Float32: exFloat32(123, nil),
+			Float64: exFloat64(123, nil),
+			String:  exString("123", nil),
+		},
+		{
+			Input:   float64(123),
+			Byte:    exByte(123, nil),
+			Int8:    exInt8(123, nil),
+			Int16:   exInt16(123, nil),
+			Int32:   exInt32(123, nil),
+			Int64:   exInt64(123, nil),
+			Int:     exInt(123, nil),
+			Uint8:   exUInt8(123, nil),
+			Uint16:  exUint16(123, nil),
+			Uint32:  exUint32(123, nil),
+			Uint64:  exUint64(123, nil),
+			Uint:    exUint(123, nil),
+			Float32: exFloat32(123, nil),
+			Float64: exFloat64(123, nil),
+			String:  exString("123", nil),
+		},
+		{
+			Input:   struct{}{},
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(0, expectInvalidType),
+			Int16:   exInt16(0, expectInvalidType),
+			Int32:   exInt32(0, expectInvalidType),
+			Int64:   exInt64(0, expectInvalidType),
+			Int:     exInt(0, expectInvalidType),
+			Uint8:   exUInt8(0, expectInvalidType),
+			Uint16:  exUint16(0, expectInvalidType),
+			Uint32:  exUint32(0, expectInvalidType),
+			Uint64:  exUint64(0, expectInvalidType),
+			Uint:    exUint(0, expectInvalidType),
+			Float32: exFloat32(0, expectInvalidType),
+			Float64: exFloat64(0, expectInvalidType),
+			String:  exString("", expectInvalidType),
+		},
 	}
 
 	caster := NewCaster()
@@ -394,36 +464,4 @@ func matrixSubTest[Output any](input any, castFn func(any) (Output, error), subT
 			t.Errorf("wrong returned value. Expected %#v got %#v", subTestCase.expectedResult, got)
 		}
 	}
-}
-
-func compareFloat64(a, b any) bool {
-	fx := a.(float64) //nolint:forcetypeassert
-	fy := b.(float64) //nolint:forcetypeassert
-
-	if math.IsInf(fx, 1) && math.IsInf(fy, 1) {
-		return true
-	}
-
-	if math.IsInf(fx, -1) && math.IsInf(fy, -1) {
-		return true
-	}
-
-	const thr = float64(1e-10)
-	return math.Abs(fx-fy) <= thr
-}
-
-func compareFloat32(a, b any) bool {
-	fx := a.(float32) //nolint:forcetypeassert
-	fy := b.(float32) //nolint:forcetypeassert
-
-	if math.IsInf(float64(fx), 1) && math.IsInf(float64(fy), 1) {
-		return true
-	}
-
-	if math.IsInf(float64(fx), -1) && math.IsInf(float64(fy), -1) {
-		return true
-	}
-
-	const thr = float64(1e-7)
-	return math.Abs(float64(fx-fy)) <= thr
 }

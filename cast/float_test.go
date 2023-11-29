@@ -10,20 +10,6 @@ import (
 	"github.com/moukoublen/pick/internal/testingx"
 )
 
-func areFloats64Equal(a, b float64) bool {
-	const thr = float64(1e-10)
-
-	if math.IsInf(a, 1) && math.IsInf(b, 1) {
-		return true
-	}
-
-	if math.IsInf(a, -1) && math.IsInf(b, -1) {
-		return true
-	}
-
-	return math.Abs(a-b) <= thr
-}
-
 func TestFloatCaster(t *testing.T) {
 	t.Parallel()
 	type testCase struct {
@@ -95,13 +81,13 @@ func TestFloatCaster(t *testing.T) {
 			t.Parallel()
 			got64, err64 := caster.AsFloat64(tc.input)
 			testingx.AssertError(t, tc.float64CastErr, err64)
-			if !areFloats64Equal(got64, tc.expectedFloat64) {
+			if !compareFloat64(got64, tc.expectedFloat64) {
 				t.Errorf("wrong returned value. Expected %f got %f", tc.expectedFloat64, got64)
 			}
 
 			got32, err32 := caster.AsFloat32(tc.input)
 			testingx.AssertError(t, tc.float32CastErr, err32)
-			if !areFloats64Equal(float64(got32), float64(tc.expectedFloat32)) {
+			if !compareFloat32(got32, tc.expectedFloat32) {
 				t.Errorf("wrong returned value. Expected %f got %f", tc.expectedFloat32, got32)
 			}
 		})

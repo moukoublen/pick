@@ -1,6 +1,7 @@
 package cast
 
 import (
+	"errors"
 	"reflect"
 
 	errorsx "github.com/moukoublen/pick/errors"
@@ -75,7 +76,7 @@ func castToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T
 		if err != nil {
 			return nil, err
 		}
-		return []T{asT}, err
+		return []T{asT}, nil
 	}
 
 	// attempt to quick return on slice of basic types by avoiding reflect.
@@ -165,3 +166,57 @@ func castAttemptUsingReflect[Out any](input any) (output Out, err error) {
 	//nolint:forcetypeassert // if we get here we can safely assert.
 	return convertedValue.Interface().(Out), nil
 }
+
+// tryCastToBasicType checks input's Kind to identify if it can be casted as a basic type.
+// If it can, it casts it and returns it.
+// If not, it returns `ErrCannotBeCastedToBasic`.
+func tryCastToBasicType(input any) (any, error) {
+	if input == nil {
+		return nil, newCastError(ErrCannotBeCastedToBasic, input)
+	}
+
+	t := reflect.TypeOf(input)
+	k := t.Kind()
+
+	if t.String() == k.String() {
+		return input, newCastError(ErrAlreadyBasicType, input)
+	}
+
+	switch k {
+	case reflect.Bool:
+		return castAttemptUsingReflect[bool](input)
+	case reflect.Int:
+		return castAttemptUsingReflect[int](input)
+	case reflect.Int8:
+		return castAttemptUsingReflect[int8](input)
+	case reflect.Int16:
+		return castAttemptUsingReflect[int16](input)
+	case reflect.Int32:
+		return castAttemptUsingReflect[int32](input)
+	case reflect.Int64:
+		return castAttemptUsingReflect[int64](input)
+	case reflect.Uint:
+		return castAttemptUsingReflect[uint](input)
+	case reflect.Uint8:
+		return castAttemptUsingReflect[uint8](input)
+	case reflect.Uint16:
+		return castAttemptUsingReflect[uint16](input)
+	case reflect.Uint32:
+		return castAttemptUsingReflect[uint32](input)
+	case reflect.Uint64:
+		return castAttemptUsingReflect[uint64](input)
+	case reflect.Float32:
+		return castAttemptUsingReflect[float32](input)
+	case reflect.Float64:
+		return castAttemptUsingReflect[float64](input)
+	case reflect.String:
+		return castAttemptUsingReflect[string](input)
+	}
+
+	return nil, newCastError(ErrCannotBeCastedToBasic, input)
+}
+
+var (
+	ErrCannotBeCastedToBasic = errors.New("value cannot be casted to basic type")
+	ErrAlreadyBasicType      = errors.New("value is already basic type")
+)

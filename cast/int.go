@@ -232,6 +232,8 @@ func (ic intCast[T]) cast(input any) (T, error) {
 		return ic.fromString(origin)
 	case json.Number:
 		return ic.fromString(string(origin))
+	case []byte:
+		return ic.fromString(string(origin))
 
 	case bool:
 		return ic.fromBool(origin), nil
@@ -240,6 +242,11 @@ func (ic intCast[T]) cast(input any) (T, error) {
 		return 0, nil
 
 	default:
+		// try to cast to basic (in case input is ~basic)
+		if basic, err := tryCastToBasicType(input); err == nil {
+			return ic.cast(basic)
+		}
+
 		return castAttemptUsingReflect[T](input)
 	}
 }

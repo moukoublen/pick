@@ -1,6 +1,8 @@
 package cast
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type byteCaster struct {
 	uint8Caster intCast[uint8]
@@ -13,16 +15,35 @@ func newByteCaster() byteCaster {
 }
 
 func (bc byteCaster) AsByte(input any) (byte, error) {
-	switch cc := input.(type) {
+	switch origin := input.(type) {
 	case byte:
-		return cc, nil
+		return origin, nil
+
+	case int, int8, int16, int32, int64, uint, uint16, uint32, uint64, float32, float64, bool:
+		return bc.uint8Caster.cast(input)
+
 	case string:
 		return byte(0), newCastError(ErrInvalidType, input)
-	case json.RawMessage:
-		return byte(0), newCastError(ErrInvalidType, input)
-	}
+	case json.Number:
+		n, err := origin.Float64()
+		if err != nil {
+			return 0, newCastError(err, input)
+		}
+		return bc.AsByte(n)
+	case []byte:
+		return bc.AsByte(string(origin))
 
-	return bc.uint8Caster.cast(input)
+	case nil:
+		return 0, nil
+
+	default:
+		// try to cast to basic (in case input is ~basic)
+		if basic, err := tryCastToBasicType(input); err == nil {
+			return bc.AsByte(basic)
+		}
+
+		return castAttemptUsingReflect[byte](input)
+	}
 }
 
 func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {

@@ -11,7 +11,7 @@ func newStringCaster() stringCaster {
 	return stringCaster{}
 }
 
-func (fc stringCaster) AsString(input any) (string, error) {
+func (sc stringCaster) AsString(input any) (string, error) {
 	switch origin := input.(type) {
 	case int:
 		return strconv.FormatInt(int64(origin), 10), nil
@@ -36,9 +36,9 @@ func (fc stringCaster) AsString(input any) (string, error) {
 		return strconv.FormatUint(origin, 10), nil
 
 	case float32:
-		return strconv.FormatFloat(float64(origin), 'E', 5, 32), nil
+		return strconv.FormatFloat(float64(origin), 'G', 5, 32), nil
 	case float64:
-		return strconv.FormatFloat(origin, 'E', 5, 64), nil
+		return strconv.FormatFloat(origin, 'G', 5, 64), nil
 
 	case string:
 		return origin, nil
@@ -56,10 +56,15 @@ func (fc stringCaster) AsString(input any) (string, error) {
 		return "", nil
 
 	default:
+		// try to cast to basic (in case input is ~basic)
+		if basic, err := tryCastToBasicType(input); err == nil {
+			return sc.AsString(basic)
+		}
+
 		return castAttemptUsingReflect[string](input)
 	}
 }
 
-func (fc stringCaster) AsStringSlice(input any) ([]string, error) {
-	return castToSlice[string](input, fc.AsString)
+func (sc stringCaster) AsStringSlice(input any) ([]string, error) {
+	return castToSlice[string](input, sc.AsString)
 }

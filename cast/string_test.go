@@ -27,7 +27,7 @@ func TestStringCaster(t *testing.T) {
 		},
 		{
 			input:       float64(math.MaxFloat64),
-			expected:    "1.79769E+308",
+			expected:    "1.7977E+308",
 			expectedErr: nil,
 		},
 		{
@@ -97,7 +97,7 @@ func TestStringSliceCaster(t *testing.T) {
 		},
 		{
 			input:       []any{"slice", int32(12), float64(1.456)},
-			expected:    []string{"slice", "12", "1.45600E+00"},
+			expected:    []string{"slice", "12", "1.456"},
 			expectedErr: nil,
 		},
 		{

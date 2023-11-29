@@ -49,6 +49,8 @@ func (fc floatCaster) AsFloat64(input any) (float64, error) {
 		return v, nil
 	case json.Number:
 		return fc.AsFloat64(string(origin))
+	case []byte:
+		return fc.AsFloat64(string(origin))
 
 	case bool:
 		if origin {
@@ -60,6 +62,11 @@ func (fc floatCaster) AsFloat64(input any) (float64, error) {
 		return 0, nil
 
 	default:
+		// try to cast to basic (in case is ~basic)
+		if basic, err := tryCastToBasicType(input); err == nil {
+			return fc.AsFloat64(basic)
+		}
+
 		return castAttemptUsingReflect[float64](input)
 	}
 }
@@ -104,6 +111,8 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 		return float32(v), nil
 	case json.Number:
 		return fc.AsFloat32(string(origin))
+	case []byte:
+		return fc.AsFloat32(string(origin))
 
 	case bool:
 		if origin {
@@ -115,6 +124,11 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 		return 0, nil
 
 	default:
+		// try to cast to basic (in case input is ~basic)
+		if basic, err := tryCastToBasicType(input); err == nil {
+			return fc.AsFloat32(basic)
+		}
+
 		return castAttemptUsingReflect[float32](input)
 	}
 }
