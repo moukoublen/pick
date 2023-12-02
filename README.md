@@ -22,11 +22,11 @@ j := `{
 }`
 p, _ := pick.WrapJSON([]byte(j))
 
-returned, found, err := p.String("item.three[1]") // returned: string("2")    err: nil
-returned, found, err := p.Uint64("item.three[1]") // returned: uint64("2")    err: nil
-returned, found, err := p.Int32("item.one")       // returned: int32(1)       err: nil
-returned, found, err := p.Float32("float")        // returned: float32(2.12)  err: nil
-returned, found, err := p.Int64("float")          // returned: int64(2)       err: ErrCastLostDecimals
+returned, err := p.String("item.three[1]") // returned: string("2")    err: nil
+returned, err := p.Uint64("item.three[1]") // returned: uint64("2")    err: nil
+returned, err := p.Int32("item.one")       // returned: int32(1)       err: nil
+returned, err := p.Float32("float")        // returned: float32(2.12)  err: nil
+returned, err := p.Int64("float")          // returned: int64(2)       err: ErrCastLostDecimals
 ```
 
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.

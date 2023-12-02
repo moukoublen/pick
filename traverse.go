@@ -22,69 +22,65 @@ func NewDefaultTraverser(caster Caster) DefaultTraverser {
 	}
 }
 
-func (d DefaultTraverser) Get(o any, selector []SelectorKey) (any, bool, error) {
+func (d DefaultTraverser) Get(o any, selector []SelectorKey) (any, error) {
 	return d.get(o, selector)
 }
 
-func (d DefaultTraverser) get(obj any, selector []SelectorKey) (any, bool, error) {
+func (d DefaultTraverser) get(obj any, selector []SelectorKey) (any, error) {
 	if len(selector) == 0 {
-		return nil, false, nil
+		return obj, nil
 	}
 
 	var (
 		currentItem any
-		found       bool
 		err         error
 	)
 
 	currentItem = obj
 	for i, curSelector := range selector {
-		currentItem, found, err = d.getSingleSelector(currentItem, curSelector)
+		currentItem, err = d.getSingleSelector(currentItem, curSelector)
 		if err != nil {
-			return currentItem, found, newTraverseError("error trying to traverse", selector, i, err)
-		}
-		if !found {
-			return nil, false, nil
+			return currentItem, newTraverseError("error trying to traverse", selector, i, err)
 		}
 	}
 
-	if found {
-		if d.skipItemDereference {
-			return currentItem, found, nil
-		}
-
-		if currentItem == nil {
-			return currentItem, found, nil
-		}
-		typeOfItem := reflect.TypeOf(currentItem)
-		kindOfItem := typeOfItem.Kind()
-		if kindOfItem == reflect.Pointer || kindOfItem == reflect.Interface {
-			return d.deref(currentItem), found, nil
-		}
-
-		return currentItem, found, nil
+	if d.skipItemDereference {
+		return currentItem, nil
 	}
 
-	return nil, false, nil
+	if currentItem == nil {
+		return currentItem, nil
+	}
+
+	typeOfItem := reflect.TypeOf(currentItem)
+	kindOfItem := typeOfItem.Kind()
+	if kindOfItem == reflect.Pointer || kindOfItem == reflect.Interface {
+		return d.deref(currentItem), nil
+	}
+
+	return currentItem, nil
 }
 
-func (d DefaultTraverser) getSingleSelector(item any, selector SelectorKey) (any, bool, error) {
+func (d DefaultTraverser) getSingleSelector(item any, selector SelectorKey) (any, error) {
 	// attempts to fast return without reflect.
 	switch selector.SelectorType {
 	case SelectorKeyTypeName:
 		// fast return if item is map[string]any.
 		if m, isMap := item.(map[string]any); isMap {
 			val, found := m[selector.Name]
-			return val, found, nil
+			if !found {
+				return val, ErrFieldNotFound
+			}
+			return val, nil
 		}
 
 	case SelectorKeyTypeIndex:
 		// fast return if item is []any.
 		if s, isSlice := item.([]any); isSlice {
 			if selector.Index >= len(s) || selector.Index < 0 {
-				return nil, false, ErrIndexOutOfRange
+				return nil, ErrIndexOutOfRange
 			}
-			return s[selector.Index], true, nil
+			return s[selector.Index], nil
 		}
 	}
 
@@ -110,10 +106,10 @@ func (d DefaultTraverser) getSingleSelector(item any, selector SelectorKey) (any
 		return d.getSingleSelector(derefItem, selector)
 	}
 
-	return nil, false, nil
+	return nil, ErrFieldNotFound
 }
 
-func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, found bool, err error) {
+func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	kindOfMapKey := typeOfItem.Key().Kind()
@@ -129,54 +125,54 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	case selector.IsName():
 		key, err := d.caster.As(selector.Name, kindOfMapKey)
 		if err != nil {
-			return nil, false, errors.Join(ErrKeyCast, err)
+			return nil, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	case selector.IsIndex():
 		key, err := d.caster.As(selector.Index, kindOfMapKey)
 		if err != nil {
-			return nil, false, errors.Join(ErrKeyCast, err)
+			return nil, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	}
 
 	if !resultValue.IsValid() {
-		return nil, false, nil
+		return nil, ErrFieldNotFound
 	}
 
-	return resultValue.Interface(), true, nil
+	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, found bool, err error) {
+func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
 
 	if selector.IsIndex() {
 		if selector.Index >= valueOfItem.Len() {
-			return nil, false, ErrIndexOutOfRange
+			return nil, ErrIndexOutOfRange
 		}
 		resultValue = valueOfItem.Index(selector.Index)
 	} else if selector.IsName() {
 		// try to cast to int
 		i, err := d.caster.AsInt(selector.Name)
 		if err != nil {
-			return nil, false, errors.Join(ErrKeyCast, err)
+			return nil, errors.Join(ErrKeyCast, err)
 		}
 		if i >= valueOfItem.Len() {
-			return nil, false, ErrIndexOutOfRange
+			return nil, ErrIndexOutOfRange
 		}
 		resultValue = valueOfItem.Index(i)
 	}
 
 	if !resultValue.IsValid() {
-		return nil, false, nil
+		return nil, ErrIndexOutOfRange
 	}
 
-	return resultValue.Interface(), true, nil
+	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, found bool, err error) {
+func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
@@ -188,10 +184,10 @@ func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfIt
 	}
 
 	if !resultValue.IsValid() {
-		return nil, false, nil
+		return nil, ErrFieldNotFound
 	}
 
-	return resultValue.Interface(), true, nil
+	return resultValue.Interface(), nil
 }
 
 func (d DefaultTraverser) deref(item any) any {
@@ -256,3 +252,5 @@ func formatErrorAt(s []SelectorKey, idx int) string {
 
 	return sb.String()
 }
+
+var ErrFieldNotFound = errors.New("field not found")

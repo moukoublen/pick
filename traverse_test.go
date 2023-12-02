@@ -22,162 +22,142 @@ func TestDefaultTraverser(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		input         any
-		expected      any
-		expectedErr   func(*testing.T, error)
-		keys          []SelectorKey
-		expectedFound bool
+		input       any
+		expected    any
+		expectedErr func(*testing.T, error)
+		keys        []SelectorKey
 	}{
 		"nil": {
-			input:         nil,
-			keys:          nil,
-			expected:      nil,
-			expectedFound: false,
-			expectedErr:   nil,
+			input:       nil,
+			keys:        nil,
+			expected:    nil,
+			expectedErr: nil,
 		},
 
 		"index access level 1": {
-			input:         []any{"one", "two"},
-			keys:          []SelectorKey{index(1)},
-			expected:      "two",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       []any{"one", "two"},
+			keys:        []SelectorKey{index(1)},
+			expected:    "two",
+			expectedErr: nil,
 		},
 
 		"index access level 1 out of range": {
-			input:         []any{"one", "two"},
-			keys:          []SelectorKey{index(6)},
-			expected:      nil,
-			expectedFound: false,
-			expectedErr:   testingx.ExpectedErrorIs(ErrIndexOutOfRange),
+			input:       []any{"one", "two"},
+			keys:        []SelectorKey{index(6)},
+			expected:    nil,
+			expectedErr: testingx.ExpectedErrorIs(ErrIndexOutOfRange),
 		},
 
 		"index access slice of string level 1": {
-			input:         []string{"one", "two"},
-			keys:          []SelectorKey{index(1)},
-			expected:      "two",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       []string{"one", "two"},
+			keys:        []SelectorKey{index(1)},
+			expected:    "two",
+			expectedErr: nil,
 		},
 
 		"name access level 1": {
-			input:         map[string]any{"one": "value"},
-			keys:          []SelectorKey{name("one")},
-			expected:      "value",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": "value"},
+			keys:        []SelectorKey{name("one")},
+			expected:    "value",
+			expectedErr: nil,
 		},
 
 		"name access level 1 happy path": {
-			input:         map[string]any{"one": "value"},
-			keys:          []SelectorKey{name("one")},
-			expected:      "value",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": "value"},
+			keys:        []SelectorKey{name("one")},
+			expected:    "value",
+			expectedErr: nil,
 		},
 
 		"name access level 1 not found": {
-			input:         map[string]any{"one": "value"},
-			keys:          []SelectorKey{name("two")},
-			expected:      nil,
-			expectedFound: false,
-			expectedErr:   nil,
+			input:       map[string]any{"one": "value"},
+			keys:        []SelectorKey{name("two")},
+			expected:    nil,
+			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
 		},
 
 		"name access level 2 happy path": {
-			input:         map[string]any{"one": map[string]any{"two": "value"}},
-			keys:          []SelectorKey{name("one"), name("two")},
-			expected:      "value",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": map[string]any{"two": "value"}},
+			keys:        []SelectorKey{name("one"), name("two")},
+			expected:    "value",
+			expectedErr: nil,
 		},
 
 		"name access level 2 renamed happy path": {
-			input:         map[string]any{"one": renamed{"two": "value"}},
-			keys:          []SelectorKey{name("one"), name("two")},
-			expected:      "value",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": renamed{"two": "value"}},
+			keys:        []SelectorKey{name("one"), name("two")},
+			expected:    "value",
+			expectedErr: nil,
 		},
 
 		"mixed access level 2": {
-			input:         []any{"one", map[string]any{"two": "value"}},
-			keys:          []SelectorKey{index(1), name("two")},
-			expected:      "value",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       []any{"one", map[string]any{"two": "value"}},
+			keys:        []SelectorKey{index(1), name("two")},
+			expected:    "value",
+			expectedErr: nil,
 		},
 
 		"mixed access level 2 with cast": {
-			input:         []any{"one", map[string]any{"4": "value"}},
-			keys:          []SelectorKey{index(1), index(4)},
-			expected:      "value",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       []any{"one", map[string]any{"4": "value"}},
+			keys:        []SelectorKey{index(1), index(4)},
+			expected:    "value",
+			expectedErr: nil,
 		},
 
 		"mixed access level 2 with cast 2": {
-			input:         map[string]any{"one": []string{"s0", "s1", "s2"}},
-			keys:          []SelectorKey{name("one"), name("1")},
-			expected:      "s1",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": []string{"s0", "s1", "s2"}},
+			keys:        []SelectorKey{name("one"), name("1")},
+			expected:    "s1",
+			expectedErr: nil,
 		},
 
 		"mixed access level 3 with struct": {
-			input:         map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), name("two"), name("FieldOne")},
-			expected:      "test",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), name("two"), name("FieldOne")},
+			expected:    "test",
+			expectedErr: nil,
 		},
 
 		"mixed access level 3 with struct using index": {
-			input:         map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), name("two"), index(0)},
-			expected:      "test",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), name("two"), index(0)},
+			expected:    "test",
+			expectedErr: nil,
 		},
 
 		"mixed access level 3 with struct using wrong index": {
-			input:         map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), name("two"), index(12)},
-			expected:      nil,
-			expectedFound: false,
-			expectedErr:   testingx.ExpectedErrorStringContains("reflect: Field index out of range"),
+			input:       map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), name("two"), index(12)},
+			expected:    nil,
+			expectedErr: testingx.ExpectedErrorStringContains("reflect: Field index out of range"),
 		},
 
 		"mixed access level 3 with struct using wrong field": {
-			input:         map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), name("two"), name("Wrong")},
-			expected:      nil,
-			expectedFound: false,
-			expectedErr:   nil,
+			input:       map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), name("two"), name("Wrong")},
+			expected:    nil,
+			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
 		},
 
 		"mixed access level 3 with pointer struct": {
-			input:         map[string]any{"one": renamed{"two": &itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), name("two"), name("FieldOne")},
-			expected:      "test",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": renamed{"two": &itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), name("two"), name("FieldOne")},
+			expected:    "test",
+			expectedErr: nil,
 		},
 
 		"mixed access level 3 with map with int32 key": {
-			input:         map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), name("42"), index(0)},
-			expected:      "test",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), name("42"), index(0)},
+			expected:    "test",
+			expectedErr: nil,
 		},
 
 		"mixed access level 3 with map with int32 key and index selector": {
-			input:         map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
-			keys:          []SelectorKey{name("one"), index(42), index(0)},
-			expected:      "test",
-			expectedFound: true,
-			expectedErr:   nil,
+			input:       map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
+			keys:        []SelectorKey{name("one"), index(42), index(0)},
+			expected:    "test",
+			expectedErr: nil,
 		},
 	}
 
@@ -189,15 +169,10 @@ func TestDefaultTraverser(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			got, found, err := dt.Get(tc.input, tc.keys)
+			got, err := dt.Get(tc.input, tc.keys)
 
 			// check error
 			testingx.AssertError(t, tc.expectedErr, err)
-
-			// check found bool
-			if found != tc.expectedFound {
-				t.Errorf("expected found bool to be %v got %v", tc.expectedFound, found)
-			}
 
 			// check returned item
 			if !reflect.DeepEqual(tc.expected, got) {
@@ -351,7 +326,7 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 		tc := tc
 		b.Run(name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_, _, _ = dt.Get(tc.input, tc.keys)
+				_, _ = dt.Get(tc.input, tc.keys)
 			}
 		})
 	}

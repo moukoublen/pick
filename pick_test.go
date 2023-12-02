@@ -20,19 +20,17 @@ func TestString(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		inner         any
-		expectedErr   func(*testing.T, error)
-		expected      string
-		selector      string
-		expectedFound bool
+		inner       any
+		expectedErr func(*testing.T, error)
+		expected    string
+		selector    string
 	}{
 		"empty map": {
 			inner:    map[string]any{},
 			selector: "a.b",
 
-			expected:      "",
-			expectedFound: false,
-			expectedErr:   nil,
+			expected:    "",
+			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
 		},
 		"1 level found": {
 			inner: map[string]any{
@@ -40,9 +38,8 @@ func TestString(t *testing.T) {
 			},
 			selector: "a",
 
-			expected:      "b",
-			expectedFound: true,
-			expectedErr:   nil,
+			expected:    "b",
+			expectedErr: nil,
 		},
 		"1 level found pointer": {
 			inner: map[string]any{
@@ -50,9 +47,8 @@ func TestString(t *testing.T) {
 			},
 			selector: "ptr",
 
-			expected:      "b",
-			expectedFound: true,
-			expectedErr:   nil,
+			expected:    "b",
+			expectedErr: nil,
 		},
 		"2 level found": {
 			inner: map[string]any{
@@ -60,9 +56,8 @@ func TestString(t *testing.T) {
 			},
 			selector: "a.b",
 
-			expected:      "c",
-			expectedFound: true,
-			expectedErr:   nil,
+			expected:    "c",
+			expectedErr: nil,
 		},
 		"2 level found int to string": {
 			inner: map[string]any{
@@ -70,9 +65,8 @@ func TestString(t *testing.T) {
 			},
 			selector: "a.b",
 
-			expected:      "123",
-			expectedFound: true,
-			expectedErr:   nil,
+			expected:    "123",
+			expectedErr: nil,
 		},
 		"2 level not found": {
 			inner: map[string]any{
@@ -80,9 +74,8 @@ func TestString(t *testing.T) {
 			},
 			selector: "a.h",
 
-			expected:      "",
-			expectedFound: false,
-			expectedErr:   nil,
+			expected:    "",
+			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
 		},
 		"2 level found cast error": {
 			inner: map[string]any{
@@ -90,9 +83,8 @@ func TestString(t *testing.T) {
 			},
 			selector: "a.b",
 
-			expected:      "",
-			expectedFound: true,
-			expectedErr:   expectInvalidType,
+			expected:    "",
+			expectedErr: expectInvalidType,
 		},
 	}
 
@@ -102,7 +94,7 @@ func TestString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			m := Wrap(tc.inner)
-			s, found, err := m.String(tc.selector)
+			s, err := m.String(tc.selector)
 
 			switch {
 			case tc.expectedErr != nil && err != nil:
@@ -111,10 +103,6 @@ func TestString(t *testing.T) {
 				t.Errorf("unexpected error received: %s [%#v]", err.Error(), err)
 			case tc.expectedErr != nil:
 				t.Errorf("expected error but none received")
-			}
-
-			if tc.expectedFound != found {
-				t.Errorf("expected found to be %v got %v", tc.expectedFound, found)
 			}
 
 			if tc.expected != s {
@@ -153,34 +141,29 @@ func TestNasaDataFile(t *testing.T) {
 		expectedValue any
 		expectedError func(*testing.T, error)
 		selector      string
-		expectedFound bool
 	}{
 		{
 			selector:      "near_earth_objects.2023-01-01[4].neo_reference_id",
 			accessFn:      ob.String,
 			expectedValue: "3703782",
-			expectedFound: true,
 			expectedError: nil,
 		},
 		{
 			selector:      "near_earth_objects.2023-01-01[5].estimated_diameter.meters.estimated_diameter_max",
 			accessFn:      ob.Float64,
 			expectedValue: float64(68.2401509401),
-			expectedFound: true,
 			expectedError: nil,
 		},
 		{
 			selector:      "near_earth_objects.2023-01-01[5].id",
 			accessFn:      ob.Uint64,
 			expectedValue: uint64(3720918),
-			expectedFound: true,
 			expectedError: nil,
 		},
 		{
 			selector:      "near_earth_objects.2023-01-01[1].is_potentially_hazardous_asteroid",
 			accessFn:      ob.Bool,
 			expectedValue: true,
-			expectedFound: true,
 			expectedError: nil,
 		},
 	}
@@ -193,18 +176,14 @@ func TestNasaDataFile(t *testing.T) {
 			val := reflect.ValueOf(tc.accessFn)
 			ret := val.Call([]reflect.Value{reflect.ValueOf(tc.selector)})
 			got := ret[0].Interface()
-			found := ret[1].Bool()
 
 			var err error
-			if i := ret[2].Interface(); i != nil {
+			if i := ret[1].Interface(); i != nil {
 				err, _ = i.(error)
 			}
 
 			testingx.AssertError(t, tc.expectedError, err)
 
-			if found != tc.expectedFound {
-				t.Errorf("wrong returned value found, expected %t found %t", tc.expectedFound, found)
-			}
 			if !reflect.DeepEqual(tc.expectedValue, got) {
 				t.Errorf("wrong returned value, expected %T(%#v) found %T(%#v)", tc.expectedValue, tc.expectedValue, got, got)
 			}
