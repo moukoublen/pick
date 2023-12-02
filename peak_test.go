@@ -206,9 +206,7 @@ func TestNasaDataFile(t *testing.T) {
 				t.Errorf("wrong returned value found, expected %t found %t", tc.expectedFound, found)
 			}
 			if !reflect.DeepEqual(tc.expectedValue, got) {
-				typeOfExpected := reflect.TypeOf(tc.expectedValue)
-				typeOfGot := reflect.TypeOf(got)
-				t.Errorf("wrong returned value, expected %s(%#v) found %s(%#v)", typeOfExpected.String(), tc.expectedValue, typeOfGot.String(), got)
+				t.Errorf("wrong returned value, expected %T(%#v) found %T(%#v)", tc.expectedValue, tc.expectedValue, got, got)
 			}
 		})
 	}

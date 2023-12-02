@@ -3,7 +3,6 @@ package cast
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strconv"
 )
 
@@ -17,7 +16,6 @@ var (
 type Error struct {
 	inner         error
 	originalValue any
-	kind          reflect.Kind
 }
 
 func (c *Error) Error() string {
@@ -26,7 +24,7 @@ func (c *Error) Error() string {
 		innerStr = c.inner.Error()
 	}
 
-	return fmt.Sprintf("cast error, original value %s(%v), error: %s", c.kind.String(), c.originalValue, innerStr)
+	return fmt.Sprintf("cast error, original value %T(%v), error: %s", c.originalValue, c.originalValue, innerStr)
 }
 
 func (c *Error) Unwrap() error {
@@ -47,15 +45,8 @@ func newCastError(inner error, originalValue any) *Error {
 		inner = ErrInvalidSyntax
 	}
 
-	kind := reflect.Invalid
-	if originalValue != nil {
-		t := reflect.TypeOf(originalValue)
-		kind = t.Kind()
-	}
-
 	return &Error{
 		inner:         inner,
 		originalValue: originalValue,
-		kind:          kind,
 	}
 }

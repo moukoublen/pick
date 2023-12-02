@@ -161,7 +161,7 @@ func (d defaultSelectorParser) parseNextIndex(rns []rune, idx int) (SelectorKey,
 			break
 		}
 		if !d.isRuneValidForIndex(rns[i]) {
-			return SelectorKey{}, i, ErrInvalidFormatForName
+			return SelectorKey{}, i, ErrInvalidFormatForIndex
 		}
 	}
 

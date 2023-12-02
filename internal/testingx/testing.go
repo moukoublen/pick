@@ -2,7 +2,6 @@ package testingx
 
 import (
 	"errors"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -24,9 +23,7 @@ func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 		t.Helper()
 		for _, expected := range allExpectedErrors {
 			if is := errors.Is(err, expected); !is {
-				expectedType := reflect.TypeOf(expected)
-				gotType := reflect.TypeOf(err)
-				t.Errorf("expected error [%s] but got: [%s] with error: [%s]", expectedType.String(), gotType.String(), err.Error())
+				t.Errorf("expected error [%T]{%s} but got: [%T]{%s}", expected, expected.Error(), err, err.Error())
 			}
 		}
 	}

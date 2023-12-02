@@ -417,13 +417,8 @@ func TestCasterMatrix(t *testing.T) {
 	caster := NewCaster()
 	for idx, tc := range testCases {
 		tc := tc
-		typeName := "nil"
-		if tc.Input != nil {
-			tp := reflect.TypeOf(tc.Input)
-			typeName = tp.Name()
-		}
 
-		name := fmt.Sprintf("index[%d]__inputType[%s]__inputValue[%#v]", idx, typeName, tc.Input)
+		name := fmt.Sprintf("index[%d]__inputType[%T]__inputValue[%#v]", idx, tc.Input, tc.Input)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Run("caster_byte", matrixSubTest[byte](tc.Input, caster.AsByte, tc.Byte))

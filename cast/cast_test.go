@@ -34,13 +34,7 @@ func casterTestWithCompare[T any](t *testing.T, testCases []casterTestCase[T], c
 	for idx, tc := range testCases {
 		tc := tc
 
-		typeName := "nil"
-		if tc.input != nil {
-			tp := reflect.TypeOf(tc.input)
-			typeName = tp.Name()
-		}
-
-		name := fmt.Sprintf("index:%d input_type:%s input_value:(%#v)", idx, typeName, tc.input)
+		name := fmt.Sprintf("index:%d input_type:%T input_value:(%#v)", idx, tc.input, tc.input)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			got, gotErr := castFn(tc.input)

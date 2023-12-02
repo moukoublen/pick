@@ -507,12 +507,7 @@ func TestIntegerCaster(t *testing.T) {
 
 	for _, testCase := range tests {
 		tc := testCase
-		typeName := "nil"
-		if tc.input != nil {
-			tp := reflect.TypeOf(tc.input)
-			typeName = tp.Name()
-		}
-		name := fmt.Sprintf("%s(%v)", typeName, testCase.input)
+		name := fmt.Sprintf("%T(%v)", testCase.input, testCase.input)
 		t.Run(
 			name,
 			func(t *testing.T) {
@@ -571,12 +566,7 @@ func BenchmarkIntCaster(b *testing.B) {
 	for idx, tc := range tests {
 		tc := tc
 
-		typeOfTC := reflect.TypeOf(tc)
-		name := "nil"
-		if tc != nil {
-			name = typeOfTC.String()
-		}
-		name = fmt.Sprintf("test_%d_(%s)", idx, name)
+		name := fmt.Sprintf("test_%d_(%T)", idx, tc)
 
 		b.Run(fmt.Sprintf("int8_caster_%s", name), benchmarkIntegerCaster(ic.int8Caster.cast, tc))
 		b.Run(fmt.Sprintf("int16_caster_%s", name), benchmarkIntegerCaster(ic.int16Caster.cast, tc))

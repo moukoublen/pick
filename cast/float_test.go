@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"reflect"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
@@ -69,13 +68,7 @@ func TestFloatCaster(t *testing.T) {
 	for _, tc := range testsCases {
 		tc := tc
 
-		kd := "nil"
-		if tc.input != nil {
-			tp := reflect.TypeOf(tc.input)
-			kd = tp.Kind().String()
-		}
-
-		name := fmt.Sprintf("%s(%v)", kd, tc.input)
+		name := fmt.Sprintf("%T(%v)", tc.input, tc.input)
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

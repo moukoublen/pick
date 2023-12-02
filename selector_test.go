@@ -70,6 +70,11 @@ func TestDefaultSelectorFormat(t *testing.T) {
 			expectedError:    testingx.ExpectedErrorIs(ErrInvalidFormatForIndex),
 		},
 		{
+			input:            "[154].asd[r]",
+			expectedSelector: []SelectorKey(nil),
+			expectedError:    testingx.ExpectedErrorIs(ErrInvalidFormatForIndex),
+		},
+		{
 			input:            "..",
 			expectedSelector: []SelectorKey(nil),
 			expectedError:    testingx.ExpectedErrorIs(ErrInvalidFormatForName),
