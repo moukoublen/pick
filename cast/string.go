@@ -61,10 +61,10 @@ func (sc stringCaster) AsString(input any) (string, error) {
 			return sc.AsString(basic)
 		}
 
-		return castAttemptUsingReflect[string](input)
+		return tryCastUsingReflect[string](input)
 	}
 }
 
 func (sc stringCaster) AsStringSlice(input any) ([]string, error) {
-	return castToSlice[string](input, sc.AsString)
+	return ToSlice[string](input, sc.AsString)
 }

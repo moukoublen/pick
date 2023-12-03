@@ -42,7 +42,7 @@ func (bc byteCaster) AsByte(input any) (byte, error) {
 			return bc.AsByte(basic)
 		}
 
-		return castAttemptUsingReflect[byte](input)
+		return tryCastUsingReflect[byte](input)
 	}
 }
 
@@ -56,5 +56,5 @@ func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return castToSlice[byte](input, bc.AsByte)
+	return ToSlice[byte](input, bc.AsByte)
 }

@@ -49,145 +49,176 @@ func NewPicker(inner any, t Traverser, c Caster, selectorFormat SelectorFormat) 
 	}
 }
 
-func (o *Picker) Bool(selector string) (bool, error) {
-	return get(o, o.caster.AsBool, selector)
+func (p *Picker) Bool(selector string) (bool, error) {
+	return Pick(p, selector, p.caster.AsBool)
 }
 
-func (o *Picker) BoolSlice(selector string) ([]bool, error) {
-	return get(o, o.caster.AsBoolSlice, selector)
+func (p *Picker) BoolSlice(selector string) ([]bool, error) {
+	return Pick(p, selector, p.caster.AsBoolSlice)
 }
 
-func (o *Picker) Byte(selector string) (byte, error) {
-	return get(o, o.caster.AsByte, selector)
+func (p *Picker) Byte(selector string) (byte, error) {
+	return Pick(p, selector, p.caster.AsByte)
 }
 
-func (o *Picker) ByteSlice(selector string) ([]byte, error) {
-	return get(o, o.caster.AsByteSlice, selector)
+func (p *Picker) ByteSlice(selector string) ([]byte, error) {
+	return Pick(p, selector, p.caster.AsByteSlice)
 }
 
-func (o *Picker) Float32(selector string) (float32, error) {
-	return get(o, o.caster.AsFloat32, selector)
+func (p *Picker) Float32(selector string) (float32, error) {
+	return Pick(p, selector, p.caster.AsFloat32)
 }
 
-func (o *Picker) Float32Slice(selector string) ([]float32, error) {
-	return get(o, o.caster.AsFloat32Slice, selector)
+func (p *Picker) Float32Slice(selector string) ([]float32, error) {
+	return Pick(p, selector, p.caster.AsFloat32Slice)
 }
 
-func (o *Picker) Float64(selector string) (float64, error) {
-	return get(o, o.caster.AsFloat64, selector)
+func (p *Picker) Float64(selector string) (float64, error) {
+	return Pick(p, selector, p.caster.AsFloat64)
 }
 
-func (o *Picker) Float64Slice(selector string) ([]float64, error) {
-	return get(o, o.caster.AsFloat64Slice, selector)
+func (p *Picker) Float64Slice(selector string) ([]float64, error) {
+	return Pick(p, selector, p.caster.AsFloat64Slice)
 }
 
-func (o *Picker) Int(selector string) (int, error) {
-	return get(o, o.caster.AsInt, selector)
+func (p *Picker) Int(selector string) (int, error) {
+	return Pick(p, selector, p.caster.AsInt)
 }
 
-func (o *Picker) IntSlice(selector string) ([]int, error) {
-	return get(o, o.caster.AsIntSlice, selector)
+func (p *Picker) IntSlice(selector string) ([]int, error) {
+	return Pick(p, selector, p.caster.AsIntSlice)
 }
 
-func (o *Picker) Int8(selector string) (int8, error) {
-	return get(o, o.caster.AsInt8, selector)
+func (p *Picker) Int8(selector string) (int8, error) {
+	return Pick(p, selector, p.caster.AsInt8)
 }
 
-func (o *Picker) Int8Slice(selector string) ([]int8, error) {
-	return get(o, o.caster.AsInt8Slice, selector)
+func (p *Picker) Int8Slice(selector string) ([]int8, error) {
+	return Pick(p, selector, p.caster.AsInt8Slice)
 }
 
-func (o *Picker) Int16(selector string) (int16, error) {
-	return get(o, o.caster.AsInt16, selector)
+func (p *Picker) Int16(selector string) (int16, error) {
+	return Pick(p, selector, p.caster.AsInt16)
 }
 
-func (o *Picker) Int16Slice(selector string) ([]int16, error) {
-	return get(o, o.caster.AsInt16Slice, selector)
+func (p *Picker) Int16Slice(selector string) ([]int16, error) {
+	return Pick(p, selector, p.caster.AsInt16Slice)
 }
 
-func (o *Picker) Int32(selector string) (int32, error) {
-	return get(o, o.caster.AsInt32, selector)
+func (p *Picker) Int32(selector string) (int32, error) {
+	return Pick(p, selector, p.caster.AsInt32)
 }
 
-func (o *Picker) Int32Slice(selector string) ([]int32, error) {
-	return get(o, o.caster.AsInt32Slice, selector)
+func (p *Picker) Int32Slice(selector string) ([]int32, error) {
+	return Pick(p, selector, p.caster.AsInt32Slice)
 }
 
-func (o *Picker) Int64(selector string) (int64, error) {
-	return get(o, o.caster.AsInt64, selector)
+func (p *Picker) Int64(selector string) (int64, error) {
+	return Pick(p, selector, p.caster.AsInt64)
 }
 
-func (o *Picker) Int64Slice(selector string) ([]int64, error) {
-	return get(o, o.caster.AsInt64Slice, selector)
+func (p *Picker) Int64Slice(selector string) ([]int64, error) {
+	return Pick(p, selector, p.caster.AsInt64Slice)
 }
 
-func (o *Picker) Uint(selector string) (uint, error) {
-	return get(o, o.caster.AsUint, selector)
+func (p *Picker) Uint(selector string) (uint, error) {
+	return Pick(p, selector, p.caster.AsUint)
 }
 
-func (o *Picker) UintSlice(selector string) ([]uint, error) {
-	return get(o, o.caster.AsUintSlice, selector)
+func (p *Picker) UintSlice(selector string) ([]uint, error) {
+	return Pick(p, selector, p.caster.AsUintSlice)
 }
 
-func (o *Picker) Uint8(selector string) (uint8, error) {
-	return get(o, o.caster.AsUint8, selector)
+func (p *Picker) Uint8(selector string) (uint8, error) {
+	return Pick(p, selector, p.caster.AsUint8)
 }
 
-func (o *Picker) Uint8Slice(selector string) ([]uint8, error) {
-	return get(o, o.caster.AsUint8Slice, selector)
+func (p *Picker) Uint8Slice(selector string) ([]uint8, error) {
+	return Pick(p, selector, p.caster.AsUint8Slice)
 }
 
-func (o *Picker) Uint16(selector string) (uint16, error) {
-	return get(o, o.caster.AsUint16, selector)
+func (p *Picker) Uint16(selector string) (uint16, error) {
+	return Pick(p, selector, p.caster.AsUint16)
 }
 
-func (o *Picker) Uint16Slice(selector string) ([]uint16, error) {
-	return get(o, o.caster.AsUint16Slice, selector)
+func (p *Picker) Uint16Slice(selector string) ([]uint16, error) {
+	return Pick(p, selector, p.caster.AsUint16Slice)
 }
 
-func (o *Picker) Uint32(selector string) (uint32, error) {
-	return get(o, o.caster.AsUint32, selector)
+func (p *Picker) Uint32(selector string) (uint32, error) {
+	return Pick(p, selector, p.caster.AsUint32)
 }
 
-func (o *Picker) Uint32Slice(selector string) ([]uint32, error) {
-	return get(o, o.caster.AsUint32Slice, selector)
+func (p *Picker) Uint32Slice(selector string) ([]uint32, error) {
+	return Pick(p, selector, p.caster.AsUint32Slice)
 }
 
-func (o *Picker) Uint64(selector string) (uint64, error) {
-	return get(o, o.caster.AsUint64, selector)
+func (p *Picker) Uint64(selector string) (uint64, error) {
+	return Pick(p, selector, p.caster.AsUint64)
 }
 
-func (o *Picker) Uint64Slice(selector string) ([]uint64, error) {
-	return get(o, o.caster.AsUint64Slice, selector)
+func (p *Picker) Uint64Slice(selector string) ([]uint64, error) {
+	return Pick(p, selector, p.caster.AsUint64Slice)
 }
 
-func (o *Picker) String(selector string) (string, error) {
-	return get(o, o.caster.AsString, selector)
+func (p *Picker) String(selector string) (string, error) {
+	return Pick(p, selector, p.caster.AsString)
 }
 
-func (o *Picker) StringSlice(selector string) ([]string, error) {
-	return get(o, o.caster.AsStringSlice, selector)
+func (p *Picker) StringSlice(selector string) ([]string, error) {
+	return Pick(p, selector, p.caster.AsStringSlice)
 }
 
-// func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, error)) (Output, error) {
-// }
-
-// get is a necessary "cheat" because we cannot have a single generic receiver function.
-//
 //nolint:ireturn
-func get[Output any](o *Picker, selectedCastFn func(any) (Output, error), selector string) (Output, error) {
-	s, err := o.selectorFormat.Parse(selector)
+func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, error)) ([]Output, error) {
+	item, err := Pick(p, selector, castPassThrough)
+	if err != nil {
+		return nil, err
+	}
+
+	return cast.ToSlice(item, func(a any) (Output, error) { return mapFn(Wrap(a)) })
+}
+
+//nolint:ireturn
+func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Output, error)) ([]Output, error) {
+	item, err := Pick(p, selector, castPassThrough)
+	if err != nil {
+		return nil, err
+	}
+
+	doubleSlice, err := cast.ToSlice(item, func(a any) ([]Output, error) { return mapFn(Wrap(a)) })
+	if err != nil {
+		return nil, err
+	}
+	l := 0
+	for i := range doubleSlice {
+		l += len(doubleSlice[i])
+	}
+
+	outputSlice := make([]Output, 0, l)
+	for _, ds := range doubleSlice {
+		outputSlice = append(outputSlice, ds...)
+	}
+
+	return outputSlice, nil
+}
+
+//nolint:ireturn
+func Pick[Output any](p *Picker, selector string, selectedCastFn func(any) (Output, error)) (Output, error) {
+	s, err := p.selectorFormat.Parse(selector)
 	if err != nil {
 		var d Output
 		return d, err
 	}
 
-	va, err := o.traverser.Get(o.inner, s)
+	item, err := p.traverser.Get(p.inner, s)
 	if err != nil {
 		var d Output
 		return d, err
 	}
 
-	casted, err := selectedCastFn(va)
+	casted, err := selectedCastFn(item)
 	return casted, err
 }
+
+func castPassThrough(a any) (any, error) { return a, nil }

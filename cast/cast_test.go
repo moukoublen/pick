@@ -75,7 +75,7 @@ func TestCastToSliceErrorScenarios(t *testing.T) {
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			_, gotErr := castToSlice(tc.input, tc.inputSingleItemCastFn)
+			_, gotErr := ToSlice(tc.input, tc.inputSingleItemCastFn)
 			testingx.AssertError(t, tc.expectedErr, gotErr)
 		})
 	}
@@ -101,7 +101,7 @@ func TestCastAttemptUsingReflect(t *testing.T) {
 				expectedErr: nil,
 			},
 		}
-		casterTest[string](t, testCases, castAttemptUsingReflect[string])
+		casterTest[string](t, testCases, tryCastUsingReflect[string])
 	})
 
 	t.Run("map[string]string", func(t *testing.T) {
@@ -115,7 +115,7 @@ func TestCastAttemptUsingReflect(t *testing.T) {
 				expectedErr: nil,
 			},
 		}
-		casterTest[map[string]string](t, testCases, castAttemptUsingReflect[map[string]string])
+		casterTest[map[string]string](t, testCases, tryCastUsingReflect[map[string]string])
 	})
 }
 

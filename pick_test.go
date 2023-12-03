@@ -166,6 +166,26 @@ func TestNasaDataFile(t *testing.T) {
 			expectedValue: true,
 			expectedError: nil,
 		},
+		{
+			selector: "near_earth_objects.2023-01-01",
+			accessFn: func(selector string) ([]string, error) {
+				return Map(ob, selector, func(p *Picker) (string, error) { return p.String("id") })
+			},
+			expectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
+			expectedError: nil,
+		},
+		{
+			selector: "",
+			accessFn: func(selector string) ([]string, error) {
+				return FlatMap(ob, "near_earth_objects.2023-01-01", func(p *Picker) ([]string, error) {
+					return Map(p, "close_approach_data", func(p *Picker) (string, error) {
+						return p.String("close_approach_date_full")
+					})
+				})
+			},
+			expectedValue: []string{"2023-Jan-01 18:44", "2023-Jan-01 19:45", "2023-Jan-01 20:20", "2023-Jan-01 13:38", "2023-Jan-01 00:59", "2023-Jan-01 17:33", "2023-Jan-01 09:38", "2023-Jan-01 09:49", "2023-Jan-01 03:04", "2023-Jan-01 22:31", "2023-Jan-01 04:15", "2023-Jan-01 02:10", "2023-Jan-01 10:47", "2023-Jan-01 16:46", "2023-Jan-01 12:02", "2023-Jan-01 16:03", "2023-Jan-01 13:39", "2023-Jan-01 12:50", "2023-Jan-01 20:45", "2023-Jan-01 07:16", "2023-Jan-01 01:15", "2023-Jan-01 23:21", "2023-Jan-01 09:02"},
+			expectedError: nil,
+		},
 	}
 
 	for idx, tc := range tests {

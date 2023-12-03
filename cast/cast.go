@@ -59,7 +59,7 @@ func (c Caster) As(input any, asKind reflect.Kind) (any, error) {
 	return nil, newCastError(ErrInvalidType, input)
 }
 
-func castToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T, rErr error) {
+func ToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T, rErr error) {
 	defer errorsx.RecoverPanicToError(&rErr)
 
 	// quick returns just in case its already slice of T.
@@ -82,35 +82,35 @@ func castToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T
 	// attempt to quick return on slice of basic types by avoiding reflect.
 	switch cc := input.(type) {
 	case []any:
-		return castSliceToSlice[any, T](cc, singleItemCastFn)
+		return sliceToSlice[any, T](cc, singleItemCastFn)
 	case []string:
-		return castSliceToSlice[string, T](cc, singleItemCastFn)
+		return sliceToSlice[string, T](cc, singleItemCastFn)
 	case []int:
-		return castSliceToSlice[int, T](cc, singleItemCastFn)
+		return sliceToSlice[int, T](cc, singleItemCastFn)
 	case []int8:
-		return castSliceToSlice[int8, T](cc, singleItemCastFn)
+		return sliceToSlice[int8, T](cc, singleItemCastFn)
 	case []int16:
-		return castSliceToSlice[int16, T](cc, singleItemCastFn)
+		return sliceToSlice[int16, T](cc, singleItemCastFn)
 	case []int32:
-		return castSliceToSlice[int32, T](cc, singleItemCastFn)
+		return sliceToSlice[int32, T](cc, singleItemCastFn)
 	case []int64:
-		return castSliceToSlice[int64, T](cc, singleItemCastFn)
+		return sliceToSlice[int64, T](cc, singleItemCastFn)
 	case []uint:
-		return castSliceToSlice[uint, T](cc, singleItemCastFn)
+		return sliceToSlice[uint, T](cc, singleItemCastFn)
 	case []uint8:
-		return castSliceToSlice[uint8, T](cc, singleItemCastFn)
+		return sliceToSlice[uint8, T](cc, singleItemCastFn)
 	case []uint16:
-		return castSliceToSlice[uint16, T](cc, singleItemCastFn)
+		return sliceToSlice[uint16, T](cc, singleItemCastFn)
 	case []uint32:
-		return castSliceToSlice[uint32, T](cc, singleItemCastFn)
+		return sliceToSlice[uint32, T](cc, singleItemCastFn)
 	case []uint64:
-		return castSliceToSlice[uint64, T](cc, singleItemCastFn)
+		return sliceToSlice[uint64, T](cc, singleItemCastFn)
 	case []float32:
-		return castSliceToSlice[float32, T](cc, singleItemCastFn)
+		return sliceToSlice[float32, T](cc, singleItemCastFn)
 	case []float64:
-		return castSliceToSlice[float64, T](cc, singleItemCastFn)
+		return sliceToSlice[float64, T](cc, singleItemCastFn)
 	case []bool:
-		return castSliceToSlice[bool, T](cc, singleItemCastFn)
+		return sliceToSlice[bool, T](cc, singleItemCastFn)
 	}
 
 	// slow/costly attempt with reflect
@@ -130,7 +130,7 @@ func castToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T
 	return castedSlice, nil
 }
 
-func castSliceToSlice[In any, Out any](input []In, singleItemCastFn func(any) (Out, error)) (_ []Out, rErr error) {
+func sliceToSlice[In any, Out any](input []In, singleItemCastFn func(any) (Out, error)) (_ []Out, rErr error) {
 	defer errorsx.RecoverPanicToError(&rErr)
 
 	castedSlice := make([]Out, 0, len(input))
@@ -142,29 +142,6 @@ func castSliceToSlice[In any, Out any](input []In, singleItemCastFn func(any) (O
 		castedSlice = append(castedSlice, casted)
 	}
 	return castedSlice, nil
-}
-
-//nolint:ireturn
-func castAttemptUsingReflect[Out any](input any) (output Out, err error) {
-	defer errorsx.RecoverPanicToError(&err)
-
-	if input == nil {
-		return output, newCastError(ErrInvalidType, input)
-	}
-
-	typeOfInput := reflect.TypeOf(input)
-	valueOfInput := reflect.ValueOf(input)
-
-	typeOfOutput := reflect.TypeOf(output)
-
-	if !typeOfInput.ConvertibleTo(typeOfOutput) {
-		return output, newCastError(ErrInvalidType, input)
-	}
-
-	convertedValue := valueOfInput.Convert(typeOfOutput)
-
-	//nolint:forcetypeassert // if we get here we can safely assert.
-	return convertedValue.Interface().(Out), nil
 }
 
 // tryCastToBasicType checks input's Kind to identify if it can be casted as a basic type.
@@ -184,36 +161,59 @@ func tryCastToBasicType(input any) (any, error) {
 
 	switch k {
 	case reflect.Bool:
-		return castAttemptUsingReflect[bool](input)
+		return tryCastUsingReflect[bool](input)
 	case reflect.Int:
-		return castAttemptUsingReflect[int](input)
+		return tryCastUsingReflect[int](input)
 	case reflect.Int8:
-		return castAttemptUsingReflect[int8](input)
+		return tryCastUsingReflect[int8](input)
 	case reflect.Int16:
-		return castAttemptUsingReflect[int16](input)
+		return tryCastUsingReflect[int16](input)
 	case reflect.Int32:
-		return castAttemptUsingReflect[int32](input)
+		return tryCastUsingReflect[int32](input)
 	case reflect.Int64:
-		return castAttemptUsingReflect[int64](input)
+		return tryCastUsingReflect[int64](input)
 	case reflect.Uint:
-		return castAttemptUsingReflect[uint](input)
+		return tryCastUsingReflect[uint](input)
 	case reflect.Uint8:
-		return castAttemptUsingReflect[uint8](input)
+		return tryCastUsingReflect[uint8](input)
 	case reflect.Uint16:
-		return castAttemptUsingReflect[uint16](input)
+		return tryCastUsingReflect[uint16](input)
 	case reflect.Uint32:
-		return castAttemptUsingReflect[uint32](input)
+		return tryCastUsingReflect[uint32](input)
 	case reflect.Uint64:
-		return castAttemptUsingReflect[uint64](input)
+		return tryCastUsingReflect[uint64](input)
 	case reflect.Float32:
-		return castAttemptUsingReflect[float32](input)
+		return tryCastUsingReflect[float32](input)
 	case reflect.Float64:
-		return castAttemptUsingReflect[float64](input)
+		return tryCastUsingReflect[float64](input)
 	case reflect.String:
-		return castAttemptUsingReflect[string](input)
+		return tryCastUsingReflect[string](input)
 	}
 
 	return nil, newCastError(ErrCannotBeCastedToBasic, input)
+}
+
+//nolint:ireturn
+func tryCastUsingReflect[Out any](input any) (output Out, err error) {
+	defer errorsx.RecoverPanicToError(&err)
+
+	if input == nil {
+		return output, newCastError(ErrInvalidType, input)
+	}
+
+	typeOfInput := reflect.TypeOf(input)
+	valueOfInput := reflect.ValueOf(input)
+
+	typeOfOutput := reflect.TypeOf(output)
+
+	if !typeOfInput.ConvertibleTo(typeOfOutput) {
+		return output, newCastError(ErrInvalidType, input)
+	}
+
+	convertedValue := valueOfInput.Convert(typeOfOutput)
+
+	//nolint:forcetypeassert // if we get here we can safely assert.
+	return convertedValue.Interface().(Out), nil
 }
 
 var (

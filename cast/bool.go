@@ -65,10 +65,10 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 			return bc.AsBool(basic)
 		}
 
-		return castAttemptUsingReflect[bool](input)
+		return tryCastUsingReflect[bool](input)
 	}
 }
 
 func (bc boolCaster) AsBoolSlice(input any) ([]bool, error) {
-	return castToSlice[bool](input, bc.AsBool)
+	return ToSlice[bool](input, bc.AsBool)
 }
