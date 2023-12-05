@@ -32,4 +32,33 @@ returned, err := p.Int64("float")          // returned: int64(2)       err: ErrC
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.
 
 
+## Pick components
+
+### 1) Notation
+Notation is the "_language_" that is used in order to refer to a field. The main functionality of the notation interface is to parse a **selector** string into `[]Field` and each `Field` could be of type **name** or **index**.
+
+The default notation is the dot notation `DotNotation`. Example:
+
+```golang
+selectorString := "near_earth_objects[12].is_potentially_hazardous_asteroid"
+DotNotation{}.Parse(selectorString)
+// will result to:
+[]Field{
+    Field{Name: "near_earth_objects",                Type: FieldTypeName},
+    Field{Index: 12,                                 Type: FieldTypeIndex},
+    Field{Name: "is_potentially_hazardous_asteroid", Type: FieldTypeName},
+}
+
+// the Format function takes a []Field and formats it to the notation accordingly.
+DotNotation{}.Format(Name("near_earth_objects"), Index(12), Name("is_potentially_hazardous_asteroid"))
+// will result to:
+"near_earth_objects[12].is_potentially_hazardous_asteroid"
+```
+The parse functionality aims to achieve the best possible performance with the least possible allocations. It iterates over the initial selector string after converting to rune slice as much as possible without allocating new buffers.
+
+
+### 2) Traverser
+
+___
+## Special Mentions
 Special thanks to **Konstantinos Pittas** ([@kostaspt](https://github.com/kostaspt)) for helping me ... **pick** the name of the library.
