@@ -43,18 +43,18 @@ The default notation is the dot notation `DotNotation`. Example:
 selectorString := "near_earth_objects[12].is_potentially_hazardous_asteroid"
 
 DotNotation{}.Parse(selectorString)
-// will result to:
-[]Field{
-    Field{Name: "near_earth_objects",                Type: FieldTypeName},
-    Field{Index: 12,                                 Type: FieldTypeIndex},
-    Field{Name: "is_potentially_hazardous_asteroid", Type: FieldTypeName},
-}
+    // will result to:
+    []Field{
+        Field{Name: "near_earth_objects",                Type: FieldTypeName},
+        Field{Index: 12,                                 Type: FieldTypeIndex},
+        Field{Name: "is_potentially_hazardous_asteroid", Type: FieldTypeName},
+    }
 
 
 // the Format function takes a []Field and formats it to the notation accordingly.
 DotNotation{}.Format(Name("near_earth_objects"), Index(12), Name("is_potentially_hazardous_asteroid"))
-// will result to:
-"near_earth_objects[12].is_potentially_hazardous_asteroid"
+    // will result to:
+    "near_earth_objects[12].is_potentially_hazardous_asteroid"
 ```
 The parse functionality aims to achieve the best possible performance with the least possible allocations. It iterates over the initial selector string after converting to rune slice as much as possible without allocating new buffers.
 

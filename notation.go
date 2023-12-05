@@ -103,16 +103,16 @@ func (d dotNotationParser) Parse(selector string) ([]Field, error) {
 
 	for idx := 0; idx < len(runeSlice); {
 		switch {
-		case runeSlice[idx] == nameSeparator || idx == 0:
-			s, i, err := d.parseNextName(runeSlice, idx)
+		case runeSlice[idx] == indexSeparatorStart:
+			s, i, err := d.parseNextIndex(runeSlice, idx)
 			if err != nil {
 				return nil, err
 			}
 			sl = append(sl, s)
 			idx = i
 
-		case runeSlice[idx] == indexSeparatorStart:
-			s, i, err := d.parseNextIndex(runeSlice, idx)
+		case runeSlice[idx] == nameSeparator || idx == 0:
+			s, i, err := d.parseNextName(runeSlice, idx)
 			if err != nil {
 				return nil, err
 			}
