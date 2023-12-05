@@ -95,7 +95,7 @@ func TestDotNotation(t *testing.T) {
 			}
 
 			// format and check formatted.
-			gotFormatted := dsf.Format(got)
+			gotFormatted := dsf.Format(got...)
 			expectedFormatted := tc.input
 			if tc.expectedFormatted != "" {
 				expectedFormatted = tc.expectedFormatted

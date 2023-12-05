@@ -10,7 +10,7 @@ import (
 
 type Notation interface {
 	Parse(selector string) ([]Field, error)
-	Format(fields []Field) string
+	Format(fields ...Field) string
 }
 
 type Traverser interface {

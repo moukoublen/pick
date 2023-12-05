@@ -78,7 +78,7 @@ func (d dotNotationFormatter) formatField(s Field) string {
 	}
 }
 
-func (d dotNotationFormatter) Format(s []Field) string {
+func (d dotNotationFormatter) Format(s ...Field) string {
 	sb := strings.Builder{}
 	for i, c := range s {
 		if i > 0 && c.IsName() {

@@ -41,6 +41,7 @@ The default notation is the dot notation `DotNotation`. Example:
 
 ```golang
 selectorString := "near_earth_objects[12].is_potentially_hazardous_asteroid"
+
 DotNotation{}.Parse(selectorString)
 // will result to:
 []Field{
@@ -48,6 +49,7 @@ DotNotation{}.Parse(selectorString)
     Field{Index: 12,                                 Type: FieldTypeIndex},
     Field{Name: "is_potentially_hazardous_asteroid", Type: FieldTypeName},
 }
+
 
 // the Format function takes a []Field and formats it to the notation accordingly.
 DotNotation{}.Format(Name("near_earth_objects"), Index(12), Name("is_potentially_hazardous_asteroid"))
