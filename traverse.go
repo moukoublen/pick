@@ -22,13 +22,9 @@ func NewDefaultTraverser(caster Caster) DefaultTraverser {
 	}
 }
 
-func (d DefaultTraverser) Get(data any, fields []Field) (any, error) {
-	return d.get(data, fields)
-}
-
-func (d DefaultTraverser) get(obj any, fields []Field) (any, error) {
-	if len(fields) == 0 {
-		return obj, nil
+func (d DefaultTraverser) Retrieve(data any, path []Key) (any, error) {
+	if len(path) == 0 {
+		return data, nil
 	}
 
 	var (
@@ -36,11 +32,11 @@ func (d DefaultTraverser) get(obj any, fields []Field) (any, error) {
 		err         error
 	)
 
-	currentItem = obj
-	for i, field := range fields {
-		currentItem, err = d.getField(currentItem, field)
+	currentItem = data
+	for i, field := range path {
+		currentItem, err = d.accessKey(currentItem, field)
 		if err != nil {
-			return currentItem, newTraverseError("error trying to traverse", fields, i, err)
+			return currentItem, newTraverseError("error trying to traverse", path, i, err)
 		}
 	}
 
@@ -61,26 +57,26 @@ func (d DefaultTraverser) get(obj any, fields []Field) (any, error) {
 	return currentItem, nil
 }
 
-func (d DefaultTraverser) getField(item any, field Field) (any, error) {
+func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	// attempts to fast return without reflect.
-	switch field.Type {
-	case NotationFieldTypeName:
+	switch key.Type {
+	case KeyTypeField:
 		// fast return if item is map[string]any.
 		if m, isMap := item.(map[string]any); isMap {
-			val, found := m[field.Name]
+			val, found := m[key.Name]
 			if !found {
 				return val, ErrFieldNotFound
 			}
 			return val, nil
 		}
 
-	case NotationFieldTypeIndex:
+	case KeyTypeIndex:
 		// fast return if item is []any.
 		if s, isSlice := item.([]any); isSlice {
-			if field.Index >= len(s) || field.Index < 0 {
+			if key.Index >= len(s) || key.Index < 0 {
 				return nil, ErrIndexOutOfRange
 			}
-			return s[field.Index], nil
+			return s[key.Index], nil
 		}
 	}
 
@@ -91,25 +87,25 @@ func (d DefaultTraverser) getField(item any, field Field) (any, error) {
 	switch kindOfItem {
 	case reflect.Map:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessMap(typeOfItem, kindOfItem, valueOfItem, field)
+		return d.accessMap(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Struct:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessStruct(typeOfItem, kindOfItem, valueOfItem, field)
+		return d.accessStruct(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Array, reflect.Slice:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessSlice(typeOfItem, kindOfItem, valueOfItem, field)
+		return d.accessSlice(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Pointer, reflect.Interface: // if pointer/interface get target and re-call.
 		derefItem := d.deref(item)
-		return d.getField(derefItem, field)
+		return d.accessKey(derefItem, key)
 	}
 
 	return nil, ErrFieldNotFound
 }
 
-func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, field Field) (returnValue any, err error) {
+func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	kindOfMapKey := typeOfItem.Key().Kind()
@@ -117,19 +113,19 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	var resultValue reflect.Value
 
 	switch {
-	case kindOfMapKey == reflect.String && field.IsName():
-		resultValue = valueOfItem.MapIndex(reflect.ValueOf(field.Name))
-	case kindOfMapKey == reflect.String && field.IsIndex():
-		k := strconv.Itoa(field.Index)
+	case kindOfMapKey == reflect.String && key.IsField():
+		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key.Name))
+	case kindOfMapKey == reflect.String && key.IsIndex():
+		k := strconv.Itoa(key.Index)
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(k))
-	case field.IsName():
-		key, err := d.caster.As(field.Name, kindOfMapKey)
+	case key.IsField():
+		key, err := d.caster.As(key.Name, kindOfMapKey)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
-	case field.IsIndex():
-		key, err := d.caster.As(field.Index, kindOfMapKey)
+	case key.IsIndex():
+		key, err := d.caster.As(key.Index, kindOfMapKey)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
@@ -143,19 +139,19 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, field Field) (returnValue any, err error) {
+func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
 
-	if field.IsIndex() {
-		if field.Index >= valueOfItem.Len() {
+	if key.IsIndex() {
+		if key.Index >= valueOfItem.Len() {
 			return nil, ErrIndexOutOfRange
 		}
-		resultValue = valueOfItem.Index(field.Index)
-	} else if field.IsName() {
+		resultValue = valueOfItem.Index(key.Index)
+	} else if key.IsField() {
 		// try to cast to int
-		i, err := d.caster.AsInt(field.Name)
+		i, err := d.caster.AsInt(key.Name)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
@@ -172,15 +168,15 @@ func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfIte
 	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, field Field) (returnValue any, err error) {
+func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
 
-	if field.IsIndex() {
-		resultValue = valueOfItem.Field(field.Index)
-	} else if field.IsName() {
-		resultValue = valueOfItem.FieldByName(field.Name)
+	if key.IsIndex() {
+		resultValue = valueOfItem.Field(key.Index)
+	} else if key.IsField() {
+		resultValue = valueOfItem.FieldByName(key.Name)
 	}
 
 	if !resultValue.IsValid() {
@@ -199,14 +195,14 @@ func (d DefaultTraverser) deref(item any) any {
 type TraverseError struct {
 	inner      error
 	msg        string
-	fields     []Field
+	path       []Key
 	fieldIndex int
 }
 
-func newTraverseError(msg string, fields []Field, fieldIndex int, inner error) *TraverseError {
+func newTraverseError(msg string, path []Key, fieldIndex int, inner error) *TraverseError {
 	return &TraverseError{
 		msg:        msg,
-		fields:     fields,
+		path:       path,
 		fieldIndex: fieldIndex,
 		inner:      inner,
 	}
@@ -218,9 +214,9 @@ func (t *TraverseError) Unwrap() error {
 
 func (t *TraverseError) Error() string {
 	if t.inner != nil {
-		return fmt.Sprintf("selector: %s - %s: %s", formatErrorAt(t.fields, t.fieldIndex), t.msg, t.inner.Error())
+		return fmt.Sprintf("selector: %s - %s: %s", formatErrorAt(t.path, t.fieldIndex), t.msg, t.inner.Error())
 	}
-	return fmt.Sprintf("selector: %s - %s", formatErrorAt(t.fields, t.fieldIndex), t.msg)
+	return fmt.Sprintf("selector: %s - %s", formatErrorAt(t.path, t.fieldIndex), t.msg)
 }
 
 var (
@@ -228,9 +224,9 @@ var (
 	ErrKeyCast         = errors.New("key cast error")
 )
 
-func formatErrorAt(s []Field, idx int) string {
+func formatErrorAt(path []Key, idx int) string {
 	sb := strings.Builder{}
-	for i, c := range s {
+	for i, c := range path {
 		if c.IsIndex() {
 			if i == idx {
 				sb.WriteString(">")
@@ -238,7 +234,7 @@ func formatErrorAt(s []Field, idx int) string {
 			sb.WriteString(fmt.Sprintf("[%d]", c.Index))
 		} else {
 			if i > 0 {
-				sb.WriteRune(nameSeparator)
+				sb.WriteRune(fieldSeparator)
 			}
 			if i == idx {
 				sb.WriteString(">")

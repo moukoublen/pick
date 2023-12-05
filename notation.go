@@ -8,54 +8,54 @@ import (
 	"unicode"
 )
 
-type NotationFieldType int
+type KeyType int
 
 const (
-	NotationFieldTypeUnknown NotationFieldType = iota
-	NotationFieldTypeName
-	NotationFieldTypeIndex
+	KeyTypeUnknown KeyType = iota
+	KeyTypeField
+	KeyTypeIndex
 )
 
-func (s NotationFieldType) String() string {
+func (s KeyType) String() string {
 	switch s {
-	case NotationFieldTypeUnknown:
+	case KeyTypeUnknown:
 		return "unknown"
-	case NotationFieldTypeName:
-		return "name"
-	case NotationFieldTypeIndex:
+	case KeyTypeField:
+		return "field"
+	case KeyTypeIndex:
 		return "index"
 	default:
 		return ""
 	}
 }
 
-type Field struct {
+type Key struct {
 	Name  string
 	Index int
-	Type  NotationFieldType
+	Type  KeyType
 }
 
-func (s Field) IsIndex() bool { return s.Type == NotationFieldTypeIndex }
-func (s Field) IsName() bool  { return s.Type == NotationFieldTypeName }
+func (s Key) IsIndex() bool { return s.Type == KeyTypeIndex }
+func (s Key) IsField() bool { return s.Type == KeyTypeField }
 
-func Name(name string) Field {
-	return Field{
+func Field(name string) Key {
+	return Key{
 		Name:  name,
 		Index: 0,
-		Type:  NotationFieldTypeName,
+		Type:  KeyTypeField,
 	}
 }
 
-func Index(idx int) Field {
-	return Field{
+func Index(idx int) Key {
+	return Key{
 		Name:  "",
 		Index: idx,
-		Type:  NotationFieldTypeIndex,
+		Type:  KeyTypeIndex,
 	}
 }
 
 const (
-	nameSeparator       rune = '.'
+	fieldSeparator      rune = '.'
 	indexSeparatorStart rune = '['
 	indexSeparatorEnd   rune = ']'
 )
@@ -67,24 +67,24 @@ type DotNotation struct {
 
 type dotNotationFormatter struct{}
 
-func (d dotNotationFormatter) formatField(s Field) string {
-	switch s.Type {
-	case NotationFieldTypeIndex:
-		return fmt.Sprintf("[%d]", s.Index)
-	case NotationFieldTypeName:
-		return s.Name
+func (d dotNotationFormatter) formatKey(k Key) string {
+	switch k.Type {
+	case KeyTypeIndex:
+		return fmt.Sprintf("[%d]", k.Index)
+	case KeyTypeField:
+		return k.Name
 	default:
 		return ""
 	}
 }
 
-func (d dotNotationFormatter) Format(s ...Field) string {
+func (d dotNotationFormatter) Format(path ...Key) string {
 	sb := strings.Builder{}
-	for i, c := range s {
-		if i > 0 && c.IsName() {
-			sb.WriteRune(nameSeparator)
+	for i, c := range path {
+		if i > 0 && c.IsField() {
+			sb.WriteRune(fieldSeparator)
 		}
-		sb.WriteString(d.formatField(c))
+		sb.WriteString(d.formatKey(c))
 	}
 
 	return sb.String()
@@ -92,14 +92,14 @@ func (d dotNotationFormatter) Format(s ...Field) string {
 
 type dotNotationParser struct{}
 
-func (d dotNotationParser) Parse(selector string) ([]Field, error) {
+func (d dotNotationParser) Parse(selector string) ([]Key, error) {
 	if len(selector) == 0 {
 		return nil, nil
 	}
 
 	runeSlice := []rune(selector)
 
-	sl := make([]Field, 0, d.estimateCount(runeSlice))
+	path := make([]Key, 0, d.estimateCount(runeSlice))
 
 	for idx := 0; idx < len(runeSlice); {
 		switch {
@@ -108,15 +108,15 @@ func (d dotNotationParser) Parse(selector string) ([]Field, error) {
 			if err != nil {
 				return nil, err
 			}
-			sl = append(sl, s)
+			path = append(path, s)
 			idx = i
 
-		case runeSlice[idx] == nameSeparator || idx == 0:
+		case runeSlice[idx] == fieldSeparator || idx == 0:
 			s, i, err := d.parseNextName(runeSlice, idx)
 			if err != nil {
 				return nil, err
 			}
-			sl = append(sl, s)
+			path = append(path, s)
 			idx = i
 
 		default:
@@ -124,14 +124,14 @@ func (d dotNotationParser) Parse(selector string) ([]Field, error) {
 		}
 	}
 
-	return sl, nil
+	return path, nil
 }
 
 func (d dotNotationParser) estimateCount(rns []rune) int {
 	cnt := 0
 	for _, r := range rns {
 		switch r {
-		case nameSeparator, indexSeparatorStart:
+		case fieldSeparator, indexSeparatorStart:
 			cnt++
 		}
 	}
@@ -140,49 +140,49 @@ func (d dotNotationParser) estimateCount(rns []rune) int {
 	return cnt
 }
 
-func (d dotNotationParser) parseNextName(rns []rune, idx int) (Field, int, error) {
+func (d dotNotationParser) parseNextName(rns []rune, idx int) (Key, int, error) {
 	if idx >= len(rns) {
-		return Field{}, len(rns), ErrInvalidFormatForName
+		return Key{}, len(rns), ErrInvalidFormatForName
 	}
 
 	// omit single leading dot if any.
-	if rns[idx] == nameSeparator {
+	if rns[idx] == fieldSeparator {
 		idx++
 		if idx >= len(rns) {
-			return Field{}, len(rns), ErrInvalidFormatForName
+			return Key{}, len(rns), ErrInvalidFormatForName
 		}
 	}
 
 	var i int
 	for i = idx; i < len(rns); i++ {
-		if rns[i] == indexSeparatorStart || rns[i] == nameSeparator {
+		if rns[i] == indexSeparatorStart || rns[i] == fieldSeparator {
 			break
 		}
 		if !d.isRuneValidForName(rns[i]) {
-			return Field{}, i, ErrInvalidFormatForName
+			return Key{}, i, ErrInvalidFormatForName
 		}
 	}
 
 	// this is the case of continues keys e.g. `..` or `.[`.
 	if i == idx {
-		return Field{}, i, ErrInvalidFormatForName
+		return Key{}, i, ErrInvalidFormatForName
 	}
 
-	return Field{Type: NotationFieldTypeName, Name: string(rns[idx:i])}, i, nil
+	return Key{Type: KeyTypeField, Name: string(rns[idx:i])}, i, nil
 }
 
 func (d dotNotationParser) isRuneValidForName(r rune) bool {
-	return !unicode.IsControl(r) && r != nameSeparator && r != indexSeparatorStart && r != indexSeparatorEnd
+	return !unicode.IsControl(r) && r != fieldSeparator && r != indexSeparatorStart && r != indexSeparatorEnd
 }
 
-func (d dotNotationParser) parseNextIndex(rns []rune, idx int) (Field, int, error) {
+func (d dotNotationParser) parseNextIndex(rns []rune, idx int) (Key, int, error) {
 	if idx >= len(rns)-2 {
-		return Field{}, len(rns), ErrInvalidFormatForIndex
+		return Key{}, len(rns), ErrInvalidFormatForIndex
 	}
 
 	// should start with '[' character.
 	if rns[idx] != indexSeparatorStart {
-		return Field{}, idx, ErrInvalidFormatForIndex
+		return Key{}, idx, ErrInvalidFormatForIndex
 	}
 
 	// omit the leading '[' character.
@@ -194,25 +194,25 @@ func (d dotNotationParser) parseNextIndex(rns []rune, idx int) (Field, int, erro
 			break
 		}
 		if !d.isRuneValidForIndex(rns[i]) {
-			return Field{}, i, ErrInvalidFormatForIndex
+			return Key{}, i, ErrInvalidFormatForIndex
 		}
 	}
 
 	if i == idx || rns[i] != indexSeparatorEnd {
-		return Field{}, 0, ErrInvalidFormatForIndex
+		return Key{}, 0, ErrInvalidFormatForIndex
 	}
 
 	str := string(rns[idx:i])
 
 	n, err := strconv.ParseUint(str, 10, 64)
 	if err != nil {
-		return Field{}, 0, err
+		return Key{}, 0, err
 	}
 
 	// omit the trailing ']' character.
 	i++
 
-	return Field{Type: NotationFieldTypeIndex, Index: int(n)}, i, nil
+	return Key{Type: KeyTypeIndex, Index: int(n)}, i, nil
 }
 
 func (d dotNotationParser) isRuneValidForIndex(r rune) bool {
@@ -220,7 +220,7 @@ func (d dotNotationParser) isRuneValidForIndex(r rune) bool {
 }
 
 var (
-	ErrInvalidFormatForName  = errors.New("invalid format for name field")
-	ErrInvalidFormatForIndex = errors.New("invalid format for index field")
+	ErrInvalidFormatForName  = errors.New("invalid format for name key")
+	ErrInvalidFormatForIndex = errors.New("invalid format for index key")
 	ErrInvalidFormat         = errors.New("invalid selector format")
 )

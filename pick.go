@@ -9,12 +9,12 @@ import (
 )
 
 type Notation interface {
-	Parse(selector string) ([]Field, error)
-	Format(fields ...Field) string
+	Parse(selector string) ([]Key, error)
+	Format(path ...Key) string
 }
 
 type Traverser interface {
-	Get(data any, fields []Field) (any, error)
+	Retrieve(data any, path []Key) (any, error)
 }
 
 func WrapJSON(js []byte) (*Picker, error) {
@@ -218,7 +218,7 @@ func Pick[Output any](p *Picker, selector string, castFn func(any) (Output, erro
 		return d, err
 	}
 
-	item, err := p.traverser.Get(p.inner, s)
+	item, err := p.traverser.Retrieve(p.inner, s)
 	if err != nil {
 		var d Output
 		return d, err

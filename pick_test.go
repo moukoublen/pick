@@ -115,7 +115,7 @@ func TestString(t *testing.T) {
 //go:embed internal/testingx/testdata
 var testData embed.FS
 
-func loadTestData(t *testing.T, filename string) (fs.File, error) {
+func loadTestData(t *testing.T, filename string) fs.File {
 	t.Helper()
 
 	path := filepath.Join("internal", "testingx", "testdata", filename)
@@ -124,16 +124,13 @@ func loadTestData(t *testing.T, filename string) (fs.File, error) {
 		t.Fatalf("error during testdate file opening %s", err.Error())
 	}
 
-	return f, nil
+	return f
 }
 
 func TestNasaDataFile(t *testing.T) {
 	t.Parallel()
 
-	file, err := loadTestData(t, "nasa.json")
-	if err != nil {
-		t.Fatal(err)
-	}
+	file := loadTestData(t, "nasa.json")
 
 	ob, err := WrapReaderJSON(file)
 	if err != nil {

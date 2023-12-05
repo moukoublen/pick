@@ -35,7 +35,7 @@ returned, err := p.Int64("float")          // returned: int64(2)       err: ErrC
 ## Pick components
 
 ### 1) Notation
-Notation is the "_language_" that is used in order to refer to a field. The main functionality of the notation interface is to parse a **selector** string into `[]Field` and each `Field` could be of type **name** or **index**.
+Notation is the "_language_" that is used in order to refer to a field. The main functionality of the notation interface is to parse a **selector** string into a path which is a slice `[]Key` and each `Key` could be of type **field** or **index**.
 
 The default notation is the dot notation `DotNotation`. Example:
 
@@ -44,22 +44,35 @@ selectorString := "near_earth_objects[12].is_potentially_hazardous_asteroid"
 
 DotNotation{}.Parse(selectorString)
     // will result to:
-    []Field{
-        Field{Name: "near_earth_objects",                Type: FieldTypeName},
-        Field{Index: 12,                                 Type: FieldTypeIndex},
-        Field{Name: "is_potentially_hazardous_asteroid", Type: FieldTypeName},
+    []Key{
+        Key{Name: "near_earth_objects",                Type: KeyTypeField},
+        Key{Index: 12,                                 Type: KeyTypeIndex},
+        Key{Name: "is_potentially_hazardous_asteroid", Type: KeyTypeField},
     }
 
 
 // the Format function takes a []Field and formats it to the notation accordingly.
-DotNotation{}.Format(Name("near_earth_objects"), Index(12), Name("is_potentially_hazardous_asteroid"))
+DotNotation{}.Format(Field("near_earth_objects"), Index(12), Field("is_potentially_hazardous_asteroid"))
     // will result to:
     "near_earth_objects[12].is_potentially_hazardous_asteroid"
 ```
-The parse functionality aims to achieve the best possible performance with the least possible allocations. It iterates over the initial selector string after converting to rune slice as much as possible without allocating new buffers.
+The parse functionality aims to achieve the best possible performance with the least possible allocations. It iterates over the initial selector string, after converting it to rune slice, as much as possible without allocating new buffers.
+
+Terminology:
+  * **selector**: The `string` that describes a path (e.g. for dot notation `"near_earth_objects[12].is_potentially_hazardous_asteroid"`)
+  * **path**: A slice of `[]Key`. The result of parsing a selector.
+  * **Key**: A single descriptor of a path/selector that can be of type `Field`, indicating access to named fields, or `Index`, indicating access to arrays.
+  * **Notation**: an implementation that specifies a format in which can parse selectors to path (`[]Key`) and format path (`[]Key`) back to selector.
 
 
 ### 2) Traverser
+Traverser implements the functionality of accessing and retrieving a field on a data set (slice, map or struct) given a path (`[]Key`).
+
+The default implementation `DefaultTraverser` aims to use reflect as last resort by attempting first to cast to most common types (`map[string]any` in case of `Field` and `[]any` in case of `Index`) and direct access to them. If the dataset is not one of those types, it attempts to access using reflect. This happens sequently for each `Key` of the path (`[]Key`).
+
+
+### 3) Caster
+
 
 ___
 ## Special Mentions
