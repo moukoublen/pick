@@ -2,8 +2,8 @@ package pick
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
+	"io/fs"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -115,7 +115,7 @@ func TestString(t *testing.T) {
 //go:embed internal/testingx/testdata
 var testData embed.FS
 
-func loadTestData(t *testing.T, filename string, decodeInto any) {
+func loadTestData(t *testing.T, filename string) (fs.File, error) {
 	t.Helper()
 
 	path := filepath.Join("internal", "testingx", "testdata", filename)
@@ -124,17 +124,21 @@ func loadTestData(t *testing.T, filename string, decodeInto any) {
 		t.Fatalf("error during testdate file opening %s", err.Error())
 	}
 
-	if err := json.NewDecoder(f).Decode(decodeInto); err != nil {
-		t.Fatalf("error during testdate file decoding %s", err.Error())
-	}
+	return f, nil
 }
 
 func TestNasaDataFile(t *testing.T) {
 	t.Parallel()
-	inner := map[string]any{}
-	loadTestData(t, "nasa.json", &inner)
 
-	ob := Wrap(inner)
+	file, err := loadTestData(t, "nasa.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ob, err := WrapReaderJSON(file)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tests := []struct {
 		accessFn      any

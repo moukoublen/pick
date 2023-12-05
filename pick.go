@@ -1,7 +1,9 @@
 package pick
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 
 	"github.com/moukoublen/pick/cast"
 )
@@ -15,22 +17,27 @@ type Traverser interface {
 	Get(m any, selector []SelectorKey) (any, error)
 }
 
-func Wrap(data any) *Picker {
-	caster := cast.NewCaster()
-	formatter := DefaultSelectorFormat{}
-	return NewPicker(data, NewDefaultTraverser(caster), caster, formatter)
+func WrapJSON(js []byte) (*Picker, error) {
+	return WrapReaderJSON(bytes.NewReader(js))
 }
 
-func WrapJSON(js []byte) (*Picker, error) {
+func WrapReaderJSON(r io.Reader) (*Picker, error) {
+	d := json.NewDecoder(r)
+	return WrapDecoder(d)
+}
+
+func WrapDecoder(decoder interface{ Decode(destination any) error }) (*Picker, error) {
 	m := map[string]any{}
-	err := json.Unmarshal(js, &m)
-	if err != nil {
+	if err := decoder.Decode(&m); err != nil {
 		return nil, err
 	}
 
+	return Wrap(m), nil
+}
+
+func Wrap(data any) *Picker {
 	caster := cast.NewCaster()
-	formatter := DefaultSelectorFormat{}
-	return NewPicker(m, NewDefaultTraverser(caster), caster, formatter), nil
+	return NewPicker(data, NewDefaultTraverser(caster), caster, DefaultSelectorFormat{})
 }
 
 type Picker struct {
@@ -40,12 +47,12 @@ type Picker struct {
 	selectorFormat SelectorFormat
 }
 
-func NewPicker(inner any, t Traverser, c Caster, selectorFormat SelectorFormat) *Picker {
+func NewPicker(data any, t Traverser, c Caster, s SelectorFormat) *Picker {
 	return &Picker{
-		inner:          inner,
+		inner:          data,
 		traverser:      t,
 		caster:         c,
-		selectorFormat: selectorFormat,
+		selectorFormat: s,
 	}
 }
 
