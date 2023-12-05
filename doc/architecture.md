@@ -17,7 +17,7 @@ DotNotation{}.Parse(selectorString)
     }
 
 
-// the Format function takes a []Field and formats it to the notation accordingly.
+// the Format function takes a []Key and formats it to the notation accordingly.
 DotNotation{}.Format(Field("near_earth_objects"), Index(12), Field("is_potentially_hazardous_asteroid"))
     // will result to:
     "near_earth_objects[12].is_potentially_hazardous_asteroid"
