@@ -13,20 +13,56 @@
 ### Examples
 ```golang
 j := `{
-    "item": {
-        "one": 1,
-        "two": "ok"
-        "three": ["element 1", 2, "element 3"]
-    }
-    "float": 2.12
+"item": {
+    "one": 1,
+    "two": "ok",
+    "three": ["element 1", 2, "element 3"]
+},
+"float": 2.12
 }`
-p, _ := pick.WrapJSON([]byte(j))
+p, _ := WrapJSON([]byte(j))
 
-returned, err := p.String("item.three[1]") // returned: string("2")    err: nil
-returned, err := p.Uint64("item.three[1]") // returned: uint64("2")    err: nil
-returned, err := p.Int32("item.one")       // returned: int32(1)       err: nil
-returned, err := p.Float32("float")        // returned: float32(2.12)  err: nil
-returned, err := p.Int64("float")          // returned: int64(2)       err: ErrCastLostDecimals
+{
+    returned, err := p.String("item.three[1]")
+    assert(t, "2", returned, nil, err)
+}
+{
+    returned, err := p.Uint64("item.three[1]")
+    assert(t, uint64(2), returned, nil, err)
+}
+{
+    returned, err := p.Int32("item.one")
+    assert(t, int32(1), returned, nil, err)
+}
+{
+    returned, err := p.Float32("float")
+    assert(t, float32(2.12), returned, nil, err)
+}
+{
+    returned, err := p.Int64("float")
+    assert(t, int64(2), returned, cast.ErrCastLostDecimals, err)
+}
+```
+
+**`Map` function**
+```golang
+j2 := `{
+    "items": [
+        {"id": 34, "name": "test1"},
+        {"id": 35, "name": "test2"},
+        {"id": 36, "name": "test3"}
+    ]
+}`
+p2, _ := WrapJSON([]byte(j2))
+
+type Foo struct{ ID int16 }
+
+slice, err := Map(p2, "items", func(p *Picker) (Foo, error) {
+    f := Foo{}
+    f.ID, _ = p.Int16("id")
+    return f, nil
+})
+assert(t, []Foo{{ID: 34}, {ID: 35}, {ID: 36}}, slice, nil, err)
 ```
 
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.

@@ -2,6 +2,7 @@ package pick
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -209,5 +210,67 @@ func TestNasaDataFile(t *testing.T) {
 				t.Errorf("wrong returned value, expected %T(%#v) found %T(%#v)", tc.expectedValue, tc.expectedValue, got, got)
 			}
 		})
+	}
+}
+
+func TestReadme(t *testing.T) {
+	j := `{
+    "item": {
+        "one": 1,
+        "two": "ok",
+        "three": ["element 1", 2, "element 3"]
+    },
+    "float": 2.12
+}`
+	p, _ := WrapJSON([]byte(j))
+
+	{
+		returned, err := p.String("item.three[1]")
+		assert(t, "2", returned, nil, err)
+	}
+	{
+		returned, err := p.Uint64("item.three[1]")
+		assert(t, uint64(2), returned, nil, err)
+	}
+	{
+		returned, err := p.Int32("item.one")
+		assert(t, int32(1), returned, nil, err)
+	}
+	{
+		returned, err := p.Float32("float")
+		assert(t, float32(2.12), returned, nil, err)
+	}
+	{
+		returned, err := p.Int64("float")
+		assert(t, int64(2), returned, cast.ErrCastLostDecimals, err)
+	}
+
+	j2 := `{
+    "items": [
+        {"id": 34, "name": "test1"},
+        {"id": 35, "name": "test2"},
+        {"id": 36, "name": "test3"}
+    ]
+}`
+	p2, _ := WrapJSON([]byte(j2))
+
+	type Foo struct{ ID int16 }
+
+	slice, err := Map(p2, "items", func(p *Picker) (Foo, error) {
+		f := Foo{}
+		f.ID, _ = p.Int16("id")
+		return f, nil
+	})
+	assert(t, []Foo{{ID: 34}, {ID: 35}, {ID: 36}}, slice, nil, err)
+}
+
+func assert(t *testing.T, a, b any, errA, errB error) {
+	t.Helper()
+	if !reflect.DeepEqual(a, b) {
+		t.Errorf("expected %T(%#v) got %T(%#v)", a, a, b, b)
+	}
+
+	if !errors.Is(errB, errA) {
+		t.Errorf("expected %T(%#v) got %T(%#v)", errA, errA, errB, errB)
 	}
 }
