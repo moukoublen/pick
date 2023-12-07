@@ -8,13 +8,13 @@ import (
 	"github.com/moukoublen/pick/cast"
 )
 
-type SelectorFormat interface {
-	Parse(s string) ([]SelectorKey, error)
-	Format(s []SelectorKey) string
+type Notation interface {
+	Parse(selector string) ([]Key, error)
+	Format(path ...Key) string
 }
 
 type Traverser interface {
-	Get(m any, selector []SelectorKey) (any, error)
+	Retrieve(data any, path []Key) (any, error)
 }
 
 func WrapJSON(js []byte) (*Picker, error) {
@@ -37,22 +37,22 @@ func WrapDecoder(decoder interface{ Decode(destination any) error }) (*Picker, e
 
 func Wrap(data any) *Picker {
 	caster := cast.NewCaster()
-	return NewPicker(data, NewDefaultTraverser(caster), caster, DefaultSelectorFormat{})
+	return NewPicker(data, NewDefaultTraverser(caster), caster, DotNotation{})
 }
 
 type Picker struct {
-	inner          any
-	traverser      Traverser
-	caster         Caster
-	selectorFormat SelectorFormat
+	inner     any
+	traverser Traverser
+	caster    Caster
+	notation  Notation
 }
 
-func NewPicker(data any, t Traverser, c Caster, s SelectorFormat) *Picker {
+func NewPicker(data any, t Traverser, c Caster, n Notation) *Picker {
 	return &Picker{
-		inner:          data,
-		traverser:      t,
-		caster:         c,
-		selectorFormat: s,
+		inner:     data,
+		traverser: t,
+		caster:    c,
+		notation:  n,
 	}
 }
 
@@ -211,20 +211,20 @@ func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Outp
 }
 
 //nolint:ireturn
-func Pick[Output any](p *Picker, selector string, selectedCastFn func(any) (Output, error)) (Output, error) {
-	s, err := p.selectorFormat.Parse(selector)
+func Pick[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
+	s, err := p.notation.Parse(selector)
 	if err != nil {
 		var d Output
 		return d, err
 	}
 
-	item, err := p.traverser.Get(p.inner, s)
+	item, err := p.traverser.Retrieve(p.inner, s)
 	if err != nil {
 		var d Output
 		return d, err
 	}
 
-	casted, err := selectedCastFn(item)
+	casted, err := castFn(item)
 	return casted, err
 }
 

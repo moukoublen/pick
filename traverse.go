@@ -22,13 +22,9 @@ func NewDefaultTraverser(caster Caster) DefaultTraverser {
 	}
 }
 
-func (d DefaultTraverser) Get(o any, selector []SelectorKey) (any, error) {
-	return d.get(o, selector)
-}
-
-func (d DefaultTraverser) get(obj any, selector []SelectorKey) (any, error) {
-	if len(selector) == 0 {
-		return obj, nil
+func (d DefaultTraverser) Retrieve(data any, path []Key) (any, error) {
+	if len(path) == 0 {
+		return data, nil
 	}
 
 	var (
@@ -36,11 +32,11 @@ func (d DefaultTraverser) get(obj any, selector []SelectorKey) (any, error) {
 		err         error
 	)
 
-	currentItem = obj
-	for i, curSelector := range selector {
-		currentItem, err = d.getSingleSelector(currentItem, curSelector)
+	currentItem = data
+	for i, field := range path {
+		currentItem, err = d.accessKey(currentItem, field)
 		if err != nil {
-			return currentItem, newTraverseError("error trying to traverse", selector, i, err)
+			return currentItem, newTraverseError("error trying to traverse", path, i, err)
 		}
 	}
 
@@ -61,26 +57,26 @@ func (d DefaultTraverser) get(obj any, selector []SelectorKey) (any, error) {
 	return currentItem, nil
 }
 
-func (d DefaultTraverser) getSingleSelector(item any, selector SelectorKey) (any, error) {
+func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	// attempts to fast return without reflect.
-	switch selector.SelectorType {
-	case SelectorKeyTypeName:
+	switch key.Type {
+	case KeyTypeField:
 		// fast return if item is map[string]any.
 		if m, isMap := item.(map[string]any); isMap {
-			val, found := m[selector.Name]
+			val, found := m[key.Name]
 			if !found {
 				return val, ErrFieldNotFound
 			}
 			return val, nil
 		}
 
-	case SelectorKeyTypeIndex:
+	case KeyTypeIndex:
 		// fast return if item is []any.
 		if s, isSlice := item.([]any); isSlice {
-			if selector.Index >= len(s) || selector.Index < 0 {
+			if key.Index >= len(s) || key.Index < 0 {
 				return nil, ErrIndexOutOfRange
 			}
-			return s[selector.Index], nil
+			return s[key.Index], nil
 		}
 	}
 
@@ -91,25 +87,25 @@ func (d DefaultTraverser) getSingleSelector(item any, selector SelectorKey) (any
 	switch kindOfItem {
 	case reflect.Map:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessMap(typeOfItem, kindOfItem, valueOfItem, selector)
+		return d.accessMap(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Struct:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessStruct(typeOfItem, kindOfItem, valueOfItem, selector)
+		return d.accessStruct(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Array, reflect.Slice:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessSlice(typeOfItem, kindOfItem, valueOfItem, selector)
+		return d.accessSlice(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Pointer, reflect.Interface: // if pointer/interface get target and re-call.
 		derefItem := d.deref(item)
-		return d.getSingleSelector(derefItem, selector)
+		return d.accessKey(derefItem, key)
 	}
 
 	return nil, ErrFieldNotFound
 }
 
-func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, err error) {
+func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	kindOfMapKey := typeOfItem.Key().Kind()
@@ -117,19 +113,19 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	var resultValue reflect.Value
 
 	switch {
-	case kindOfMapKey == reflect.String && selector.IsName():
-		resultValue = valueOfItem.MapIndex(reflect.ValueOf(selector.Name))
-	case kindOfMapKey == reflect.String && selector.IsIndex():
-		k := strconv.Itoa(selector.Index)
+	case kindOfMapKey == reflect.String && key.IsField():
+		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key.Name))
+	case kindOfMapKey == reflect.String && key.IsIndex():
+		k := strconv.Itoa(key.Index)
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(k))
-	case selector.IsName():
-		key, err := d.caster.As(selector.Name, kindOfMapKey)
+	case key.IsField():
+		key, err := d.caster.As(key.Name, kindOfMapKey)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
-	case selector.IsIndex():
-		key, err := d.caster.As(selector.Index, kindOfMapKey)
+	case key.IsIndex():
+		key, err := d.caster.As(key.Index, kindOfMapKey)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
@@ -143,19 +139,19 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, err error) {
+func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
 
-	if selector.IsIndex() {
-		if selector.Index >= valueOfItem.Len() {
+	if key.IsIndex() {
+		if key.Index >= valueOfItem.Len() {
 			return nil, ErrIndexOutOfRange
 		}
-		resultValue = valueOfItem.Index(selector.Index)
-	} else if selector.IsName() {
+		resultValue = valueOfItem.Index(key.Index)
+	} else if key.IsField() {
 		// try to cast to int
-		i, err := d.caster.AsInt(selector.Name)
+		i, err := d.caster.AsInt(key.Name)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
@@ -172,15 +168,15 @@ func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfIte
 	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, selector SelectorKey) (returnValue any, err error) {
+func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
 
-	if selector.IsIndex() {
-		resultValue = valueOfItem.Field(selector.Index)
-	} else if selector.IsName() {
-		resultValue = valueOfItem.FieldByName(selector.Name)
+	if key.IsIndex() {
+		resultValue = valueOfItem.Field(key.Index)
+	} else if key.IsField() {
+		resultValue = valueOfItem.FieldByName(key.Name)
 	}
 
 	if !resultValue.IsValid() {
@@ -197,18 +193,18 @@ func (d DefaultTraverser) deref(item any) any {
 }
 
 type TraverseError struct {
-	inner         error
-	msg           string
-	selector      []SelectorKey
-	selectorIndex int
+	inner      error
+	msg        string
+	path       []Key
+	fieldIndex int
 }
 
-func newTraverseError(msg string, selector []SelectorKey, selectorIndex int, inner error) *TraverseError {
+func newTraverseError(msg string, path []Key, fieldIndex int, inner error) *TraverseError {
 	return &TraverseError{
-		msg:           msg,
-		selector:      selector,
-		selectorIndex: selectorIndex,
-		inner:         inner,
+		msg:        msg,
+		path:       path,
+		fieldIndex: fieldIndex,
+		inner:      inner,
 	}
 }
 
@@ -218,9 +214,9 @@ func (t *TraverseError) Unwrap() error {
 
 func (t *TraverseError) Error() string {
 	if t.inner != nil {
-		return fmt.Sprintf("selector: %s - %s: %s", formatErrorAt(t.selector, t.selectorIndex), t.msg, t.inner.Error())
+		return fmt.Sprintf("selector: %s - %s: %s", formatErrorAt(t.path, t.fieldIndex), t.msg, t.inner.Error())
 	}
-	return fmt.Sprintf("selector: %s - %s", formatErrorAt(t.selector, t.selectorIndex), t.msg)
+	return fmt.Sprintf("selector: %s - %s", formatErrorAt(t.path, t.fieldIndex), t.msg)
 }
 
 var (
@@ -228,9 +224,9 @@ var (
 	ErrKeyCast         = errors.New("key cast error")
 )
 
-func formatErrorAt(s []SelectorKey, idx int) string {
+func formatErrorAt(path []Key, idx int) string {
 	sb := strings.Builder{}
-	for i, c := range s {
+	for i, c := range path {
 		if c.IsIndex() {
 			if i == idx {
 				sb.WriteString(">")
@@ -238,7 +234,7 @@ func formatErrorAt(s []SelectorKey, idx int) string {
 			sb.WriteString(fmt.Sprintf("[%d]", c.Index))
 		} else {
 			if i > 0 {
-				sb.WriteRune(nameSeparator)
+				sb.WriteRune(fieldSeparator)
 			}
 			if i == idx {
 				sb.WriteString(">")
