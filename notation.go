@@ -90,6 +90,126 @@ func (d dotNotationFormatter) Format(path ...Key) string {
 	return sb.String()
 }
 
+type fsmState int
+
+const (
+	fsmStateReset fsmState = iota
+	fsmStateIndexStarted
+	fsmStateIndex
+	fsmStateIndexEnded
+	fsmStateFieldSeparated
+	fsmStateField
+)
+
+func (s fsmState) Input(received rune) (fsmState, error) {
+	switch s {
+	case fsmStateReset:
+		return s.stateReset(received)
+	case fsmStateIndexStarted:
+		return s.stateIndexStarted(received)
+	case fsmStateIndex:
+		return s.stateIndex(received)
+	case fsmStateIndexEnded:
+		return s.stateIndexEnded(received)
+	case fsmStateFieldSeparated:
+		return s.stateFieldSeparated(received)
+	case fsmStateField:
+		return s.stateField(received)
+	}
+
+	return s, ErrInvalidSelectorFormat
+}
+
+func (s fsmState) stateReset(received rune) (fsmState, error) {
+	switch {
+	case received == fieldSeparator:
+		return fsmStateFieldSeparated, nil
+
+	case received == indexSeparatorStart:
+		return fsmStateIndexStarted, nil
+
+	case unicode.IsControl(received):
+		return fsmStateReset, ErrInvalidSelectorFormatForName
+
+	default:
+		return fsmStateField, nil
+	}
+}
+
+func (s fsmState) stateIndexStarted(received rune) (fsmState, error) {
+	switch {
+	case unicode.IsNumber(received):
+		return fsmStateIndex, nil
+
+	default:
+		return fsmStateIndexStarted, ErrInvalidSelectorFormatForIndex
+	}
+}
+
+func (s fsmState) stateIndex(received rune) (fsmState, error) {
+	switch {
+	case unicode.IsNumber(received):
+		return fsmStateIndex, nil
+
+	case received == indexSeparatorEnd:
+		return fsmStateIndexEnded, nil
+
+	default:
+		return fsmStateIndex, ErrInvalidSelectorFormatForIndex
+	}
+}
+
+func (s fsmState) stateIndexEnded(received rune) (fsmState, error) {
+	switch received {
+	case fieldSeparator:
+		return fsmStateFieldSeparated, nil
+
+	case indexSeparatorStart:
+		return fsmStateIndexStarted, nil
+
+	default:
+		return fsmStateIndexEnded, ErrInvalidSelectorFormat
+	}
+}
+
+func (s fsmState) stateField(received rune) (fsmState, error) {
+	switch {
+	case received == fieldSeparator:
+		return fsmStateFieldSeparated, nil
+
+	case received == indexSeparatorStart:
+		return fsmStateIndexStarted, nil
+
+	case unicode.IsControl(received):
+		return fsmStateField, ErrInvalidSelectorFormatForName
+
+	default:
+		return fsmStateField, nil
+	}
+}
+
+func (s fsmState) stateFieldSeparated(received rune) (fsmState, error) {
+	switch {
+	case received == fieldSeparator:
+		return fsmStateFieldSeparated, ErrInvalidSelectorFormatForName
+
+	case unicode.IsControl(received):
+		return fsmStateField, ErrInvalidSelectorFormatForName
+
+	default:
+		return fsmStateField, nil
+	}
+}
+
+func (s fsmState) oneOf(states ...fsmState) bool {
+	for _, st := range states {
+		if s == st {
+			return true
+		}
+	}
+	return false
+}
+
 type dotNotationParser struct{}
 
 func (d dotNotationParser) Parse(selector string) ([]Key, error) {
@@ -97,130 +217,114 @@ func (d dotNotationParser) Parse(selector string) ([]Key, error) {
 		return nil, nil
 	}
 
-	runeSlice := []rune(selector)
+	keys := make([]Key, 0, d.estimatePathSize(selector))
 
-	path := make([]Key, 0, d.estimateCount(runeSlice))
+	var (
+		lastState  fsmState
+		tokenStart int
+	)
+	for i, r := range selector {
+		newState, err := lastState.Input(r)
+		if err != nil {
+			return nil, err
+		}
 
-	for idx := 0; idx < len(runeSlice); {
-		switch {
-		case runeSlice[idx] == indexSeparatorStart:
-			s, i, err := d.parseNextIndex(runeSlice, idx)
+		if lastState == newState {
+			continue
+		}
+
+		// <reset> -> <...> or <field separated> -> <...> or <index started> -> <...> : new token starts
+		if lastState.oneOf(fsmStateReset, fsmStateFieldSeparated, fsmStateIndexStarted) {
+			tokenStart = i
+			lastState = newState
+			continue
+		}
+
+		// <index> -> <index ended> : new index token
+		if lastState == fsmStateIndex && newState == fsmStateIndexEnded {
+			k, err := d.parseIndexToken(selector[tokenStart:i])
 			if err != nil {
 				return nil, err
 			}
-			path = append(path, s)
-			idx = i
+			keys = append(keys, k)
+			lastState = newState
+			continue
+		}
 
-		case runeSlice[idx] == fieldSeparator || idx == 0:
-			s, i, err := d.parseNextName(runeSlice, idx)
+		// <field> -> <field separated || index started> : new field token
+		if lastState == fsmStateField && newState.oneOf(fsmStateFieldSeparated, fsmStateIndexStarted) {
+			k, err := d.parseFieldToken(selector[tokenStart:i])
 			if err != nil {
 				return nil, err
 			}
-			path = append(path, s)
-			idx = i
-
-		default:
-			return nil, ErrInvalidFormat
+			keys = append(keys, k)
 		}
+
+		lastState = newState
 	}
 
-	return path, nil
+	if lastState.oneOf(fsmStateReset, fsmStateIndexEnded) {
+		return keys, nil
+	}
+
+	// ends with incomplete index, invalid.
+	if lastState.oneOf(fsmStateIndexStarted, fsmStateIndex) {
+		return nil, ErrInvalidSelectorFormatForIndex
+	}
+
+	// ends with incomplete field, invalid.
+	if lastState == fsmStateFieldSeparated {
+		return nil, ErrInvalidSelectorFormatForName
+	}
+
+	// ends with field, valid but must parse.
+	if lastState == fsmStateField {
+		k, err := d.parseFieldToken(selector[tokenStart:])
+		if err != nil {
+			return nil, err
+		}
+		keys = append(keys, k)
+
+		return keys, nil
+	}
+
+	return keys, nil
 }
 
-func (d dotNotationParser) estimateCount(rns []rune) int {
-	cnt := 0
-	for _, r := range rns {
-		switch r {
-		case fieldSeparator, indexSeparatorStart:
-			cnt++
+func (d dotNotationParser) estimatePathSize(selector string) int {
+	numOfKeys := 1
+	for _, r := range selector {
+		if r == fieldSeparator || r == indexSeparatorStart {
+			numOfKeys++
 		}
 	}
-	cnt++
 
-	return cnt
+	return numOfKeys
 }
 
-func (d dotNotationParser) parseNextName(rns []rune, idx int) (Key, int, error) {
-	if idx >= len(rns) {
-		return Key{}, len(rns), ErrInvalidFormatForName
-	}
-
-	// omit single leading dot if any.
-	if rns[idx] == fieldSeparator {
-		idx++
-		if idx >= len(rns) {
-			return Key{}, len(rns), ErrInvalidFormatForName
-		}
-	}
-
-	var i int
-	for i = idx; i < len(rns); i++ {
-		if rns[i] == indexSeparatorStart || rns[i] == fieldSeparator {
-			break
-		}
-		if !d.isRuneValidForName(rns[i]) {
-			return Key{}, i, ErrInvalidFormatForName
-		}
-	}
-
-	// this is the case of continues keys e.g. `..` or `.[`.
-	if i == idx {
-		return Key{}, i, ErrInvalidFormatForName
-	}
-
-	return Key{Type: KeyTypeField, Name: string(rns[idx:i])}, i, nil
-}
-
-func (d dotNotationParser) isRuneValidForName(r rune) bool {
-	return !unicode.IsControl(r) && r != fieldSeparator && r != indexSeparatorStart && r != indexSeparatorEnd
-}
-
-func (d dotNotationParser) parseNextIndex(rns []rune, idx int) (Key, int, error) {
-	if idx >= len(rns)-2 {
-		return Key{}, len(rns), ErrInvalidFormatForIndex
-	}
-
-	// should start with '[' character.
-	if rns[idx] != indexSeparatorStart {
-		return Key{}, idx, ErrInvalidFormatForIndex
-	}
-
-	// omit the leading '[' character.
-	idx++
-
-	var i int
-	for i = idx; i < len(rns); i++ {
-		if rns[i] == indexSeparatorEnd {
-			break
-		}
-		if !d.isRuneValidForIndex(rns[i]) {
-			return Key{}, i, ErrInvalidFormatForIndex
-		}
-	}
-
-	if i == idx || rns[i] != indexSeparatorEnd {
-		return Key{}, 0, ErrInvalidFormatForIndex
-	}
-
-	str := string(rns[idx:i])
-
-	n, err := strconv.ParseUint(str, 10, 64)
+func (d dotNotationParser) parseIndexToken(token string) (Key, error) {
+	k := Key{Type: KeyTypeIndex}
+	i, err := strconv.ParseUint(token, 10, 64)
 	if err != nil {
-		return Key{}, 0, err
+		return Key{}, errors.Join(ErrInvalidSelectorFormatForName, err)
 	}
+	k.Index = int(i)
 
-	// omit the trailing ']' character.
-	i++
-
-	return Key{Type: KeyTypeIndex, Index: int(n)}, i, nil
+	return k, nil
 }
 
-func (d dotNotationParser) isRuneValidForIndex(r rune) bool {
-	return unicode.IsNumber(r)
+func (d dotNotationParser) parseFieldToken(token string) (Key, error) {
+	k := Key{Type: KeyTypeField}
+	if len(token) == 0 {
+		return k, ErrInvalidSelectorFormatForName
+	}
+
+	k.Name = token
+	return k, nil
 }
 
 var (
-	ErrInvalidFormatForName  = errors.New("invalid format for name key")
-	ErrInvalidFormatForIndex = errors.New("invalid format for index key")
-	ErrInvalidFormat         = errors.New("invalid selector format")
+	ErrInvalidSelectorFormatForName  = errors.New("invalid format for name key")
+	ErrInvalidSelectorFormatForIndex = errors.New("invalid format for index key")
+	ErrInvalidSelectorFormat         = errors.New("invalid selector format")
 )

@@ -8,7 +8,7 @@ import (
 )
 
 func TestDotNotation(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	tests := []struct {
 		expectedError     func(*testing.T, error)
@@ -69,17 +69,22 @@ func TestDotNotation(t *testing.T) {
 		{
 			input:         "[154].asd[",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidFormatForIndex),
+			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
+		},
+		{
+			input:         "[154].asd.",
+			expectedPath:  []Key(nil),
+			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
 		},
 		{
 			input:         "[154].asd[r]",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidFormatForIndex),
+			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
 		},
 		{
 			input:         "..",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidFormatForName),
+			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
 		},
 	}
 
@@ -88,7 +93,7 @@ func TestDotNotation(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			got, err := dsf.Parse(tc.input)
 			testingx.AssertError(t, tc.expectedError, err)
 			if !reflect.DeepEqual(tc.expectedPath, got) {
