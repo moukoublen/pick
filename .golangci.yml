@@ -51,6 +51,16 @@ issues:
 
 linters-settings:
 
+  # https://golangci-lint.run/usage/linters/#unused
+  unused:
+    field-writes-are-uses: false
+    post-statements-are-reads: false
+    exported-is-used: true
+    exported-fields-are-used: false
+    parameters-are-used: true
+    local-variables-are-used: false
+    generated-is-used: true
+
   # https://golangci-lint.run/usage/linters/#tagliatelle
   tagliatelle:
     case:
