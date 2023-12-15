@@ -153,9 +153,73 @@ func TestMixedTypesMap(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{
+			AccessFn:      p.Path().Int64Slice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []int64{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().StringSlice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []string{"10", "11", "12", "13", "14"},
+			ExpectedError: nil,
+		},
+		{
 			AccessFn:      p.Path().Bool,
 			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
 			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
+// TestMixedTypesMapBools makes an extensive test in Bool/BoolSlice functions using all APIs.
+func TestMixedTypesMapBool(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Path().Bool,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
+			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Bool,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
+			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().BoolSlice,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(5)},
+			ExpectedValue: []bool{true, true, true, false, true, true},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().BoolSlice,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(5)},
+			ExpectedValue: []bool{true, true, true, false, true, true},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.BoolSlice,
+			Selector:      "sliceOfAnyComplex[5]",
+			ExpectedValue: []bool{true, true, true, false, true, true},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.BoolSlice,
+			Selector:      "sliceOfAnyComplex[5]",
+			ExpectedValue: []bool{true, true, true, false, true, true},
 			ExpectedError: nil,
 		},
 	}
