@@ -2,6 +2,7 @@ package testingx
 
 import (
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -34,6 +35,23 @@ func ExpectedErrorStringContains(s string) func(*testing.T, error) {
 		t.Helper()
 		if !strings.Contains(err.Error(), s) {
 			t.Errorf("error expected to contain \n%s\n but is \n%s\n", s, err.Error())
+		}
+	}
+}
+
+func AssertCompareFn(t *testing.T) func(subject, expected any) {
+	t.Helper()
+	return func(subject, expected any) {
+		t.Helper()
+		if expectedErr, is := expected.(error); is {
+			gotErr, _ := subject.(error)
+			if errors.Is(expectedErr, gotErr) {
+				t.Errorf("expected error %T(%#v) got %T(%#v)", expectedErr, expectedErr, gotErr, gotErr)
+			}
+			return
+		}
+		if !reflect.DeepEqual(subject, expected) {
+			t.Errorf("expected %T(%#v) got %T(%#v)", expected, expected, subject, subject)
 		}
 	}
 }

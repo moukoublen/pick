@@ -47,7 +47,9 @@ linters:
 issues:
   exclude-rules:
     - path: _test\.go
-      linters: [gochecknoglobals, goconst, goerr113]
+      linters: [gochecknoglobals, goconst, goerr113, gomnd]
+    - path: internal/tesatingx/testdata
+      linters: [gochecknoglobals, goconst, goerr113, gomnd]
 
 linters-settings:
 

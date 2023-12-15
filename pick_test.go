@@ -2,7 +2,6 @@ package pick
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/testingx/testdata"
 )
 
 //go:embed internal/testingx/testdata
@@ -113,20 +113,43 @@ func TestNasaDataFile(t *testing.T) {
 	}
 }
 
-func TestReadme(t *testing.T) {
-	assert := func(subject, expected any) {
-		t.Helper()
-		if expectedErr, is := expected.(error); is {
-			gotErr, _ := subject.(error)
-			if errors.Is(expectedErr, gotErr) {
-				t.Errorf("expected error %T(%#v) got %T(%#v)", expectedErr, expectedErr, gotErr, gotErr)
-			}
-			return
-		}
-		if !reflect.DeepEqual(subject, expected) {
-			t.Errorf("expected %T(%#v) got %T(%#v)", expected, expected, subject, subject)
-		}
+func TestMixedTypesMap(t *testing.T) {
+	t.Parallel()
+
+	ob := Wrap(testdata.MixedTypesMap)
+
+	assert := testingx.AssertCompareFn(t)
+
+	assert(ob.PathMust().String(Field("sliceOfAnyComplex"), Index(2), Field("C")), "asdf")
+	assert(ob.PathMust().Int16(Field("sliceOfAnyComplex"), Index(2), Field("B")), int16(12))
+	{
+		got, err := ob.Path().String(Field("sliceOfAnyComplex"), Index(3))
+		testingx.AssertError(t, testingx.ExpectedErrorIs(cast.ErrInvalidType), err)
+		assert(got, "")
 	}
+	{
+		got, err := ob.Path().String(Field("sliceOfAnyComplex"), Index(3), Field("key2"))
+		assert(nil, err)
+		assert(got, "value2")
+	}
+	{
+		got, err := ob.Path().String(Field("sliceOfAnyComplex"), Index(3), Field("key2"))
+		assert(nil, err)
+		assert(got, "value2")
+	}
+	assert(ob.PathMust().Int64(Field("int32Number")), int64(12954))
+	assert(ob.PathMust().Int32(Field("int32Number")), int32(12954))
+	assert(ob.PathMust().Int16(Field("int32Number")), int16(12954))
+	assert(ob.PathMust().Int8(Field("int32Number")), int8(-102))
+	{
+		got, err := ob.Path().Int8(Field("int32Number"))
+		testingx.AssertError(t, testingx.ExpectedErrorIs(cast.ErrCastOverFlow), err)
+		assert(got, int8(-102))
+	}
+}
+
+func TestReadme(t *testing.T) {
+	assert := testingx.AssertCompareFn(t)
 
 	j := `{
     "item": {
