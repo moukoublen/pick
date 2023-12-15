@@ -4,6 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"math"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -439,6 +440,7 @@ func TestMixedTypesMapFloat64(t *testing.T) {
 	}
 }
 
+// TestMixedTypesMapFloat32 makes an extensive test in Float32/Float32Slice functions using all APIs.
 func TestMixedTypesMapFloat32(t *testing.T) {
 	t.Parallel()
 
@@ -492,6 +494,71 @@ func TestMixedTypesMapFloat32(t *testing.T) {
 			AccessFn:      p.PathMust().Float32Slice,
 			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
 			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
+// TestMixedTypesMapByte makes an extensive test in Byte/ByteSlice functions using all APIs.
+func TestMixedTypesMapByte(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Byte,
+			Selector:      "sliceOfAnyComplex[7]",
+			ExpectedValue: byte(math.MaxUint8),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Byte,
+			Selector:      "sliceOfAnyComplex[7]",
+			ExpectedValue: byte(math.MaxUint8),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Byte,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(7)},
+			ExpectedValue: byte(math.MaxUint8),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Byte,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(7)},
+			ExpectedValue: byte(math.MaxUint8),
+			ExpectedError: nil,
+		},
+
+		{
+			AccessFn:      p.ByteSlice,
+			Selector:      "pointerMapStringAny.int32Slice",
+			ExpectedValue: []byte{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().ByteSlice,
+			Selector:      "pointerMapStringAny.int32Slice",
+			ExpectedValue: []byte{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().ByteSlice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []byte{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().ByteSlice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []byte{10, 11, 12, 13, 14},
 			ExpectedError: nil,
 		},
 	}
