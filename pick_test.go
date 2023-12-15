@@ -179,13 +179,25 @@ func TestMixedTypesMap(t *testing.T) {
 	}
 }
 
-// TestMixedTypesMapBools makes an extensive test in Bool/BoolSlice functions using all APIs.
+// TestMixedTypesMapBool makes an extensive test in Bool/BoolSlice functions using all APIs.
 func TestMixedTypesMapBool(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
 
 	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Bool,
+			Selector:      "pointerMapStringAny.fieldBool",
+			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Bool,
+			Selector:      "pointerMapStringAny.fieldBool",
+			ExpectedValue: true,
+			ExpectedError: nil,
+		},
 		{
 			AccessFn:      p.Path().Bool,
 			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
@@ -196,6 +208,19 @@ func TestMixedTypesMapBool(t *testing.T) {
 			AccessFn:      p.PathMust().Bool,
 			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
 			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+
+		{
+			AccessFn:      p.BoolSlice,
+			Selector:      "sliceOfAnyComplex[5]",
+			ExpectedValue: []bool{true, true, true, false, true, true},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().BoolSlice,
+			Selector:      "sliceOfAnyComplex[5]",
+			ExpectedValue: []bool{true, true, true, false, true, true},
 			ExpectedError: nil,
 		},
 		{
@@ -210,16 +235,69 @@ func TestMixedTypesMapBool(t *testing.T) {
 			ExpectedValue: []bool{true, true, true, false, true, true},
 			ExpectedError: nil,
 		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
+// TestMixedTypesMapString makes an extensive test in String/StringSlice functions using all APIs.
+func TestMixedTypesMapString(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
 		{
-			AccessFn:      p.BoolSlice,
-			Selector:      "sliceOfAnyComplex[5]",
-			ExpectedValue: []bool{true, true, true, false, true, true},
+			AccessFn:      p.String,
+			Selector:      "sliceOfAnyComplex[1]",
+			ExpectedValue: "stringElement",
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.BoolSlice,
-			Selector:      "sliceOfAnyComplex[5]",
-			ExpectedValue: []bool{true, true, true, false, true, true},
+			AccessFn:      p.Must().String,
+			Selector:      "sliceOfAnyComplex[1]",
+			ExpectedValue: "stringElement",
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().String,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(1)},
+			ExpectedValue: "stringElement",
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().String,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(1)},
+			ExpectedValue: "stringElement",
+			ExpectedError: nil,
+		},
+
+		{
+			AccessFn:      p.StringSlice,
+			Selector:      "sliceOfAnyComplex[6]",
+			ExpectedValue: []string{"abc", "def", "ghi"},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().StringSlice,
+			Selector:      "sliceOfAnyComplex[6]",
+			ExpectedValue: []string{"abc", "def", "ghi"},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().StringSlice,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(6)},
+			ExpectedValue: []string{"abc", "def", "ghi"},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().StringSlice,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(6)},
+			ExpectedValue: []string{"abc", "def", "ghi"},
 			ExpectedError: nil,
 		},
 	}

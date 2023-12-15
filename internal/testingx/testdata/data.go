@@ -19,6 +19,7 @@ var MixedTypesMap = map[string]any{
 		},
 		ptr(uint32(5)),
 		[]bool{true, true, true, false, true, true},
+		[]string{"abc", "def", "ghi"},
 	},
 	"pointerMapStringAny": &map[string]any{
 		"fieldBool":  true,
