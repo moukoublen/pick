@@ -214,6 +214,20 @@ func TestNasaDataFile(t *testing.T) {
 }
 
 func TestReadme(t *testing.T) {
+	assert := func(subject, expected any) {
+		t.Helper()
+		if expectedErr, is := expected.(error); is {
+			gotErr, _ := subject.(error)
+			if errors.Is(expectedErr, gotErr) {
+				t.Errorf("expected error %T(%#v) got %T(%#v)", expectedErr, expectedErr, gotErr, gotErr)
+			}
+			return
+		}
+		if !reflect.DeepEqual(subject, expected) {
+			t.Errorf("expected %T(%#v) got %T(%#v)", expected, expected, subject, subject)
+		}
+	}
+
 	j := `{
     "item": {
         "one": 1,
@@ -222,29 +236,33 @@ func TestReadme(t *testing.T) {
     },
     "float": 2.12
 }`
-	p, _ := WrapJSON([]byte(j))
+	p1, _ := WrapJSON([]byte(j))
+	{
+		got, err := p1.String("item.three[1]")
+		assert(got, "2")
+		assert(err, nil)
+	}
+	{
+		got, err := p1.Uint64("item.three[1]")
+		assert(got, uint64(2))
+		assert(err, nil)
+	}
+	{
+		got := p1.Must().Int32("item.one")
+		assert(got, int32(1))
+	}
+	{
+		got, err := p1.Float32("float")
+		assert(got, float32(2.12))
+		assert(err, nil)
+	}
+	{
+		got, err := p1.Int64("float")
+		assert(got, int64(2))
+		assert(err, cast.ErrCastLostDecimals)
+	}
 
-	{
-		returned, err := p.String("item.three[1]")
-		assert(t, "2", returned, nil, err)
-	}
-	{
-		returned, err := p.Uint64("item.three[1]")
-		assert(t, uint64(2), returned, nil, err)
-	}
-	{
-		returned, err := p.Int32("item.one")
-		assert(t, int32(1), returned, nil, err)
-	}
-	{
-		returned, err := p.Float32("float")
-		assert(t, float32(2.12), returned, nil, err)
-	}
-	{
-		returned, err := p.Int64("float")
-		assert(t, int64(2), returned, cast.ErrCastLostDecimals, err)
-	}
-
+	// Map examples
 	j2 := `{
     "items": [
         {"id": 34, "name": "test1"},
@@ -256,21 +274,42 @@ func TestReadme(t *testing.T) {
 
 	type Foo struct{ ID int16 }
 
-	slice, err := Map(p2, "items", func(p *Picker) (Foo, error) {
-		f := Foo{}
-		f.ID, _ = p.Int16("id")
-		return f, nil
-	})
-	assert(t, []Foo{{ID: 34}, {ID: 35}, {ID: 36}}, slice, nil, err)
-}
-
-func assert(t *testing.T, a, b any, errA, errB error) {
-	t.Helper()
-	if !reflect.DeepEqual(a, b) {
-		t.Errorf("expected %T(%#v) got %T(%#v)", a, a, b, b)
+	{
+		got, err := Map(p2, "items", func(p *Picker) (Foo, error) {
+			f := Foo{}
+			f.ID, _ = p.Int16("id")
+			return f, nil
+		})
+		assert(got, []Foo{{ID: 34}, {ID: 35}, {ID: 36}})
+		assert(err, nil)
 	}
 
-	if !errors.Is(errB, errA) {
-		t.Errorf("expected %T(%#v) got %T(%#v)", errA, errA, errB, errB)
+	// Selector Must API
+	assert(p1.Must().String("item.three[1]"), "2")
+	assert(p1.Must().Uint64("item.three[1]"), uint64(2))
+	sm := p1.Must()
+	assert(sm.Int32("item.one"), int32(1))
+	assert(sm.Float32("float"), float32(2.12))
+	assert(sm.Int64("float"), int64(2))
+
+	// Path API
+	{
+		got, err := p1.Path().String(Field("item"), Field("three"), Index(1))
+		assert(got, "2")
+		assert(err, nil)
 	}
+	pa := p1.Path()
+	{
+		got, err := pa.Uint64(Field("item"), Field("three"), Index(1))
+		assert(got, uint64(2))
+		assert(err, nil)
+	}
+	{
+		got, err := pa.Int32(Field("item"), Field("one"))
+		assert(got, int32(1))
+		assert(err, nil)
+	}
+	pm := p1.PathMust()
+	assert(pm.Float32(Field("float")), float32(2.12))
+	assert(pm.Int64(Field("float")), int64(2))
 }
