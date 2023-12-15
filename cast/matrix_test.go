@@ -52,8 +52,8 @@ func TestCasterMatrix(t *testing.T) {
 	exUint32 := newCastTestExpectedResultConstructor[uint32](reflect.DeepEqual)
 	exUint64 := newCastTestExpectedResultConstructor[uint64](reflect.DeepEqual)
 	exUint := newCastTestExpectedResultConstructor[uint](reflect.DeepEqual)
-	exFloat32 := newCastTestExpectedResultConstructor[float32](compareFloat32)
-	exFloat64 := newCastTestExpectedResultConstructor[float64](compareFloat64)
+	exFloat32 := newCastTestExpectedResultConstructor[float32](testingx.CompareFloat32)
+	exFloat64 := newCastTestExpectedResultConstructor[float64](testingx.CompareFloat64)
 	exString := newCastTestExpectedResultConstructor[string](reflect.DeepEqual)
 	exBool := newCastTestExpectedResultConstructor[bool](reflect.DeepEqual)
 

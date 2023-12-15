@@ -3,7 +3,6 @@ package cast
 import (
 	"errors"
 	"fmt"
-	"math"
 	"reflect"
 	"testing"
 
@@ -117,36 +116,4 @@ func TestCastAttemptUsingReflect(t *testing.T) {
 		}
 		casterTest[map[string]string](t, testCases, tryCastUsingReflect[map[string]string])
 	})
-}
-
-func compareFloat64(a, b any) bool {
-	fx := a.(float64) //nolint:forcetypeassert
-	fy := b.(float64) //nolint:forcetypeassert
-
-	if math.IsInf(fx, 1) && math.IsInf(fy, 1) {
-		return true
-	}
-
-	if math.IsInf(fx, -1) && math.IsInf(fy, -1) {
-		return true
-	}
-
-	const thr = float64(1e-10)
-	return math.Abs(fx-fy) <= thr
-}
-
-func compareFloat32(a, b any) bool {
-	fx := a.(float32) //nolint:forcetypeassert
-	fy := b.(float32) //nolint:forcetypeassert
-
-	if math.IsInf(float64(fx), 1) && math.IsInf(float64(fy), 1) {
-		return true
-	}
-
-	if math.IsInf(float64(fx), -1) && math.IsInf(float64(fy), -1) {
-		return true
-	}
-
-	const thr = float64(1e-7)
-	return math.Abs(float64(fx-fy)) <= thr
 }

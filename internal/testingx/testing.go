@@ -3,6 +3,7 @@ package testingx
 import (
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -58,7 +59,26 @@ func AssertEqual(t *testing.T, subject, expected any) {
 		}
 		return
 	}
-	if !reflect.DeepEqual(subject, expected) {
+
+	compFn := reflect.DeepEqual
+
+	{
+		_, gotIsFloat := subject.(float32)
+		_, expectedIsFloat := subject.(float32)
+		if gotIsFloat && expectedIsFloat {
+			compFn = CompareFloat32
+		}
+	}
+
+	{
+		_, gotIsFloat := subject.(float64)
+		_, expectedIsFloat := subject.(float64)
+		if gotIsFloat && expectedIsFloat {
+			compFn = CompareFloat64
+		}
+	}
+
+	if !compFn(subject, expected) {
 		t.Errorf("Assert error:\nExpected:%s\nGot     : %s", Format(expected), Format(subject))
 	}
 }
@@ -79,4 +99,36 @@ func Format(a any) string {
 	}
 
 	return fmt.Sprintf("%T(%s)", a, val)
+}
+
+func CompareFloat64(a, b any) bool {
+	fx := a.(float64) //nolint:forcetypeassert
+	fy := b.(float64) //nolint:forcetypeassert
+
+	if math.IsInf(fx, 1) && math.IsInf(fy, 1) {
+		return true
+	}
+
+	if math.IsInf(fx, -1) && math.IsInf(fy, -1) {
+		return true
+	}
+
+	const thr = float64(1e-10)
+	return math.Abs(fx-fy) <= thr
+}
+
+func CompareFloat32(a, b any) bool {
+	fx := a.(float32) //nolint:forcetypeassert
+	fy := b.(float32) //nolint:forcetypeassert
+
+	if math.IsInf(float64(fx), 1) && math.IsInf(float64(fy), 1) {
+		return true
+	}
+
+	if math.IsInf(float64(fx), -1) && math.IsInf(float64(fy), -1) {
+		return true
+	}
+
+	const thr = float64(1e-7)
+	return math.Abs(float64(fx-fy)) <= thr
 }
