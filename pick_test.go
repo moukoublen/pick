@@ -309,6 +309,71 @@ func TestMixedTypesMapString(t *testing.T) {
 	}
 }
 
+// TestMixedTypesMapInt64 makes an extensive test in Int64/Int64Slice functions using all APIs.
+func TestMixedTypesMapInt64(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Int64,
+			Selector:      "sliceOfAnyComplex[0]",
+			ExpectedValue: int64(2),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Int64,
+			Selector:      "sliceOfAnyComplex[0]",
+			ExpectedValue: int64(2),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int64,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			ExpectedValue: int64(2),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Int64,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			ExpectedValue: int64(2),
+			ExpectedError: nil,
+		},
+
+		{
+			AccessFn:      p.Int64Slice,
+			Selector:      "pointerMapStringAny.int32Slice",
+			ExpectedValue: []int64{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Int64Slice,
+			Selector:      "pointerMapStringAny.int32Slice",
+			ExpectedValue: []int64{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int64Slice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []int64{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Int64Slice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []int64{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
 //go:embed internal/testingx/testdata
 var testData embed.FS
 
