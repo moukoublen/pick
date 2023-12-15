@@ -60,22 +60,19 @@ func AssertEqual(t *testing.T, subject, expected any) {
 		return
 	}
 
-	compFn := reflect.DeepEqual
+	var compFn func(any, any) bool
 
-	{
-		_, gotIsFloat := subject.(float32)
-		_, expectedIsFloat := subject.(float32)
-		if gotIsFloat && expectedIsFloat {
-			compFn = CompareFloat32
-		}
-	}
-
-	{
-		_, gotIsFloat := subject.(float64)
-		_, expectedIsFloat := subject.(float64)
-		if gotIsFloat && expectedIsFloat {
-			compFn = CompareFloat64
-		}
+	switch expected.(type) {
+	case float32:
+		compFn = CompareFloat32
+	case float64:
+		compFn = CompareFloat64
+	case []float32:
+		compFn = CompareFloat32Slices
+	case []float64:
+		compFn = CompareFloat64Slices
+	default:
+		compFn = reflect.DeepEqual
 	}
 
 	if !compFn(subject, expected) {
@@ -131,4 +128,38 @@ func CompareFloat32(a, b any) bool {
 
 	const thr = float64(1e-7)
 	return math.Abs(float64(fx-fy)) <= thr
+}
+
+func CompareFloat64Slices(a, b any) bool {
+	fx := a.([]float64) //nolint:forcetypeassert
+	fy := b.([]float64) //nolint:forcetypeassert
+
+	if len(fx) != len(fy) {
+		return false
+	}
+
+	for i := range fx {
+		if !CompareFloat64(fx[i], fy[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func CompareFloat32Slices(a, b any) bool {
+	fx := a.([]float32) //nolint:forcetypeassert
+	fy := b.([]float32) //nolint:forcetypeassert
+
+	if len(fx) != len(fy) {
+		return false
+	}
+
+	for i := range fx {
+		if !CompareFloat32(fx[i], fy[i]) {
+			return false
+		}
+	}
+
+	return true
 }

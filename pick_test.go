@@ -439,6 +439,70 @@ func TestMixedTypesMapFloat64(t *testing.T) {
 	}
 }
 
+func TestMixedTypesMapFloat32(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Float32,
+			Selector:      "pointerMapStringAny.float64Slice[3]",
+			ExpectedValue: float32(0.4),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Float32,
+			Selector:      "pointerMapStringAny.float64Slice[3]",
+			ExpectedValue: float32(0.4),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Float32,
+			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice"), Index(3)},
+			ExpectedValue: float32(0.4),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Float32,
+			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice"), Index(3)},
+			ExpectedValue: float32(0.4),
+			ExpectedError: nil,
+		},
+
+		{
+			AccessFn:      p.Float32Slice,
+			Selector:      "pointerMapStringAny.float64Slice",
+			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Float32Slice,
+			Selector:      "pointerMapStringAny.float64Slice",
+			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Float32Slice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
+			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Float32Slice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
+			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
 //go:embed internal/testingx/testdata
 var testData embed.FS
 
