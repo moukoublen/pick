@@ -2,7 +2,9 @@ package testingx
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -39,19 +41,42 @@ func ExpectedErrorStringContains(s string) func(*testing.T, error) {
 	}
 }
 
-func AssertCompareFn(t *testing.T) func(subject, expected any) {
+func AssertEqualFn(t *testing.T) func(subject, expected any) {
 	t.Helper()
 	return func(subject, expected any) {
 		t.Helper()
-		if expectedErr, is := expected.(error); is {
-			gotErr, _ := subject.(error)
-			if errors.Is(expectedErr, gotErr) {
-				t.Errorf("expected error %T(%#v) got %T(%#v)", expectedErr, expectedErr, gotErr, gotErr)
-			}
-			return
-		}
-		if !reflect.DeepEqual(subject, expected) {
-			t.Errorf("expected %T(%#v) got %T(%#v)", expected, expected, subject, subject)
-		}
+		AssertEqual(t, subject, expected)
 	}
+}
+
+func AssertEqual(t *testing.T, subject, expected any) {
+	t.Helper()
+	if expectedErr, is := expected.(error); is {
+		gotErr, _ := subject.(error)
+		if errors.Is(expectedErr, gotErr) {
+			t.Errorf("expected error: %s got: %s", Format(expectedErr), Format(gotErr))
+		}
+		return
+	}
+	if !reflect.DeepEqual(subject, expected) {
+		t.Errorf("Assert error:\nExpected:%s\nGot     : %s", Format(expected), Format(subject))
+	}
+}
+
+func Format(a any) string {
+	var val string
+	switch t := a.(type) {
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		val = fmt.Sprintf("%d", a)
+	case string:
+		val = t
+	case bool:
+		val = strconv.FormatBool(t)
+	case float32, float64:
+		val = fmt.Sprintf("%g", a)
+	default:
+		val = fmt.Sprintf("%v", a)
+	}
+
+	return fmt.Sprintf("%T(%s)", a, val)
 }

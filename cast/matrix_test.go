@@ -6,7 +6,6 @@ import (
 	"math"
 	"reflect"
 	"runtime"
-	"strconv"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
@@ -680,25 +679,7 @@ func matrixSubTest[Output any](input any, castFn func(any) (Output, error), subT
 		}
 
 		if !compareFn(subTestCase.expectedResult, got) {
-			t.Errorf("wrong returned value.\nExpected: %s\nGot     : %s", format(subTestCase.expectedResult), format(got))
+			t.Errorf("wrong returned value.\nExpected: %s\nGot     : %s", testingx.Format(subTestCase.expectedResult), testingx.Format(got))
 		}
 	}
-}
-
-func format(a any) string {
-	var val string
-	switch t := a.(type) {
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		val = fmt.Sprintf("%d", a)
-	case string:
-		val = t
-	case bool:
-		val = strconv.FormatBool(t)
-	case float32, float64:
-		val = fmt.Sprintf("%g", a)
-	default:
-		val = fmt.Sprintf("%v", a)
-	}
-
-	return fmt.Sprintf("%T(%s)", a, val)
 }

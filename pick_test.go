@@ -13,6 +13,160 @@ import (
 	"github.com/moukoublen/pick/internal/testingx/testdata"
 )
 
+type PickerTestCase struct {
+	AccessFn      any
+	Selector      string // selector or path
+	Path          []Key  // selector or path
+	ExpectedValue any
+	ExpectedError func(*testing.T, error)
+}
+
+func (tc *PickerTestCase) Name() string {
+	if tc.Selector != "" {
+		return fmt.Sprintf("selector(%s)", tc.Selector)
+	}
+
+	return fmt.Sprintf("path(%s)", DotNotation{}.Format(tc.Path...))
+}
+
+func (tc *PickerTestCase) Run(t *testing.T) {
+	t.Helper()
+	t.Parallel()
+	pickerFunctionCall := reflect.ValueOf(tc.AccessFn)
+
+	var args []reflect.Value
+	if tc.Selector != "" {
+		args = []reflect.Value{reflect.ValueOf(tc.Selector)}
+	} else {
+		for _, k := range tc.Path {
+			args = append(args, reflect.ValueOf(k))
+		}
+	}
+
+	returned := pickerFunctionCall.Call(args)
+
+	got := returned[0].Interface()
+	testingx.AssertEqual(t, got, tc.ExpectedValue)
+
+	var receivedError error
+	if len(returned) > 1 {
+		gotErr := returned[1].Interface()
+		receivedError, _ = gotErr.(error)
+	}
+	testingx.AssertError(t, tc.ExpectedError, receivedError)
+}
+
+func TestMixedTypesMap(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Path().String,
+			Path:          []Key{Field("stringField")},
+			ExpectedValue: "abcd",
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			ExpectedValue: int(2),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int8,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			ExpectedValue: int8(2),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int16,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			ExpectedValue: int16(2),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int32,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(4)},
+			ExpectedValue: int32(5),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int64,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(4)},
+			ExpectedValue: int64(5),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int64,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(3), Field("key3")},
+			ExpectedValue: int64(6565),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int32,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(2), Field("A")},
+			ExpectedValue: int32(3),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Int32,
+			Path:          []Key{Field("sliceOfAnyComplex"), Index(2), Field("Foo")},
+			ExpectedValue: int32(0),
+			ExpectedError: testingx.ExpectedErrorIs(ErrFieldNotFound),
+		},
+		{
+			AccessFn:      p.Path().Uint,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			ExpectedValue: uint(6),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Uint8,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			ExpectedValue: uint8(6),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Uint16,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			ExpectedValue: uint16(6),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Uint32,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			ExpectedValue: uint32(6),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Uint64,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			ExpectedValue: uint64(6),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Uint64Slice,
+			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			ExpectedValue: []uint64{10, 11, 12, 13, 14},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Bool,
+			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
+			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
 //go:embed internal/testingx/testdata
 var testData embed.FS
 
@@ -113,46 +267,8 @@ func TestNasaDataFile(t *testing.T) {
 	}
 }
 
-func TestMixedTypesMap(t *testing.T) {
-	t.Parallel()
-
-	ob := Wrap(testdata.MixedTypesMap)
-
-	assert := testingx.AssertCompareFn(t)
-
-	assert(ob.PathMust().String(Field("sliceOfAnyComplex"), Index(2), Field("C")), "asdf")
-	assert(ob.PathMust().Int16(Field("sliceOfAnyComplex"), Index(2), Field("B")), int16(12))
-	{
-		got, err := ob.Path().String(Field("sliceOfAnyComplex"), Index(3))
-		testingx.AssertError(t, testingx.ExpectedErrorIs(cast.ErrInvalidType), err)
-		assert(got, "")
-	}
-	{
-		got, err := ob.Path().String(Field("sliceOfAnyComplex"), Index(3), Field("key2"))
-		assert(nil, err)
-		assert(got, "value2")
-	}
-	{
-		got, err := ob.Path().String(Field("sliceOfAnyComplex"), Index(3), Field("key2"))
-		assert(nil, err)
-		assert(got, "value2")
-	}
-	assert(ob.PathMust().Int64(Field("int32Number")), int64(12954))
-	assert(ob.PathMust().Int32(Field("int32Number")), int32(12954))
-	assert(ob.PathMust().Int16(Field("int32Number")), int16(12954))
-	assert(ob.PathMust().Int8(Field("int32Number")), int8(-102))
-	{
-		got, err := ob.Path().Int8(Field("int32Number"))
-		testingx.AssertError(t, testingx.ExpectedErrorIs(cast.ErrCastOverFlow), err)
-		assert(got, int8(-102))
-	}
-	assert(ob.PathMust().Uint32(Field("sliceOfAnyComplex"), Index(4)), uint32(555))
-	assert(ob.PathMust().Bool(Field("pointerMapStringAny"), Field("fieldBool")), true)
-	assert(ob.PathMust().Byte(Field("pointerMapStringAny"), Field("fieldByte")), byte('.'))
-}
-
 func TestReadme(t *testing.T) {
-	assert := testingx.AssertCompareFn(t)
+	assert := testingx.AssertEqualFn(t)
 
 	j := `{
     "item": {
