@@ -146,6 +146,9 @@ func TestMixedTypesMap(t *testing.T) {
 		testingx.AssertError(t, testingx.ExpectedErrorIs(cast.ErrCastOverFlow), err)
 		assert(got, int8(-102))
 	}
+	assert(ob.PathMust().Uint32(Field("sliceOfAnyComplex"), Index(4)), uint32(555))
+	assert(ob.PathMust().Bool(Field("pointerMapStringAny"), Field("fieldBool")), true)
+	assert(ob.PathMust().Byte(Field("pointerMapStringAny"), Field("fieldByte")), byte('.'))
 }
 
 func TestReadme(t *testing.T) {

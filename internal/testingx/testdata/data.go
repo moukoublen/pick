@@ -16,9 +16,15 @@ var MixedTypesMap = map[string]any{
 			"key1": "value1",
 			"key2": "value2",
 		},
+		ptr(uint32(555)),
 	},
-	"mapStringAny": map[string]any{},
-	"float32":      float32(12.12),
-	"bool":         true,
-	"int32Number":  int32(12954),
+	"pointerMapStringAny": &map[string]any{
+		"fieldBool": true,
+		"fieldByte": '.',
+	},
+	"float32":     float32(12.12),
+	"bool":        true,
+	"int32Number": int32(12954),
 }
+
+func ptr[T any](x T) *T { return &x }
