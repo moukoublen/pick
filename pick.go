@@ -69,128 +69,128 @@ func (p *Picker) PathMust(onErr ...func(string, error)) PathMustAPI {
 }
 
 func (p *Picker) Bool(selector string) (bool, error) {
-	return Pick(p, selector, p.caster.AsBool)
+	return Selector(p, selector, p.caster.AsBool)
 }
 
 func (p *Picker) BoolSlice(selector string) ([]bool, error) {
-	return Pick(p, selector, p.caster.AsBoolSlice)
+	return Selector(p, selector, p.caster.AsBoolSlice)
 }
 
 func (p *Picker) Byte(selector string) (byte, error) {
-	return Pick(p, selector, p.caster.AsByte)
+	return Selector(p, selector, p.caster.AsByte)
 }
 
 func (p *Picker) ByteSlice(selector string) ([]byte, error) {
-	return Pick(p, selector, p.caster.AsByteSlice)
+	return Selector(p, selector, p.caster.AsByteSlice)
 }
 
 func (p *Picker) Float32(selector string) (float32, error) {
-	return Pick(p, selector, p.caster.AsFloat32)
+	return Selector(p, selector, p.caster.AsFloat32)
 }
 
 func (p *Picker) Float32Slice(selector string) ([]float32, error) {
-	return Pick(p, selector, p.caster.AsFloat32Slice)
+	return Selector(p, selector, p.caster.AsFloat32Slice)
 }
 
 func (p *Picker) Float64(selector string) (float64, error) {
-	return Pick(p, selector, p.caster.AsFloat64)
+	return Selector(p, selector, p.caster.AsFloat64)
 }
 
 func (p *Picker) Float64Slice(selector string) ([]float64, error) {
-	return Pick(p, selector, p.caster.AsFloat64Slice)
+	return Selector(p, selector, p.caster.AsFloat64Slice)
 }
 
 func (p *Picker) Int(selector string) (int, error) {
-	return Pick(p, selector, p.caster.AsInt)
+	return Selector(p, selector, p.caster.AsInt)
 }
 
 func (p *Picker) IntSlice(selector string) ([]int, error) {
-	return Pick(p, selector, p.caster.AsIntSlice)
+	return Selector(p, selector, p.caster.AsIntSlice)
 }
 
 func (p *Picker) Int8(selector string) (int8, error) {
-	return Pick(p, selector, p.caster.AsInt8)
+	return Selector(p, selector, p.caster.AsInt8)
 }
 
 func (p *Picker) Int8Slice(selector string) ([]int8, error) {
-	return Pick(p, selector, p.caster.AsInt8Slice)
+	return Selector(p, selector, p.caster.AsInt8Slice)
 }
 
 func (p *Picker) Int16(selector string) (int16, error) {
-	return Pick(p, selector, p.caster.AsInt16)
+	return Selector(p, selector, p.caster.AsInt16)
 }
 
 func (p *Picker) Int16Slice(selector string) ([]int16, error) {
-	return Pick(p, selector, p.caster.AsInt16Slice)
+	return Selector(p, selector, p.caster.AsInt16Slice)
 }
 
 func (p *Picker) Int32(selector string) (int32, error) {
-	return Pick(p, selector, p.caster.AsInt32)
+	return Selector(p, selector, p.caster.AsInt32)
 }
 
 func (p *Picker) Int32Slice(selector string) ([]int32, error) {
-	return Pick(p, selector, p.caster.AsInt32Slice)
+	return Selector(p, selector, p.caster.AsInt32Slice)
 }
 
 func (p *Picker) Int64(selector string) (int64, error) {
-	return Pick(p, selector, p.caster.AsInt64)
+	return Selector(p, selector, p.caster.AsInt64)
 }
 
 func (p *Picker) Int64Slice(selector string) ([]int64, error) {
-	return Pick(p, selector, p.caster.AsInt64Slice)
+	return Selector(p, selector, p.caster.AsInt64Slice)
 }
 
 func (p *Picker) Uint(selector string) (uint, error) {
-	return Pick(p, selector, p.caster.AsUint)
+	return Selector(p, selector, p.caster.AsUint)
 }
 
 func (p *Picker) UintSlice(selector string) ([]uint, error) {
-	return Pick(p, selector, p.caster.AsUintSlice)
+	return Selector(p, selector, p.caster.AsUintSlice)
 }
 
 func (p *Picker) Uint8(selector string) (uint8, error) {
-	return Pick(p, selector, p.caster.AsUint8)
+	return Selector(p, selector, p.caster.AsUint8)
 }
 
 func (p *Picker) Uint8Slice(selector string) ([]uint8, error) {
-	return Pick(p, selector, p.caster.AsUint8Slice)
+	return Selector(p, selector, p.caster.AsUint8Slice)
 }
 
 func (p *Picker) Uint16(selector string) (uint16, error) {
-	return Pick(p, selector, p.caster.AsUint16)
+	return Selector(p, selector, p.caster.AsUint16)
 }
 
 func (p *Picker) Uint16Slice(selector string) ([]uint16, error) {
-	return Pick(p, selector, p.caster.AsUint16Slice)
+	return Selector(p, selector, p.caster.AsUint16Slice)
 }
 
 func (p *Picker) Uint32(selector string) (uint32, error) {
-	return Pick(p, selector, p.caster.AsUint32)
+	return Selector(p, selector, p.caster.AsUint32)
 }
 
 func (p *Picker) Uint32Slice(selector string) ([]uint32, error) {
-	return Pick(p, selector, p.caster.AsUint32Slice)
+	return Selector(p, selector, p.caster.AsUint32Slice)
 }
 
 func (p *Picker) Uint64(selector string) (uint64, error) {
-	return Pick(p, selector, p.caster.AsUint64)
+	return Selector(p, selector, p.caster.AsUint64)
 }
 
 func (p *Picker) Uint64Slice(selector string) ([]uint64, error) {
-	return Pick(p, selector, p.caster.AsUint64Slice)
+	return Selector(p, selector, p.caster.AsUint64Slice)
 }
 
 func (p *Picker) String(selector string) (string, error) {
-	return Pick(p, selector, p.caster.AsString)
+	return Selector(p, selector, p.caster.AsString)
 }
 
 func (p *Picker) StringSlice(selector string) ([]string, error) {
-	return Pick(p, selector, p.caster.AsStringSlice)
+	return Selector(p, selector, p.caster.AsStringSlice)
 }
 
 //nolint:ireturn
 func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, error)) ([]Output, error) {
-	item, err := Pick(p, selector, omitCast)
+	item, err := Selector(p, selector, omitCast)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, er
 
 //nolint:ireturn
 func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Output, error)) ([]Output, error) {
-	item, err := Pick(p, selector, omitCast)
+	item, err := Selector(p, selector, omitCast)
 	if err != nil {
 		return nil, err
 	}
@@ -223,18 +223,18 @@ func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Outp
 }
 
 //nolint:ireturn
-func Pick[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
+func Selector[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
 	path, err := p.notation.Parse(selector)
 	if err != nil {
 		var d Output
 		return d, err
 	}
 
-	return PickPath(p, path, castFn)
+	return Path(p, path, castFn)
 }
 
 //nolint:ireturn
-func PickPath[Output any](p *Picker, path []Key, castFn func(any) (Output, error)) (Output, error) {
+func Path[Output any](p *Picker, path []Key, castFn func(any) (Output, error)) (Output, error) {
 	item, err := p.traverser.Retrieve(p.data, path)
 	if err != nil {
 		var d Output
@@ -246,8 +246,8 @@ func PickPath[Output any](p *Picker, path []Key, castFn func(any) (Output, error
 }
 
 //nolint:ireturn
-func PickMust[Output any](p *Picker, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
-	casted, err := Pick(p, selector, castFn)
+func SelectorMust[Output any](p *Picker, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	casted, err := Selector(p, selector, castFn)
 	if err != nil {
 		for _, fn := range onErr {
 			fn(selector, err)
@@ -257,8 +257,8 @@ func PickMust[Output any](p *Picker, selector string, castFn func(any) (Output, 
 }
 
 //nolint:ireturn
-func PickPathMust[Output any](p *Picker, path []Key, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
-	casted, err := PickPath(p, path, castFn)
+func PathMust[Output any](p *Picker, path []Key, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	casted, err := Path(p, path, castFn)
 	if err != nil {
 		selector := p.notation.Format(path...)
 		for _, fn := range onErr {
