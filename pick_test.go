@@ -35,12 +35,12 @@ func (tc *PickerTestCase) Run(t *testing.T) {
 	pickerFunctionCall := reflect.ValueOf(tc.AccessFn)
 
 	var args []reflect.Value
-	if tc.Selector != "" {
-		args = []reflect.Value{reflect.ValueOf(tc.Selector)}
-	} else {
+	if len(tc.Path) > 0 {
 		for _, k := range tc.Path {
 			args = append(args, reflect.ValueOf(k))
 		}
+	} else {
+		args = []reflect.Value{reflect.ValueOf(tc.Selector)}
 	}
 
 	returned := pickerFunctionCall.Call(args)
@@ -187,83 +187,92 @@ func TestNasaDataFile(t *testing.T) {
 
 	file := loadTestData(t, "nasa.json")
 
-	ob, err := WrapReaderJSON(file)
+	p, err := WrapReaderJSON(file)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	tests := []struct {
-		accessFn      any
-		expectedValue any
-		expectedError func(*testing.T, error)
-		selector      string
-	}{
+	tests := []PickerTestCase{
 		{
-			selector:      "near_earth_objects.2023-01-01[4].neo_reference_id",
-			accessFn:      ob.String,
-			expectedValue: "3703782",
-			expectedError: nil,
+			AccessFn:      p.String,
+			Selector:      "near_earth_objects.2023-01-01[4].neo_reference_id",
+			ExpectedValue: "3703782",
+			ExpectedError: nil,
 		},
 		{
-			selector:      "near_earth_objects.2023-01-01[5].estimated_diameter.meters.estimated_diameter_max",
-			accessFn:      ob.Float64,
-			expectedValue: float64(68.2401509401),
-			expectedError: nil,
+			AccessFn:      p.Float32,
+			Selector:      "near_earth_objects.2023-01-01[5].estimated_diameter.meters.estimated_diameter_max",
+			ExpectedValue: float32(68.2401509401),
+			ExpectedError: nil,
 		},
 		{
-			selector:      "near_earth_objects.2023-01-01[5].id",
-			accessFn:      ob.Uint64,
-			expectedValue: uint64(3720918),
-			expectedError: nil,
+			AccessFn:      p.Float64,
+			Selector:      "near_earth_objects.2023-01-01[5].estimated_diameter.meters.estimated_diameter_max",
+			ExpectedValue: float64(68.2401509401),
+			ExpectedError: nil,
 		},
 		{
-			selector:      "near_earth_objects.2023-01-01[1].is_potentially_hazardous_asteroid",
-			accessFn:      ob.Bool,
-			expectedValue: true,
-			expectedError: nil,
+			AccessFn:      p.Uint8,
+			Selector:      "near_earth_objects.2023-01-01[5].id",
+			ExpectedValue: uint8(214),
+			ExpectedError: testingx.ExpectedErrorIs(cast.ErrCastOverFlow),
 		},
 		{
-			selector: "near_earth_objects.2023-01-01",
-			accessFn: func(selector string) ([]string, error) {
-				return Map(ob, selector, func(p *Picker) (string, error) { return p.String("id") })
+			AccessFn:      p.Uint16,
+			Selector:      "near_earth_objects.2023-01-01[5].id",
+			ExpectedValue: uint16(50902),
+			ExpectedError: testingx.ExpectedErrorIs(cast.ErrCastOverFlow),
+		},
+		{
+			AccessFn:      p.Uint32,
+			Selector:      "near_earth_objects.2023-01-01[5].id",
+			ExpectedValue: uint32(3720918),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Uint64,
+			Selector:      "near_earth_objects.2023-01-01[5].id",
+			ExpectedValue: uint64(3720918),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Uint,
+			Selector:      "near_earth_objects.2023-01-01[5].id",
+			ExpectedValue: uint(3720918),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Bool,
+			Selector:      "near_earth_objects.2023-01-01[1].is_potentially_hazardous_asteroid",
+			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: func(selector string) ([]string, error) {
+				return Map(p, selector, func(p *Picker) (string, error) { return p.String("id") })
 			},
-			expectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
-			expectedError: nil,
+			Selector:      "near_earth_objects.2023-01-01",
+			ExpectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
+			ExpectedError: nil,
 		},
 		{
-			selector: "",
-			accessFn: func(selector string) ([]string, error) {
-				return FlatMap(ob, "near_earth_objects.2023-01-01", func(p *Picker) ([]string, error) {
+			AccessFn: func(selector string) ([]string, error) {
+				return FlatMap(p, "near_earth_objects.2023-01-01", func(p *Picker) ([]string, error) {
 					return Map(p, "close_approach_data", func(p *Picker) (string, error) {
 						return p.String("close_approach_date_full")
 					})
 				})
 			},
-			expectedValue: []string{"2023-Jan-01 18:44", "2023-Jan-01 19:45", "2023-Jan-01 20:20", "2023-Jan-01 13:38", "2023-Jan-01 00:59", "2023-Jan-01 17:33", "2023-Jan-01 09:38", "2023-Jan-01 09:49", "2023-Jan-01 03:04", "2023-Jan-01 22:31", "2023-Jan-01 04:15", "2023-Jan-01 02:10", "2023-Jan-01 10:47", "2023-Jan-01 16:46", "2023-Jan-01 12:02", "2023-Jan-01 16:03", "2023-Jan-01 13:39", "2023-Jan-01 12:50", "2023-Jan-01 20:45", "2023-Jan-01 07:16", "2023-Jan-01 01:15", "2023-Jan-01 23:21", "2023-Jan-01 09:02"},
-			expectedError: nil,
+			Selector:      "",
+			ExpectedValue: []string{"2023-Jan-01 18:44", "2023-Jan-01 19:45", "2023-Jan-01 20:20", "2023-Jan-01 13:38", "2023-Jan-01 00:59", "2023-Jan-01 17:33", "2023-Jan-01 09:38", "2023-Jan-01 09:49", "2023-Jan-01 03:04", "2023-Jan-01 22:31", "2023-Jan-01 04:15", "2023-Jan-01 02:10", "2023-Jan-01 10:47", "2023-Jan-01 16:46", "2023-Jan-01 12:02", "2023-Jan-01 16:03", "2023-Jan-01 13:39", "2023-Jan-01 12:50", "2023-Jan-01 20:45", "2023-Jan-01 07:16", "2023-Jan-01 01:15", "2023-Jan-01 23:21", "2023-Jan-01 09:02"},
+			ExpectedError: nil,
 		},
 	}
 
 	for idx, tc := range tests {
 		tc := tc
-		name := fmt.Sprintf("%d_%s", idx, tc.selector)
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			val := reflect.ValueOf(tc.accessFn)
-			ret := val.Call([]reflect.Value{reflect.ValueOf(tc.selector)})
-			got := ret[0].Interface()
-
-			var err error
-			if i := ret[1].Interface(); i != nil {
-				err, _ = i.(error)
-			}
-
-			testingx.AssertError(t, tc.expectedError, err)
-
-			if !reflect.DeepEqual(tc.expectedValue, got) {
-				t.Errorf("wrong returned value, expected %T(%#v) found %T(%#v)", tc.expectedValue, tc.expectedValue, got, got)
-			}
-		})
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
 	}
 }
 
