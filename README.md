@@ -13,34 +13,37 @@
 ### Examples
 ```golang
 j := `{
-"item": {
-    "one": 1,
-    "two": "ok",
-    "three": ["element 1", 2, "element 3"]
-},
-"float": 2.12
+    "item": {
+        "one": 1,
+        "two": "ok",
+        "three": ["element 1", 2, "element 3"]
+    },
+    "float": 2.12
 }`
-p, _ := WrapJSON([]byte(j))
-
+p1, _ := WrapJSON([]byte(j))
 {
-    returned, err := p.String("item.three[1]")
-    assert(t, "2", returned, nil, err)
+    got, err := p1.String("item.three[1]")
+    assert(got, "2")
+    assert(err, nil)
 }
 {
-    returned, err := p.Uint64("item.three[1]")
-    assert(t, uint64(2), returned, nil, err)
+    got, err := p1.Uint64("item.three[1]")
+    assert(got, uint64(2))
+    assert(err, nil)
 }
 {
-    returned, err := p.Int32("item.one")
-    assert(t, int32(1), returned, nil, err)
+    got := p1.Must().Int32("item.one")
+    assert(got, int32(1))
 }
 {
-    returned, err := p.Float32("float")
-    assert(t, float32(2.12), returned, nil, err)
+    got, err := p1.Float32("float")
+    assert(got, float32(2.12))
+    assert(err, nil)
 }
 {
-    returned, err := p.Int64("float")
-    assert(t, int64(2), returned, cast.ErrCastLostDecimals, err)
+    got, err := p1.Int64("float")
+    assert(got, int64(2))
+    assert(err, cast.ErrCastLostDecimals)
 }
 ```
 
@@ -57,12 +60,59 @@ p2, _ := WrapJSON([]byte(j2))
 
 type Foo struct{ ID int16 }
 
-slice, err := Map(p2, "items", func(p *Picker) (Foo, error) {
-    f := Foo{}
-    f.ID, _ = p.Int16("id")
-    return f, nil
-})
-assert(t, []Foo{{ID: 34}, {ID: 35}, {ID: 36}}, slice, nil, err)
+{
+    got, err := Map(p2, "items", func(p *Picker) (Foo, error) {
+        f := Foo{}
+        f.ID, _ = p.Int16("id")
+        return f, nil
+    })
+    assert(got, []Foo{{ID: 34}, {ID: 35}, {ID: 36}})
+    assert(err, nil)
+}
+```
+
+### API
+As an `API` we define a set of functions like this `Bool(T) Output` for all basic types. There are 4 different APIs for a picker.
+
+  * Selector API, the default one that is embedded in `Picker`. E.g. `Bool(selector string) (bool, error)`
+  * Selector Must API that can be accessed by calling `Picker.Must()`. E.g. `Bool(selector string) bool`
+  * Path API that can be accessed by calling `Picker.Path()`. E.g. `Bool(path []Key) (bool, error)`
+  * Path Must API that can be accessed by calling `Picker.PathMust()`. E.g. `Bool(path []Key) bool`
+
+
+Examples:
+
+**Selector Must API**
+```golang
+assert(p1.Must().String("item.three[1]"), "2")
+assert(p1.Must().Uint64("item.three[1]"), uint64(2))
+sm := p1.Must()
+assert(sm.Int32("item.one"), int32(1))
+assert(sm.Float32("float"), float32(2.12))
+assert(sm.Int64("float"), int64(2))
+```
+
+**Path API**
+```golang
+{
+    got, err := p1.Path().String(Field("item"), Field("three"), Index(1))
+    assert(got, "2")
+    assert(err, nil)
+}
+pa := p1.Path()
+{
+    got, err := pa.Uint64(Field("item"), Field("three"), Index(1))
+    assert(got, uint64(2))
+    assert(err, nil)
+}
+{
+    got, err := pa.Int32(Field("item"), Field("one"))
+    assert(got, int32(1))
+    assert(err, nil)
+}
+pm := p1.PathMust()
+assert(pm.Float32(Field("float")), float32(2.12))
+assert(pm.Int64(Field("float")), int64(2))
 ```
 
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.

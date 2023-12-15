@@ -1,6 +1,7 @@
 package cast
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"reflect"
@@ -12,13 +13,13 @@ import (
 
 type castTestExpectedResult[Output any] struct {
 	expectedResult Output
-	compareFn      func(x, y any) bool
+	compareFn      func(any, any) bool
 	errorAssertFn  func(*testing.T, error)
 	shouldRun      bool
 }
 
 // constructors for shortage.
-func newCastTestExpectedResultConstructor[Output any](compareFn func(x, y any) bool) func(result Output, errorAssertFn func(*testing.T, error)) castTestExpectedResult[Output] {
+func newCastTestExpectedResultConstructor[Output any](compareFn func(any, any) bool) func(result Output, errorAssertFn func(*testing.T, error)) castTestExpectedResult[Output] {
 	return func(result Output, errorAssertFn func(*testing.T, error)) castTestExpectedResult[Output] {
 		return castTestExpectedResult[Output]{expectedResult: result, compareFn: compareFn, errorAssertFn: errorAssertFn, shouldRun: true}
 	}
@@ -33,6 +34,7 @@ func splitBasedOnArch[Output any](for32bit, for64bit castTestExpectedResult[Outp
 	}
 }
 
+//nolint:maintidx
 func TestCasterMatrix(t *testing.T) {
 	t.Parallel()
 
@@ -50,9 +52,10 @@ func TestCasterMatrix(t *testing.T) {
 	exUint32 := newCastTestExpectedResultConstructor[uint32](reflect.DeepEqual)
 	exUint64 := newCastTestExpectedResultConstructor[uint64](reflect.DeepEqual)
 	exUint := newCastTestExpectedResultConstructor[uint](reflect.DeepEqual)
-	exFloat32 := newCastTestExpectedResultConstructor[float32](compareFloat32)
-	exFloat64 := newCastTestExpectedResultConstructor[float64](compareFloat64)
+	exFloat32 := newCastTestExpectedResultConstructor[float32](testingx.CompareFloat32)
+	exFloat64 := newCastTestExpectedResultConstructor[float64](testingx.CompareFloat64)
 	exString := newCastTestExpectedResultConstructor[string](reflect.DeepEqual)
+	exBool := newCastTestExpectedResultConstructor[bool](reflect.DeepEqual)
 
 	testCases := []struct {
 		Input any
@@ -71,6 +74,7 @@ func TestCasterMatrix(t *testing.T) {
 		Float32 castTestExpectedResult[float32]
 		Float64 castTestExpectedResult[float64]
 		String  castTestExpectedResult[string]
+		Bool    castTestExpectedResult[bool]
 	}{
 		{
 			Input:   nil,
@@ -88,6 +92,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(0, nil),
 			Float64: exFloat64(0, nil),
 			String:  exString("", nil),
+			Bool:    exBool(false, nil),
 		},
 		{
 			Input:   int8(12),
@@ -105,6 +110,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(12, nil),
 			Float64: exFloat64(12, nil),
 			String:  exString("12", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int8(math.MaxInt8),
@@ -122,6 +128,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(127, nil),
 			Float64: exFloat64(127, nil),
 			String:  exString("127", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int8(math.MinInt8),
@@ -139,6 +146,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(-128, nil),
 			Float64: exFloat64(-128, nil),
 			String:  exString("-128", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int16(math.MaxInt16),
@@ -156,6 +164,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(32767, nil),
 			Float64: exFloat64(32767, nil),
 			String:  exString("32767", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int16(math.MinInt16),
@@ -173,6 +182,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(-32768, nil),
 			Float64: exFloat64(-32768, nil),
 			String:  exString("-32768", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int32(math.MaxInt32),
@@ -190,6 +200,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(2147483647, nil),
 			Float64: exFloat64(2147483647, nil),
 			String:  exString("2147483647", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int32(math.MinInt32),
@@ -207,6 +218,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(-2147483648, nil),
 			Float64: exFloat64(-2147483648, nil),
 			String:  exString("-2147483648", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int64(math.MaxInt64),
@@ -224,6 +236,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(math.MaxInt64, nil),
 			Float64: exFloat64(math.MaxInt64, nil),
 			String:  exString("9223372036854775807", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   int64(math.MinInt64),
@@ -241,6 +254,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(math.MinInt64, nil),
 			Float64: exFloat64(math.MinInt64, nil),
 			String:  exString("-9223372036854775808", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   uint8(math.MaxUint8),
@@ -258,6 +272,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(math.MaxUint8, nil),
 			Float64: exFloat64(math.MaxUint8, nil),
 			String:  exString("255", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   uint16(math.MaxUint16),
@@ -275,6 +290,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(math.MaxUint16, nil),
 			Float64: exFloat64(math.MaxUint16, nil),
 			String:  exString("65535", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   uint32(math.MaxUint32),
@@ -292,6 +308,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(math.MaxUint32, nil),
 			Float64: exFloat64(math.MaxUint32, nil),
 			String:  exString("4294967295", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   uint64(math.MaxUint64),
@@ -309,6 +326,25 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(math.MaxUint64, nil),
 			Float64: exFloat64(math.MaxUint64, nil),
 			String:  exString("18446744073709551615", nil),
+			Bool:    exBool(true, nil),
+		},
+		{
+			Input:   byte(12),
+			Byte:    exByte(12, nil),
+			Int8:    exInt8(12, nil),
+			Int16:   exInt16(12, nil),
+			Int32:   exInt32(12, nil),
+			Int64:   exInt64(12, nil),
+			Int:     exInt(12, nil),
+			Uint8:   exUInt8(12, nil),
+			Uint16:  exUint16(12, nil),
+			Uint32:  exUint32(12, nil),
+			Uint64:  exUint64(12, nil),
+			Uint:    exUint(12, nil),
+			Float32: exFloat32(12, nil),
+			Float64: exFloat64(12, nil),
+			String:  exString("12", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   "123",
@@ -326,6 +362,25 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(123, nil),
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
+		},
+		{
+			Input:   []byte("123"),
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(123, nil),
+			Int16:   exInt16(123, nil),
+			Int32:   exInt32(123, nil),
+			Int64:   exInt64(123, nil),
+			Int:     exInt(123, nil),
+			Uint8:   exUInt8(123, nil),
+			Uint16:  exUint16(123, nil),
+			Uint32:  exUint32(123, nil),
+			Uint64:  exUint64(123, nil),
+			Uint:    exUint(123, nil),
+			Float32: exFloat32(123, nil),
+			Float64: exFloat64(123, nil),
+			String:  exString("123", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
 		},
 		{
 			Input:   "123.321",
@@ -343,6 +398,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(123.321, nil),
 			Float64: exFloat64(123.321, nil),
 			String:  exString("123.321", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
 		},
 		{
 			Input:   stringAlias("23"),
@@ -360,6 +416,43 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(23, nil),
 			Float64: exFloat64(23, nil),
 			String:  exString("23", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
+		},
+		{
+			Input:   "just string",
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(0, expectMalformedSyntax),
+			Int16:   exInt16(0, expectMalformedSyntax),
+			Int32:   exInt32(0, expectMalformedSyntax),
+			Int64:   exInt64(0, expectMalformedSyntax),
+			Int:     exInt(0, expectMalformedSyntax),
+			Uint8:   exUInt8(0, expectMalformedSyntax),
+			Uint16:  exUint16(0, expectMalformedSyntax),
+			Uint32:  exUint32(0, expectMalformedSyntax),
+			Uint64:  exUint64(0, expectMalformedSyntax),
+			Uint:    exUint(0, expectMalformedSyntax),
+			Float32: exFloat32(0, expectMalformedSyntax),
+			Float64: exFloat64(0, expectMalformedSyntax),
+			String:  exString("just string", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
+		},
+		{
+			Input:   []byte("byte slice"),
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(0, expectMalformedSyntax),
+			Int16:   exInt16(0, expectMalformedSyntax),
+			Int32:   exInt32(0, expectMalformedSyntax),
+			Int64:   exInt64(0, expectMalformedSyntax),
+			Int:     exInt(0, expectMalformedSyntax),
+			Uint8:   exUInt8(0, expectMalformedSyntax),
+			Uint16:  exUint16(0, expectMalformedSyntax),
+			Uint32:  exUint32(0, expectMalformedSyntax),
+			Uint64:  exUint64(0, expectMalformedSyntax),
+			Uint:    exUint(0, expectMalformedSyntax),
+			Float32: exFloat32(0, expectMalformedSyntax),
+			Float64: exFloat64(0, expectMalformedSyntax),
+			String:  exString("byte slice", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
 		},
 		{
 			Input:   float32(123),
@@ -377,6 +470,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(123, nil),
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   float64(123),
@@ -394,6 +488,25 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(123, nil),
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
+			Bool:    exBool(true, nil),
+		},
+		{
+			Input:   float64(math.MaxFloat64),
+			Byte:    exByte(0, expectLostDecimals),
+			Int8:    exInt8(0, expectLostDecimals),
+			Int16:   exInt16(0, expectLostDecimals),
+			Int32:   exInt32(0, expectLostDecimals),
+			Int64:   exInt64(-9223372036854775808, expectLostDecimals),
+			Int:     splitBasedOnArch(exInt(math.MaxInt, expectLostDecimals), exInt(-9223372036854775808, expectLostDecimals)),
+			Uint8:   exUInt8(0, expectLostDecimals),
+			Uint16:  exUint16(0, expectLostDecimals),
+			Uint32:  exUint32(0, expectLostDecimals),
+			Uint64:  exUint64(9223372036854775808, expectLostDecimals),
+			Uint:    splitBasedOnArch(exUint(0, expectLostDecimals), exUint(9223372036854775808, expectLostDecimals)),
+			Float32: exFloat32(float32(math.Inf(1)), expectOverFlowError),
+			Float64: exFloat64(math.MaxFloat64, nil),
+			String:  exString("1.7977E+308", nil),
+			Bool:    exBool(true, nil),
 		},
 		{
 			Input:   struct{}{},
@@ -411,6 +524,115 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(0, expectInvalidType),
 			Float64: exFloat64(0, expectInvalidType),
 			String:  exString("", expectInvalidType),
+			Bool:    exBool(false, expectInvalidType),
+		},
+		{
+			Input:   json.RawMessage(`{"a":"b"}`),
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(0, expectInvalidType),
+			Int16:   exInt16(0, expectInvalidType),
+			Int32:   exInt32(0, expectInvalidType),
+			Int64:   exInt64(0, expectInvalidType),
+			Int:     exInt(0, expectInvalidType),
+			Uint8:   exUInt8(0, expectInvalidType),
+			Uint16:  exUint16(0, expectInvalidType),
+			Uint32:  exUint32(0, expectInvalidType),
+			Uint64:  exUint64(0, expectInvalidType),
+			Uint:    exUint(0, expectInvalidType),
+			Float32: exFloat32(0, expectInvalidType),
+			Float64: exFloat64(0, expectInvalidType),
+			String:  exString(`{"a":"b"}`, nil),
+			Bool:    exBool(false, expectInvalidType),
+		},
+		{
+			Input:   json.Number("123"),
+			Byte:    exByte(123, nil),
+			Int8:    exInt8(123, nil),
+			Int16:   exInt16(123, nil),
+			Int32:   exInt32(123, nil),
+			Int64:   exInt64(123, nil),
+			Int:     exInt(123, nil),
+			Uint8:   exUInt8(123, nil),
+			Uint16:  exUint16(123, nil),
+			Uint32:  exUint32(123, nil),
+			Uint64:  exUint64(123, nil),
+			Uint:    exUint(123, nil),
+			Float32: exFloat32(123, nil),
+			Float64: exFloat64(123, nil),
+			String:  exString("123", nil),
+			Bool:    exBool(true, nil),
+		},
+		{
+			Input:   json.Number("56782"),
+			Byte:    exByte(206, expectOverFlowError),
+			Int8:    exInt8(-50, expectOverFlowError),
+			Int16:   exInt16(-8754, expectOverFlowError),
+			Int32:   exInt32(56782, nil),
+			Int64:   exInt64(56782, nil),
+			Int:     exInt(56782, nil),
+			Uint8:   exUInt8(206, expectOverFlowError),
+			Uint16:  exUint16(56782, nil),
+			Uint32:  exUint32(56782, nil),
+			Uint64:  exUint64(56782, nil),
+			Uint:    exUint(56782, nil),
+			Float32: exFloat32(56782, nil),
+			Float64: exFloat64(56782, nil),
+			String:  exString("56782", nil),
+			Bool:    exBool(true, nil),
+		},
+		{
+			Input:   "1.79769313486231570814527423731704356798070e+308",
+			Byte:    exByte(0, expectInvalidType),
+			Int8:    exInt8(0, expectLostDecimals),
+			Int16:   exInt16(0, expectLostDecimals),
+			Int32:   exInt32(0, expectLostDecimals),
+			Int64:   exInt64(-9223372036854775808, expectLostDecimals),
+			Int:     splitBasedOnArch(exInt(math.MaxInt, expectLostDecimals), exInt(-9223372036854775808, expectLostDecimals)),
+			Uint8:   exUInt8(0, expectLostDecimals),
+			Uint16:  exUint16(0, expectLostDecimals),
+			Uint32:  exUint32(0, expectLostDecimals),
+			Uint64:  exUint64(9223372036854775808, expectLostDecimals),
+			Uint:    splitBasedOnArch(exUint(0, expectLostDecimals), exUint(9223372036854775808, expectLostDecimals)),
+			Float32: exFloat32(float32(math.Inf(1)), expectOverFlowError),
+			Float64: exFloat64(math.MaxFloat64, nil),
+			String:  exString("1.79769313486231570814527423731704356798070e+308", nil),
+			Bool:    exBool(false, expectMalformedSyntax),
+		},
+		{
+			Input:   true,
+			Byte:    exByte(1, nil),
+			Int8:    exInt8(1, nil),
+			Int16:   exInt16(1, nil),
+			Int32:   exInt32(1, nil),
+			Int64:   exInt64(1, nil),
+			Int:     exInt(1, nil),
+			Uint8:   exUInt8(1, nil),
+			Uint16:  exUint16(1, nil),
+			Uint32:  exUint32(1, nil),
+			Uint64:  exUint64(1, nil),
+			Uint:    exUint(1, nil),
+			Float32: exFloat32(1, nil),
+			Float64: exFloat64(1, nil),
+			String:  exString("true", nil),
+			Bool:    exBool(true, nil),
+		},
+		{
+			Input:   false,
+			Byte:    exByte(0, nil),
+			Int8:    exInt8(0, nil),
+			Int16:   exInt16(0, nil),
+			Int32:   exInt32(0, nil),
+			Int64:   exInt64(0, nil),
+			Int:     exInt(0, nil),
+			Uint8:   exUInt8(0, nil),
+			Uint16:  exUint16(0, nil),
+			Uint32:  exUint32(0, nil),
+			Uint64:  exUint64(0, nil),
+			Uint:    exUint(0, nil),
+			Float32: exFloat32(0, nil),
+			Float64: exFloat64(0, nil),
+			String:  exString("false", nil),
+			Bool:    exBool(false, nil),
 		},
 	}
 
@@ -418,7 +640,7 @@ func TestCasterMatrix(t *testing.T) {
 	for idx, tc := range testCases {
 		tc := tc
 
-		name := fmt.Sprintf("index[%d]__inputType[%T]__inputValue[%#v]", idx, tc.Input, tc.Input)
+		name := fmt.Sprintf("index(%d)__%T(%#v)", idx, tc.Input, tc.Input)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Run("caster_byte", matrixSubTest[byte](tc.Input, caster.AsByte, tc.Byte))
@@ -435,6 +657,7 @@ func TestCasterMatrix(t *testing.T) {
 			t.Run("caster_float32", matrixSubTest[float32](tc.Input, caster.AsFloat32, tc.Float32))
 			t.Run("caster_float64", matrixSubTest[float64](tc.Input, caster.AsFloat64, tc.Float64))
 			t.Run("caster_string", matrixSubTest[string](tc.Input, caster.AsString, tc.String))
+			t.Run("caster_bool", matrixSubTest[bool](tc.Input, caster.AsBool, tc.Bool))
 		})
 	}
 }
@@ -456,7 +679,7 @@ func matrixSubTest[Output any](input any, castFn func(any) (Output, error), subT
 		}
 
 		if !compareFn(subTestCase.expectedResult, got) {
-			t.Errorf("wrong returned value. Expected %#v got %#v", subTestCase.expectedResult, got)
+			t.Errorf("wrong returned value.\nExpected: %s\nGot     : %s", testingx.Format(subTestCase.expectedResult), testingx.Format(got))
 		}
 	}
 }

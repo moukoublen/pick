@@ -1,63 +1,29 @@
 package cast
 
 import (
-	"encoding/json"
-	"math"
 	"testing"
 )
 
 func TestStringCaster(t *testing.T) {
 	t.Parallel()
 
+	type int32Alias int32
+	type stringAlias string
+	type float32alias float32
 	testCases := []casterTestCase[string]{
 		{
-			input:       uint64(math.MaxUint64),
-			expected:    "18446744073709551615",
+			input:       int32Alias(123456),
+			expected:    "123456",
 			expectedErr: nil,
 		},
 		{
-			input:       int32(-123),
-			expected:    "-123",
+			input:       stringAlias("abcd"),
+			expected:    "abcd",
 			expectedErr: nil,
 		},
 		{
-			input:       int32(-123),
-			expected:    "-123",
-			expectedErr: nil,
-		},
-		{
-			input:       float64(math.MaxFloat64),
-			expected:    "1.7977E+308",
-			expectedErr: nil,
-		},
-		{
-			input:       true,
-			expected:    "true",
-			expectedErr: nil,
-		},
-		{
-			input:       struct{}{},
-			expected:    "",
-			expectedErr: expectInvalidType,
-		},
-		{
-			input:       "string",
-			expected:    "string",
-			expectedErr: nil,
-		},
-		{
-			input:       json.RawMessage(`{"a":"b"}`),
-			expected:    `{"a":"b"}`,
-			expectedErr: nil,
-		},
-		{
-			input:       json.Number(`5`),
-			expected:    "5",
-			expectedErr: nil,
-		},
-		{
-			input:       []byte(`abc`),
-			expected:    "abc",
+			input:       float32alias(12.123),
+			expected:    "12.123",
 			expectedErr: nil,
 		},
 	}

@@ -119,9 +119,8 @@ func (c integerCaster) AsUint64Slice(input any) ([]uint64, error) {
 }
 
 type intCast[T constraints.Integer] struct {
-	signed  bool
-	kind    reflect.Kind
-	intSize sizeOfInteger
+	signed bool
+	kind   reflect.Kind
 }
 
 func newIntCast[T constraints.Integer]() intCast[T] {
@@ -129,7 +128,6 @@ func newIntCast[T constraints.Integer]() intCast[T] {
 	var t T
 	ic.kind = reflect.TypeOf(t).Kind()
 	ic.signed = ic.kind >= reflect.Int && ic.kind <= reflect.Int64
-	ic.intSize = getIntSize(ic.kind)
 
 	return ic
 }
@@ -265,33 +263,6 @@ const (
 	sizeOfUInt32 sizeOfInteger = 32
 	sizeOfUInt64 sizeOfInteger = 64
 )
-
-func getIntSize(k reflect.Kind) sizeOfInteger {
-	switch k {
-	case reflect.Int:
-		return sizeOfInt
-	case reflect.Int8:
-		return sizeOfInt8
-	case reflect.Int16:
-		return sizeOfInt16
-	case reflect.Int32:
-		return sizeOfInt32
-	case reflect.Int64:
-		return sizeOfInt64
-	case reflect.Uint:
-		return sizeOfInt
-	case reflect.Uint8:
-		return sizeOfUInt8
-	case reflect.Uint16:
-		return sizeOfUInt16
-	case reflect.Uint32:
-		return sizeOfUInt32
-	case reflect.Uint64:
-		return sizeOfUInt64
-	default:
-		return sizeOfInt
-	}
-}
 
 //
 // Casts range checks
