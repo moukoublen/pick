@@ -91,11 +91,39 @@ func Format(a any) string {
 		val = strconv.FormatBool(t)
 	case float32, float64:
 		val = fmt.Sprintf("%g", a)
+	case []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64:
+		val = formatSlice(t, "%d")
+	case []float32, []float64:
+		val = formatSlice(t, "%g")
+	case []bool:
+		val = formatSlice(t, "%t")
+	case []string:
+		val = formatSlice(t, "%s")
+	case []any:
+		val = formatSlice(t, "%#v")
 	default:
 		val = fmt.Sprintf("%v", a)
 	}
 
 	return fmt.Sprintf("%T(%s)", a, val)
+}
+
+func formatSlice(sl any, singleElementFormat string) string {
+	s := strings.Builder{}
+	s.WriteRune('[')
+
+	value := reflect.ValueOf(sl)
+	for i := 0; i < value.Len(); i++ {
+		item := value.Index(i)
+		ifc := item.Interface()
+		if i != 0 {
+			s.WriteRune(',')
+		}
+		s.WriteString(fmt.Sprintf(singleElementFormat, ifc))
+	}
+
+	s.WriteRune(']')
+	return s.String()
 }
 
 func CompareFloat64(a, b any) bool {

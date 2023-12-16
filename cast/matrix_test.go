@@ -683,3 +683,55 @@ func matrixSubTest[Output any](input any, castFn func(any) (Output, error), subT
 		}
 	}
 }
+
+func BenchmarkCasterSlice(b *testing.B) {
+	testCases := []any{
+		[]any{"abc", "def"},
+		[]string{"abc", "def"},
+		[]any{1, 2, 3, 4},
+		[]int32{1, 2, 3, 4},
+		[]any{"1", "2", "3", "4"},
+		[]string{"1", "2", "3", "4"},
+	}
+
+	c := NewCaster()
+
+	b.Run("AsBoolSlice", casterSubBenchmarks(testCases, c.AsBoolSlice))
+	b.Run("AsByteSlice", casterSubBenchmarks(testCases, c.AsByteSlice))
+	b.Run("AsFloat32Slice", casterSubBenchmarks(testCases, c.AsFloat32Slice))
+	b.Run("AsFloat64Slice", casterSubBenchmarks(testCases, c.AsFloat64Slice))
+	b.Run("AsIntSlice", casterSubBenchmarks(testCases, c.AsIntSlice))
+	b.Run("AsInt8Slice", casterSubBenchmarks(testCases, c.AsInt8Slice))
+	b.Run("AsInt16Slice", casterSubBenchmarks(testCases, c.AsInt16Slice))
+	b.Run("AsInt32Slice", casterSubBenchmarks(testCases, c.AsInt32Slice))
+	b.Run("AsInt64Slice", casterSubBenchmarks(testCases, c.AsInt64Slice))
+	b.Run("AsUintSlice", casterSubBenchmarks(testCases, c.AsUintSlice))
+	b.Run("AsUint8Slice", casterSubBenchmarks(testCases, c.AsUint8Slice))
+	b.Run("AsUint16Slice", casterSubBenchmarks(testCases, c.AsUint16Slice))
+	b.Run("AsUint32Slice", casterSubBenchmarks(testCases, c.AsUint32Slice))
+	b.Run("AsUint64Slice", casterSubBenchmarks(testCases, c.AsUint64Slice))
+	b.Run("AsStringSlice", casterSubBenchmarks(testCases, c.AsStringSlice))
+}
+
+func casterSubBenchmarks[Output any](testCases []any, castFn func(any) (Output, error)) func(b *testing.B) {
+	return func(b *testing.B) {
+		b.Helper()
+		for i, tc := range testCases {
+			tc := tc
+			name := fmt.Sprintf("%d %s", i, testingx.Format(tc))
+			b.Run(name, matrixSubBenchmark(tc, castFn))
+		}
+	}
+}
+
+func matrixSubBenchmark[Output any](input any, castFn func(any) (Output, error)) func(b *testing.B) {
+	return func(b *testing.B) {
+		b.Helper()
+		for i := 0; i < b.N; i++ {
+			_, err := castFn(input)
+			if err != nil {
+				b.Skipf("skipped because of error %s", err.Error())
+			}
+		}
+	}
+}

@@ -56,6 +56,11 @@ func NewPicker(data any, t Traverser, c Caster, n Notation) *Picker {
 	}
 }
 
+// Wrap returns a new Picker using the same traverser, caster and notation.
+func (p *Picker) Wrap(data any) *Picker {
+	return NewPicker(data, p.traverser, p.caster, p.notation)
+}
+
 func (p *Picker) Data() any { return p.data }
 
 func (p *Picker) Must(onErr ...func(string, error)) SelectorMustAPI {
@@ -197,7 +202,7 @@ func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, er
 		return nil, err
 	}
 
-	return cast.ToSlice(item, func(a any) (Output, error) { return mapFn(Wrap(a)) })
+	return cast.ToSlice(item, func(a any) (Output, error) { return mapFn(p.Wrap(a)) })
 }
 
 //nolint:ireturn
@@ -207,7 +212,7 @@ func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Outp
 		return nil, err
 	}
 
-	doubleSlice, err := cast.ToSlice(item, func(a any) ([]Output, error) { return mapFn(Wrap(a)) })
+	doubleSlice, err := cast.ToSlice(item, func(a any) ([]Output, error) { return mapFn(p.Wrap(a)) })
 	if err != nil {
 		return nil, err
 	}
