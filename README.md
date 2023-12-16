@@ -74,10 +74,10 @@ type Foo struct{ ID int16 }
 ### API
 As an `API` we define a set of functions like this `Bool(T) Output` for all basic types. There are 4 different APIs for a picker.
 
-  * Selector API, the default one that is embedded in `Picker`. E.g. `Picker.Bool(selector string) (bool, error)`
-  * Selector Must API that can be accessed by calling `Picker.Must()`. E.g. `Picker.Must().Bool(selector string) bool`
-  * Path API that can be accessed by calling `Picker.Path()`. E.g. `Picker.Path().Bool(path []Key) (bool, error)`
-  * Path Must API that can be accessed by calling `Picker.PathMust()`. E.g. `Picker.PathMust().Bool(path []Key) bool`
+  * Selector API, the default one that is embedded in `Picker`. <br>E.g. `Picker.Bool(selector string) (bool, error)`
+  * Selector Must API that can be accessed by calling `Picker.Must()`. <br>E.g. `Picker.Must().Bool(selector string) bool`
+  * Path API that can be accessed by calling `Picker.Path()`. <br>E.g. `Picker.Path().Bool(path []Key) (bool, error)`
+  * Path Must API that can be accessed by calling `Picker.PathMust()`. <br>E.g. `Picker.PathMust().Bool(path []Key) bool`
 
 
 Examples:

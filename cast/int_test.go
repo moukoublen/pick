@@ -262,7 +262,18 @@ func BenchmarkIntCaster(b *testing.B) {
 		float32(123),
 		float64(123),
 
-		"123",
+		"-128",                 // math.MinInt8
+		"-32768",               // math.MinInt16
+		"-2147483648",          // math.MinInt32
+		"-9223372036854775808", // math.MinInt64
+		"127",                  // math.MaxInt8
+		"32767",                // math.MaxInt16
+		"2147483647",           // math.MaxInt32
+		"9223372036854775807",  // math.MaxInt64
+		"255",                  // math.MaxUint8
+		"65535",                // math.MaxUint16
+		"4294967295",           // math.MaxUint32
+		"18446744073709551615", // math.MaxUint64
 		json.Number("123"),
 
 		true,
