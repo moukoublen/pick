@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/moukoublen/pick/internal/testingx"
 	"golang.org/x/exp/constraints"
 )
 
@@ -252,11 +253,11 @@ func BenchmarkIntCaster(b *testing.B) {
 		int64(123),
 		int(123),
 
-		uint8(8),
-		uint16(8),
-		uint32(8),
-		uint64(8),
-		uint(8),
+		uint8(123),
+		uint16(123),
+		uint32(123),
+		uint64(123),
+		uint(123),
 
 		float32(123),
 		float64(123),
@@ -273,18 +274,17 @@ func BenchmarkIntCaster(b *testing.B) {
 	for idx, tc := range tests {
 		tc := tc
 
-		name := fmt.Sprintf("test_%d_(%T)", idx, tc)
-
-		b.Run(fmt.Sprintf("int8_caster_%s", name), benchmarkIntegerCaster(ic.int8Caster.cast, tc))
-		b.Run(fmt.Sprintf("int16_caster_%s", name), benchmarkIntegerCaster(ic.int16Caster.cast, tc))
-		b.Run(fmt.Sprintf("int32_caster_%s", name), benchmarkIntegerCaster(ic.int32Caster.cast, tc))
-		b.Run(fmt.Sprintf("int64_caster_%s", name), benchmarkIntegerCaster(ic.int64Caster.cast, tc))
-		b.Run(fmt.Sprintf("int_caster_%s", name), benchmarkIntegerCaster(ic.intCaster.cast, tc))
-		b.Run(fmt.Sprintf("uint8_caster_%s", name), benchmarkIntegerCaster(ic.uint8Caster.cast, tc))
-		b.Run(fmt.Sprintf("uint16_caster_%s", name), benchmarkIntegerCaster(ic.uint16Caster.cast, tc))
-		b.Run(fmt.Sprintf("uint32_caster_%s", name), benchmarkIntegerCaster(ic.uint32Caster.cast, tc))
-		b.Run(fmt.Sprintf("uint64_caster_%s", name), benchmarkIntegerCaster(ic.uint64Caster.cast, tc))
-		b.Run(fmt.Sprintf("uint_caster_%s", name), benchmarkIntegerCaster(ic.uintCaster.cast, tc))
+		input := fmt.Sprintf("%d:%s", idx, testingx.Format(tc))
+		b.Run(fmt.Sprintf("caster{int8}   %s", input), benchmarkIntegerCaster(ic.int8Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{int16}  %s", input), benchmarkIntegerCaster(ic.int16Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{int32}  %s", input), benchmarkIntegerCaster(ic.int32Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{int64}  %s", input), benchmarkIntegerCaster(ic.int64Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{int}    %s", input), benchmarkIntegerCaster(ic.intCaster.cast, tc))
+		b.Run(fmt.Sprintf("caster{uint8}  %s", input), benchmarkIntegerCaster(ic.uint8Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{uint16} %s", input), benchmarkIntegerCaster(ic.uint16Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{uint32} %s", input), benchmarkIntegerCaster(ic.uint32Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{uint64} %s", input), benchmarkIntegerCaster(ic.uint64Caster.cast, tc))
+		b.Run(fmt.Sprintf("caster{uint}   %s", input), benchmarkIntegerCaster(ic.uintCaster.cast, tc))
 	}
 }
 
