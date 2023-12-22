@@ -1,6 +1,11 @@
 package pick
 
-import "reflect"
+import (
+	"reflect"
+	"time"
+
+	"github.com/moukoublen/pick/cast"
+)
 
 type signedIntegerCaster interface {
 	AsInt(item any) (int, error)
@@ -52,6 +57,13 @@ type byteCaster interface {
 	AsByteSlice(input any) ([]byte, error)
 }
 
+type timeCaster interface {
+	AsTime(input any) (time.Time, error)
+	AsTimeWithConfig(input any, config cast.TimeCastConfig) (time.Time, error)
+	AsTimeSlice(input any) ([]time.Time, error)
+	AsTimeSliceWithConfig(input any, config cast.TimeCastConfig) ([]time.Time, error)
+}
+
 type Caster interface {
 	signedIntegerCaster
 	unsignedIntegerCaster
@@ -59,5 +71,6 @@ type Caster interface {
 	stringCaster
 	boolCaster
 	byteCaster
+	timeCaster
 	As(input any, asKind reflect.Kind) (any, error)
 }

@@ -71,6 +71,27 @@ type Foo struct{ ID int16 }
 }
 ```
 
+** time functions **
+```golang
+dateData := map[string]any{
+    "time1": "1977-05-25T22:30:00Z",
+    "time2": "Wed, 25 May 1977 18:30:00 -0400",
+}
+p3 := Wrap(dateData)
+{
+    got, err := p3.Time("time1")
+    assert(got, time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC))
+    assert(err, nil)
+}
+{
+    loc, _ := time.LoadLocation("America/New_York")
+    got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
+    assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
+    assert(err, nil)
+}
+```
+
+
 ### API
 As an `API` we define a set of functions like this `Bool(T) Output` for all basic types. There are 4 different APIs for a picker.
 

@@ -11,6 +11,7 @@ type Caster struct {
 	floatCaster
 	stringCaster
 	boolCaster
+	timeCaster
 	integerCaster
 	byteCaster
 }
@@ -19,8 +20,9 @@ func NewCaster() Caster {
 	return Caster{
 		floatCaster:   newFloatCaster(),
 		stringCaster:  newStringCaster(),
-		integerCaster: newIntegerCaster(),
 		boolCaster:    newBoolCaster(),
+		timeCaster:    newTimeCaster(),
+		integerCaster: newIntegerCaster(),
 		byteCaster:    newByteCaster(),
 	}
 }
@@ -54,6 +56,8 @@ func (c Caster) As(input any, asKind reflect.Kind) (any, error) {
 		return c.AsUint64(input)
 	case reflect.Bool:
 		return c.AsBool(input)
+	case reflect.String:
+		return c.AsString(input)
 	}
 
 	return nil, newCastError(ErrInvalidType, input)

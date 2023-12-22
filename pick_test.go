@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
+	_ "time/tzdata"
 
 	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/internal/testingx"
@@ -590,6 +592,9 @@ func TestNasaDataFile(t *testing.T) {
 
 	file := loadTestData(t, "nasa.json")
 
+	timeFormat1 := "2006-01-02"
+	timeFormat2 := "2006-Jan-02 15:04"
+
 	p, err := WrapReaderJSON(file)
 	if err != nil {
 		t.Fatal(err)
@@ -648,6 +653,22 @@ func TestNasaDataFile(t *testing.T) {
 			AccessFn:      p.Bool,
 			Selector:      "near_earth_objects.2023-01-01[1].is_potentially_hazardous_asteroid",
 			ExpectedValue: true,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: func(selector string) (time.Time, error) {
+				return p.TimeWithConfig(cast.TimeCastConfig{StringFormat: timeFormat1}, selector)
+			},
+			Selector:      "near_earth_objects.2023-01-01[1].close_approach_data[0].close_approach_date",
+			ExpectedValue: time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: func(selector string) (time.Time, error) {
+				return p.TimeWithConfig(cast.TimeCastConfig{StringFormat: timeFormat2}, selector)
+			},
+			Selector:      "near_earth_objects.2023-01-01[1].close_approach_data[0].close_approach_date_full",
+			ExpectedValue: time.Date(2023, time.January, 1, 19, 45, 0, 0, time.UTC),
 			ExpectedError: nil,
 		},
 		{
@@ -766,4 +787,22 @@ func TestReadme(t *testing.T) {
 	pm := p1.PathMust()
 	assert(pm.Float32(Field("float")), float32(2.12))
 	assert(pm.Int64(Field("float")), int64(2))
+
+	// time API
+	dateData := map[string]any{
+		"time1": "1977-05-25T22:30:00Z",
+		"time2": "Wed, 25 May 1977 18:30:00 -0400",
+	}
+	p3 := Wrap(dateData)
+	{
+		got, err := p3.Time("time1")
+		assert(got, time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC))
+		assert(err, nil)
+	}
+	{
+		loc, _ := time.LoadLocation("America/New_York")
+		got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
+		assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
+		assert(err, nil)
+	}
 }

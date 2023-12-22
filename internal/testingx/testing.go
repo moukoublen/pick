@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func AssertError(t *testing.T, assertErrFn func(*testing.T, error), err error) {
@@ -16,7 +17,7 @@ func AssertError(t *testing.T, assertErrFn func(*testing.T, error), err error) {
 	case err != nil && assertErrFn != nil:
 		assertErrFn(t, err)
 	case err != nil && assertErrFn == nil:
-		t.Errorf("unexpected error returned: %s", err.Error())
+		t.Errorf("unexpected error returned.\nError: %T(%s)", err, err.Error())
 	case err == nil && assertErrFn != nil:
 		t.Errorf("expected error but none received")
 	}
@@ -27,10 +28,51 @@ func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 		t.Helper()
 		for _, expected := range allExpectedErrors {
 			if is := errors.Is(err, expected); !is {
-				t.Errorf("expected error [%T]{%s} but got: [%T]{%s}", expected, expected.Error(), err, err.Error())
+				t.Errorf("error unexpected.\nExpected error: %T(%s) \nGot           : %T(%s)", expected, expected.Error(), err, err.Error())
 			}
 		}
 	}
+}
+
+func ExpectedErrorIsOfType(expected error) func(*testing.T, error) {
+	return func(t *testing.T, err error) {
+		t.Helper()
+		if !errorIsOfType(err, expected) {
+			t.Errorf("given error (and sub-errors) %T(%s) is not of type %T", err, err, expected)
+		}
+	}
+}
+
+func errorIsOfType(err, expected error) bool {
+	expectedType := reflect.TypeOf(expected)
+	return atLeastOneError(err, func(e error) bool {
+		tp := reflect.TypeOf(e)
+		return tp == expectedType
+	})
+}
+
+func atLeastOneError(err error, check func(error) bool) bool {
+	if err == nil {
+		return false
+	}
+
+	if check(err) {
+		return true
+	}
+
+	switch x := err.(type) { //nolint:errorlint
+	case interface{ Unwrap() error }:
+		return atLeastOneError(x.Unwrap(), check)
+	case interface{ Unwrap() []error }:
+		for _, err := range x.Unwrap() {
+			if atLeastOneError(err, check) {
+				return true
+			}
+		}
+		return false
+	}
+
+	return false
 }
 
 func ExpectedErrorStringContains(s string) func(*testing.T, error) {
@@ -55,28 +97,33 @@ func AssertEqual(t *testing.T, subject, expected any) {
 	if expectedErr, is := expected.(error); is {
 		gotErr, _ := subject.(error)
 		if errors.Is(expectedErr, gotErr) {
-			t.Errorf("expected error: %s got: %s", Format(expectedErr), Format(gotErr))
+			t.Errorf("Expected error mismatch:\nExpected: %s\nGot     : %s", Format(expectedErr), Format(gotErr))
 		}
 		return
 	}
 
-	var compFn func(any, any) bool
+	compFn := compareFn(expected)
+	if !compFn(subject, expected) {
+		t.Errorf("Expected value mismatch:\nExpected: %s\nGot     : %s", Format(expected), Format(subject))
+	}
+}
 
+func compareFn(expected any) func(any, any) bool {
 	switch expected.(type) {
 	case float32:
-		compFn = CompareFloat32
+		return CompareFloat32
 	case float64:
-		compFn = CompareFloat64
+		return CompareFloat64
+	case time.Time:
+		return CompareTime
 	case []float32:
-		compFn = CompareFloat32Slices
+		return CompareSlicesFn[float32](CompareFloat32)
 	case []float64:
-		compFn = CompareFloat64Slices
+		return CompareSlicesFn[float64](CompareFloat64)
+	case []time.Time:
+		return CompareSlicesFn[time.Time](CompareTime)
 	default:
-		compFn = reflect.DeepEqual
-	}
-
-	if !compFn(subject, expected) {
-		t.Errorf("Assert error:\nExpected:%s\nGot     : %s", Format(expected), Format(subject))
+		return reflect.DeepEqual
 	}
 }
 
@@ -91,24 +138,26 @@ func Format(a any) string {
 		val = strconv.FormatBool(t)
 	case float32, float64:
 		val = fmt.Sprintf("%g", a)
+	case time.Time:
+		val = t.Format(time.RFC3339Nano)
 	case []int, []int8, []int16, []int32, []int64, []uint, []uint8, []uint16, []uint32, []uint64:
-		val = formatSlice(t, "%d")
+		val = formatSlice(t, Format)
 	case []float32, []float64:
-		val = formatSlice(t, "%g")
+		val = formatSlice(t, Format)
 	case []bool:
-		val = formatSlice(t, "%t")
+		val = formatSlice(t, Format)
 	case []string:
-		val = formatSlice(t, "%s")
+		val = formatSlice(t, Format)
 	case []any:
-		val = formatSlice(t, "%#v")
+		val = formatSlice(t, Format)
 	default:
-		val = fmt.Sprintf("%v", a)
+		val = fmt.Sprintf("%#v", a)
 	}
 
 	return fmt.Sprintf("%T(%s)", a, val)
 }
 
-func formatSlice(sl any, singleElementFormat string) string {
+func formatSlice(sl any, elementFormatFn func(any) string) string {
 	s := strings.Builder{}
 	s.WriteRune('[')
 
@@ -119,7 +168,7 @@ func formatSlice(sl any, singleElementFormat string) string {
 		if i != 0 {
 			s.WriteRune(',')
 		}
-		s.WriteString(fmt.Sprintf(singleElementFormat, ifc))
+		s.WriteString(elementFormatFn(ifc))
 	}
 
 	s.WriteRune(']')
@@ -127,8 +176,19 @@ func formatSlice(sl any, singleElementFormat string) string {
 }
 
 func CompareFloat64(a, b any) bool {
-	fx := a.(float64) //nolint:forcetypeassert
-	fy := b.(float64) //nolint:forcetypeassert
+	var (
+		fx      float64
+		fy      float64
+		isFloat bool
+	)
+	fx, isFloat = a.(float64)
+	if !isFloat {
+		return false
+	}
+	fy, isFloat = b.(float64)
+	if !isFloat {
+		return false
+	}
 
 	if math.IsInf(fx, 1) && math.IsInf(fy, 1) {
 		return true
@@ -143,51 +203,65 @@ func CompareFloat64(a, b any) bool {
 }
 
 func CompareFloat32(a, b any) bool {
-	fx := a.(float32) //nolint:forcetypeassert
-	fy := b.(float32) //nolint:forcetypeassert
-
-	if math.IsInf(float64(fx), 1) && math.IsInf(float64(fy), 1) {
-		return true
+	var (
+		fx      float32
+		fy      float32
+		isFloat bool
+	)
+	fx, isFloat = a.(float32)
+	if !isFloat {
+		return false
 	}
-
-	if math.IsInf(float64(fx), -1) && math.IsInf(float64(fy), -1) {
-		return true
-	}
-
-	const thr = float64(1e-7)
-	return math.Abs(float64(fx-fy)) <= thr
-}
-
-func CompareFloat64Slices(a, b any) bool {
-	fx := a.([]float64) //nolint:forcetypeassert
-	fy := b.([]float64) //nolint:forcetypeassert
-
-	if len(fx) != len(fy) {
+	fy, isFloat = b.(float32)
+	if !isFloat {
 		return false
 	}
 
-	for i := range fx {
-		if !CompareFloat64(fx[i], fy[i]) {
-			return false
-		}
-	}
-
-	return true
+	return CompareFloat64(float64(fx), float64(fy))
 }
 
-func CompareFloat32Slices(a, b any) bool {
-	fx := a.([]float32) //nolint:forcetypeassert
-	fy := b.([]float32) //nolint:forcetypeassert
-
-	if len(fx) != len(fy) {
+func CompareTime(x, y any) bool {
+	var t1, t2 time.Time
+	var isTime bool
+	t1, isTime = x.(time.Time)
+	if !isTime {
+		return false
+	}
+	t2, isTime = y.(time.Time)
+	if !isTime {
 		return false
 	}
 
-	for i := range fx {
-		if !CompareFloat32(fx[i], fy[i]) {
+	s1 := t1.Format(time.RFC3339Nano)
+	s2 := t2.Format(time.RFC3339Nano)
+	return s1 == s2 // t1.Equal(t2)
+}
+
+func CompareSlicesFn[T any](compareFn func(any, any) bool) func(x, y any) bool {
+	return func(x, y any) bool {
+		var (
+			sx, sy  []T
+			isSlice bool
+		)
+		sx, isSlice = x.([]T)
+		if !isSlice {
 			return false
 		}
-	}
+		sy, isSlice = y.([]T)
+		if !isSlice {
+			return false
+		}
 
-	return true
+		if len(sx) != len(sy) {
+			return false
+		}
+
+		for i := range sx {
+			if !compareFn(sx[i], sy[i]) {
+				return false
+			}
+		}
+
+		return true
+	}
 }

@@ -152,10 +152,11 @@ func (ic intCast[T]) fromUint64(origin uint64) (T, error) {
 
 //nolint:ireturn
 func (ic intCast[T]) fromFloat64(origin float64) (T, error) {
-	casted := int64(origin)
-	if origin-float64(casted) > 0 {
-		return T(casted), newCastError(ErrCastLostDecimals, origin)
+	casted, err := float64ToInt64(origin)
+	if err != nil {
+		return T(casted), err
 	}
+
 	return ic.fromInt64(casted)
 }
 
@@ -330,4 +331,25 @@ func uint64CastValid(origin uint64, to reflect.Kind) bool {
 	default:
 		return false
 	}
+}
+
+func floatIsWhole(num float64) bool {
+	return num == math.Trunc(num)
+}
+
+func float64ToInt64(origin float64) (int64, error) {
+	casted := int64(origin)
+
+	if origin > math.MaxInt64 {
+		return casted, newCastError(ErrCastOverFlow, origin)
+	}
+	if origin < math.MinInt64 {
+		return casted, newCastError(ErrCastOverFlow, origin)
+	}
+
+	if !floatIsWhole(origin) {
+		return casted, newCastError(ErrCastLostDecimals, origin)
+	}
+
+	return casted, nil
 }
