@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"time"
 
 	"github.com/moukoublen/pick/cast"
 )
@@ -193,6 +194,16 @@ func (p *Picker) String(selector string) (string, error) {
 
 func (p *Picker) StringSlice(selector string) ([]string, error) {
 	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsStringSlice)
+}
+
+func (p *Picker) Time(selector string) (time.Time, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsTime)
+}
+
+func (p *Picker) TimeWithConfig(config cast.TimeCastConfig, selector string) (time.Time, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, func(input any) (time.Time, error) {
+		return p.caster.AsTimeWithConfig(input, config)
+	})
 }
 
 //nolint:ireturn

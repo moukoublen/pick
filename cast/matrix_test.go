@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/moukoublen/pick/internal/testingx"
 )
@@ -56,6 +57,7 @@ func TestCasterMatrix(t *testing.T) {
 	exFloat64 := newCastTestExpectedResultConstructor[float64](testingx.CompareFloat64)
 	exString := newCastTestExpectedResultConstructor[string](reflect.DeepEqual)
 	exBool := newCastTestExpectedResultConstructor[bool](reflect.DeepEqual)
+	exTime := newCastTestExpectedResultConstructor[time.Time](testingx.CompareTime)
 
 	testCases := []struct {
 		Input any
@@ -75,6 +77,7 @@ func TestCasterMatrix(t *testing.T) {
 		Float64 castTestExpectedResult[float64]
 		String  castTestExpectedResult[string]
 		Bool    castTestExpectedResult[bool]
+		Time    castTestExpectedResult[time.Time]
 	}{
 		{
 			Input:   nil,
@@ -93,6 +96,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(0, nil),
 			String:  exString("", nil),
 			Bool:    exBool(false, nil),
+			Time:    exTime(time.Time{}, nil),
 		},
 		{
 			Input:   int8(12),
@@ -111,6 +115,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(12, nil),
 			String:  exString("12", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 0, 12, 0, time.UTC), nil),
 		},
 		{
 			Input:   int8(math.MaxInt8),
@@ -129,6 +134,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(127, nil),
 			String:  exString("127", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 2, 7, 0, time.UTC), nil),
 		},
 		{
 			Input:   int8(math.MinInt8),
@@ -147,6 +153,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(-128, nil),
 			String:  exString("-128", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1969, time.December, 31, 23, 57, 52, 0, time.UTC), nil),
 		},
 		{
 			Input:   int16(math.MaxInt16),
@@ -165,6 +172,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(32767, nil),
 			String:  exString("32767", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 9, 6, 7, 0, time.UTC), nil),
 		},
 		{
 			Input:   int16(math.MinInt16),
@@ -183,6 +191,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(-32768, nil),
 			String:  exString("-32768", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1969, time.December, 31, 14, 53, 52, 0, time.UTC), nil),
 		},
 		{
 			Input:   int32(math.MaxInt32),
@@ -201,6 +210,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(2147483647, nil),
 			String:  exString("2147483647", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(2038, time.January, 19, 3, 14, 7, 0, time.UTC), nil),
 		},
 		{
 			Input:   int32(math.MinInt32),
@@ -219,6 +229,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(-2147483648, nil),
 			String:  exString("-2147483648", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1901, time.December, 13, 20, 45, 52, 0, time.UTC), nil),
 		},
 		{
 			Input:   int64(math.MaxInt64),
@@ -237,6 +248,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MaxInt64, nil),
 			String:  exString("9223372036854775807", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(292277026596, time.December, 4, 15, 30, 7, 0, time.UTC), nil), // the largest int64 value does not have a corresponding time value.
 		},
 		{
 			Input:   int64(math.MinInt64),
@@ -255,6 +267,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MinInt64, nil),
 			String:  exString("-9223372036854775808", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(292277026596, time.December, 4, 15, 30, 8, 0, time.UTC), nil), // the min int64 value does not have a corresponding time value.
 		},
 		{
 			Input:   uint8(math.MaxUint8),
@@ -273,6 +286,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MaxUint8, nil),
 			String:  exString("255", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 4, 15, 0, time.UTC), nil),
 		},
 		{
 			Input:   uint16(math.MaxUint16),
@@ -291,6 +305,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MaxUint16, nil),
 			String:  exString("65535", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 18, 12, 15, 0, time.UTC), nil),
 		},
 		{
 			Input:   uint32(math.MaxUint32),
@@ -309,6 +324,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MaxUint32, nil),
 			String:  exString("4294967295", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(2106, time.February, 7, 6, 28, 15, 0, time.UTC), nil),
 		},
 		{
 			Input:   uint64(math.MaxUint64),
@@ -327,6 +343,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MaxUint64, nil),
 			String:  exString("18446744073709551615", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1969, time.December, 31, 23, 59, 59, 0, time.UTC), nil), // max uint64 is not converted to valid date.
 		},
 		{
 			Input:   byte(12),
@@ -345,6 +362,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(12, nil),
 			String:  exString("12", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 0, 12, 0, time.UTC), nil),
 		},
 		{
 			Input:   "123",
@@ -363,6 +381,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   []byte("123"),
@@ -381,6 +400,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   "123.321",
@@ -399,6 +419,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(123.321, nil),
 			String:  exString("123.321", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   stringAlias("23"),
@@ -417,6 +438,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(23, nil),
 			String:  exString("23", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   "just string",
@@ -435,6 +457,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(0, expectMalformedSyntax),
 			String:  exString("just string", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   []byte("byte slice"),
@@ -453,6 +476,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(0, expectMalformedSyntax),
 			String:  exString("byte slice", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   float32(123),
@@ -471,6 +495,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), nil),
 		},
 		{
 			Input:   float64(123),
@@ -488,25 +513,44 @@ func TestCasterMatrix(t *testing.T) {
 			Float32: exFloat32(123, nil),
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
-			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), nil),
+		},
+		{
+			Input:   float64(123.12),
+			Byte:    exByte(123, expectLostDecimals),
+			Int8:    exInt8(123, expectLostDecimals),
+			Int16:   exInt16(123, expectLostDecimals),
+			Int32:   exInt32(123, expectLostDecimals),
+			Int64:   exInt64(123, expectLostDecimals),
+			Int:     exInt(123, expectLostDecimals),
+			Uint8:   exUInt8(123, expectLostDecimals),
+			Uint16:  exUint16(123, expectLostDecimals),
+			Uint32:  exUint32(123, expectLostDecimals),
+			Uint64:  exUint64(123, expectLostDecimals),
+			Uint:    exUint(123, expectLostDecimals),
+			Float32: exFloat32(123.12, nil),
+			Float64: exFloat64(123.12, nil),
+			String:  exString("123.12", nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), expectLostDecimals),
 		},
 		{
 			Input:   float64(math.MaxFloat64),
-			Byte:    exByte(0, expectLostDecimals),
-			Int8:    exInt8(0, expectLostDecimals),
-			Int16:   exInt16(0, expectLostDecimals),
-			Int32:   exInt32(0, expectLostDecimals),
-			Int64:   exInt64(-9223372036854775808, expectLostDecimals),
-			Int:     splitBasedOnArch(exInt(math.MaxInt, expectLostDecimals), exInt(-9223372036854775808, expectLostDecimals)),
-			Uint8:   exUInt8(0, expectLostDecimals),
-			Uint16:  exUint16(0, expectLostDecimals),
-			Uint32:  exUint32(0, expectLostDecimals),
-			Uint64:  exUint64(9223372036854775808, expectLostDecimals),
-			Uint:    splitBasedOnArch(exUint(0, expectLostDecimals), exUint(9223372036854775808, expectLostDecimals)),
+			Byte:    exByte(0, expectOverFlowError),
+			Int8:    exInt8(0, expectOverFlowError),
+			Int16:   exInt16(0, expectOverFlowError),
+			Int32:   exInt32(0, expectOverFlowError),
+			Int64:   exInt64(-9223372036854775808, expectOverFlowError),
+			Int:     splitBasedOnArch(exInt(0, expectOverFlowError), exInt(-9223372036854775808, expectOverFlowError)),
+			Uint8:   exUInt8(0, expectOverFlowError),
+			Uint16:  exUint16(0, expectOverFlowError),
+			Uint32:  exUint32(0, expectOverFlowError),
+			Uint64:  exUint64(9223372036854775808, expectOverFlowError),
+			Uint:    splitBasedOnArch(exUint(0, expectOverFlowError), exUint(9223372036854775808, expectOverFlowError)),
 			Float32: exFloat32(float32(math.Inf(1)), expectOverFlowError),
 			Float64: exFloat64(math.MaxFloat64, nil),
 			String:  exString("1.7977E+308", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(292277026596, time.December, 4, 15, 30, 8, 0, time.UTC), expectOverFlowError),
 		},
 		{
 			Input:   struct{}{},
@@ -525,6 +569,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(0, expectInvalidType),
 			String:  exString("", expectInvalidType),
 			Bool:    exBool(false, expectInvalidType),
+			Time:    exTime(time.Time{}, expectInvalidType),
 		},
 		{
 			Input:   json.RawMessage(`{"a":"b"}`),
@@ -543,6 +588,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(0, expectInvalidType),
 			String:  exString(`{"a":"b"}`, nil),
 			Bool:    exBool(false, expectInvalidType),
+			Time:    exTime(time.Time{}, expectInvalidType),
 		},
 		{
 			Input:   json.Number("123"),
@@ -561,6 +607,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(123, nil),
 			String:  exString("123", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), nil),
 		},
 		{
 			Input:   json.Number("56782"),
@@ -579,24 +626,26 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(56782, nil),
 			String:  exString("56782", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Date(1970, time.January, 1, 15, 46, 22, 0, time.UTC), nil),
 		},
 		{
 			Input:   "1.79769313486231570814527423731704356798070e+308",
 			Byte:    exByte(0, expectInvalidType),
-			Int8:    exInt8(0, expectLostDecimals),
-			Int16:   exInt16(0, expectLostDecimals),
-			Int32:   exInt32(0, expectLostDecimals),
-			Int64:   exInt64(-9223372036854775808, expectLostDecimals),
-			Int:     splitBasedOnArch(exInt(math.MaxInt, expectLostDecimals), exInt(-9223372036854775808, expectLostDecimals)),
-			Uint8:   exUInt8(0, expectLostDecimals),
-			Uint16:  exUint16(0, expectLostDecimals),
-			Uint32:  exUint32(0, expectLostDecimals),
-			Uint64:  exUint64(9223372036854775808, expectLostDecimals),
-			Uint:    splitBasedOnArch(exUint(0, expectLostDecimals), exUint(9223372036854775808, expectLostDecimals)),
+			Int8:    exInt8(0, expectOverFlowError),
+			Int16:   exInt16(0, expectOverFlowError),
+			Int32:   exInt32(0, expectOverFlowError),
+			Int64:   exInt64(-9223372036854775808, expectOverFlowError),
+			Int:     splitBasedOnArch(exInt(0, expectOverFlowError), exInt(-9223372036854775808, expectOverFlowError)),
+			Uint8:   exUInt8(0, expectOverFlowError),
+			Uint16:  exUint16(0, expectOverFlowError),
+			Uint32:  exUint32(0, expectOverFlowError),
+			Uint64:  exUint64(9223372036854775808, expectOverFlowError),
+			Uint:    splitBasedOnArch(exUint(0, expectOverFlowError), exUint(9223372036854775808, expectOverFlowError)),
 			Float32: exFloat32(float32(math.Inf(1)), expectOverFlowError),
 			Float64: exFloat64(math.MaxFloat64, nil),
 			String:  exString("1.79769313486231570814527423731704356798070e+308", nil),
 			Bool:    exBool(false, expectMalformedSyntax),
+			Time:    exTime(time.Time{}, testingx.ExpectedErrorIsOfType(&time.ParseError{})),
 		},
 		{
 			Input:   true,
@@ -615,6 +664,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(1, nil),
 			String:  exString("true", nil),
 			Bool:    exBool(true, nil),
+			Time:    exTime(time.Time{}, expectInvalidType),
 		},
 		{
 			Input:   false,
@@ -633,6 +683,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(0, nil),
 			String:  exString("false", nil),
 			Bool:    exBool(false, nil),
+			Time:    exTime(time.Time{}, expectInvalidType),
 		},
 	}
 
@@ -658,6 +709,7 @@ func TestCasterMatrix(t *testing.T) {
 			t.Run("caster_float64", matrixSubTest[float64](tc.Input, caster.AsFloat64, tc.Float64))
 			t.Run("caster_string", matrixSubTest[string](tc.Input, caster.AsString, tc.String))
 			t.Run("caster_bool", matrixSubTest[bool](tc.Input, caster.AsBool, tc.Bool))
+			t.Run("caster_time", matrixSubTest[time.Time](tc.Input, caster.AsTime, tc.Time))
 		})
 	}
 }

@@ -3,7 +3,6 @@ package cast
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
@@ -20,32 +19,35 @@ type casterTestCase[T any] struct {
 	input       any
 	expectedErr func(*testing.T, error)
 	expected    T
+	castFn      func(any) (T, error)
 }
 
-func casterTest[T any](t *testing.T, testCases []casterTestCase[T], castFn func(any) (T, error)) {
-	t.Helper()
-	casterTestWithCompare[T](t, testCases, castFn, func(x, y T) bool { return reflect.DeepEqual(x, y) })
-}
-
-func casterTestWithCompare[T any](t *testing.T, testCases []casterTestCase[T], castFn func(any) (T, error), equalFn func(T, T) bool) {
+func casterTest[T any](t *testing.T, testCases []casterTestCase[T], defaultCastFn func(any) (T, error)) {
 	t.Helper()
 
 	for idx, tc := range testCases {
 		tc := tc
-
-		name := fmt.Sprintf("index:%d input_type:%T input_value:(%#v)", idx, tc.input, tc.input)
+		name := fmt.Sprintf("index:%d %s", idx, testingx.Format(tc.input))
 		t.Run(name, func(t *testing.T) {
+			t.Helper()
 			t.Parallel()
-			got, gotErr := castFn(tc.input)
-			testingx.AssertError(t, tc.expectedErr, gotErr)
-			if !equalFn(tc.expected, got) {
-				t.Errorf("wrong returned value. Expected %#v got %#v", tc.expected, got)
+			var (
+				got    T
+				gotErr error
+			)
+			if tc.castFn != nil {
+				got, gotErr = tc.castFn(tc.input)
+			} else {
+				got, gotErr = defaultCastFn(tc.input)
 			}
+			testingx.AssertError(t, tc.expectedErr, gotErr)
+
+			testingx.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
 
-func TestCastToSliceErrorScenarios(t *testing.T) {
+func TestToSliceErrorScenarios(t *testing.T) {
 	t.Parallel()
 
 	errMock1 := errors.New("mock error")
@@ -78,42 +80,4 @@ func TestCastToSliceErrorScenarios(t *testing.T) {
 			testingx.AssertError(t, tc.expectedErr, gotErr)
 		})
 	}
-}
-
-func TestCastAttemptUsingReflect(t *testing.T) {
-	t.Parallel()
-
-	t.Run("string", func(t *testing.T) {
-		t.Parallel()
-		type stringAlias string
-		type stringSecondAlias stringAlias
-
-		testCases := []casterTestCase[string]{
-			{
-				input:       stringAlias("test"),
-				expected:    "test",
-				expectedErr: nil,
-			},
-			{
-				input:       stringSecondAlias(stringAlias("test")),
-				expected:    "test",
-				expectedErr: nil,
-			},
-		}
-		casterTest[string](t, testCases, tryCastUsingReflect[string])
-	})
-
-	t.Run("map[string]string", func(t *testing.T) {
-		t.Parallel()
-		type mapAlias map[string]string
-
-		testCases := []casterTestCase[map[string]string]{
-			{
-				input:       mapAlias{"abc": "cba"},
-				expected:    map[string]string{"abc": "cba"},
-				expectedErr: nil,
-			},
-		}
-		casterTest[map[string]string](t, testCases, tryCastUsingReflect[map[string]string])
-	})
 }

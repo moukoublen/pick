@@ -1,5 +1,11 @@
 package pick
 
+import (
+	"time"
+
+	"github.com/moukoublen/pick/cast"
+)
+
 type SelectorMustAPI struct {
 	*Picker
 	onErr []func(selector string, err error)
@@ -123,6 +129,16 @@ func (a SelectorMustAPI) String(selector string) string {
 
 func (a SelectorMustAPI) StringSlice(selector string) []string {
 	return SelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsStringSlice, a.onErr...)
+}
+
+func (a *SelectorMustAPI) Time(selector string) time.Time {
+	return SelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsTime)
+}
+
+func (a *SelectorMustAPI) TimeWithConfig(config cast.TimeCastConfig, selector string) time.Time {
+	return SelectorMust(a.data, a.notation, a.traverser, selector, func(input any) (time.Time, error) {
+		return a.caster.AsTimeWithConfig(input, config)
+	})
 }
 
 type PathAPI struct {
@@ -249,6 +265,16 @@ func (a PathAPI) StringSlice(path ...Key) ([]string, error) {
 	return Path(a.data, a.traverser, path, a.caster.AsStringSlice)
 }
 
+func (a *PathAPI) Time(path ...Key) (time.Time, error) {
+	return Path(a.data, a.traverser, path, a.caster.AsTime)
+}
+
+func (a *PathAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) (time.Time, error) {
+	return Path(a.data, a.traverser, path, func(input any) (time.Time, error) {
+		return a.caster.AsTimeWithConfig(input, config)
+	})
+}
+
 type PathMustAPI struct {
 	*Picker
 	onErr []func(selector string, err error)
@@ -372,4 +398,14 @@ func (a PathMustAPI) String(path ...Key) string {
 
 func (a PathMustAPI) StringSlice(path ...Key) []string {
 	return PathMust(a.data, a.traverser, path, a.caster.AsStringSlice, a.onErr...)
+}
+
+func (a *PathMustAPI) Time(path ...Key) time.Time {
+	return PathMust(a.data, a.traverser, path, a.caster.AsTime)
+}
+
+func (a *PathMustAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) time.Time {
+	return PathMust(a.data, a.traverser, path, func(input any) (time.Time, error) {
+		return a.caster.AsTimeWithConfig(input, config)
+	})
 }
