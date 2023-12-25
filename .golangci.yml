@@ -90,6 +90,10 @@ linters-settings:
     package-average: 0.5
     skip-tests: true
 
+  # https://golangci-lint.run/usage/linters/#gocyclo
+  gocyclo:
+    min-complexity: 30
+
   # https://golangci-lint.run/usage/linters/#maintidx
   maintidx:
     under: 10

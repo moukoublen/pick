@@ -343,7 +343,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: exFloat64(math.MaxUint64, nil),
 			String:  exString("18446744073709551615", nil),
 			Bool:    exBool(true, nil),
-			Time:    exTime(time.Date(1969, time.December, 31, 23, 59, 59, 0, time.UTC), nil), // max uint64 is not converted to valid date.
+			Time:    exTime(time.Date(1969, time.December, 31, 23, 59, 59, 0, time.UTC), expectOverFlowError), // max uint64 is not converted to valid date.
 		},
 		{
 			Input:   byte(12),

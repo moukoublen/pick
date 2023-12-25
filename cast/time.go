@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -49,84 +50,46 @@ func (tc timeCaster) AsTime(input any) (time.Time, error) {
 func (tc timeCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error) {
 	switch origin := input.(type) {
 	case int:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case int8:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case int16:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case int32:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case int64:
-		var tm time.Time
-		switch config.NumberFormat {
-		case TimeCastNumberFormatUnix:
-			tm = time.Unix(origin, 0).UTC()
-		case TimeCastNumberFormatUnixMilli:
-			tm = time.UnixMilli(origin).UTC()
-		case TimeCastNumberFormatUnixMicro:
-			tm = time.UnixMicro(origin).UTC()
-		default:
-			return tm, newCastError(ErrInvalidType, input)
-		}
-		return tm, nil
+		return tc.fromInt64(config, origin)
 
 	case uint:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case uint8:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case uint16:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case uint32:
-		return tc.AsTime(int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin))
 	case uint64:
-		return tc.AsTime(int64(origin))
+		return tc.fromUint64(config, origin)
 
 	case float32:
-		return tc.AsTime(float64(origin))
+		return tc.AsTimeWithConfig(config, float64(origin))
 	case float64:
 		casted, err := float64ToInt64(origin)
-		tm, _ := tc.AsTime(casted) // best effort
+		tm, _ := tc.AsTimeWithConfig(config, casted) // best effort
 		return tm, err
 
 	case string:
-		if config.PraseStringAsNumber {
-			n, err := strconv.ParseInt(origin, 10, 64)
-			if err != nil {
-				return time.Time{}, newCastError(err, fmt.Errorf("error converting string to number: %w", err))
-			}
-			return tc.AsTimeWithConfig(config, n)
-		}
-		var tm time.Time
-		var err error
-		if config.ParseInLocation != nil {
-			tm, err = time.ParseInLocation(config.getStringFormat(), origin, config.ParseInLocation)
-		} else {
-			tm, err = time.Parse(config.getStringFormat(), origin)
-		}
-		if err != nil {
-			return time.Time{}, newCastError(err, input)
-		}
-		return tm, nil
+		return tc.fromString(config, origin)
 
 	case json.Number:
 		n, err := origin.Int64()
 		if err != nil {
 			return time.Time{}, newCastError(err, fmt.Errorf("error converting json number to number: %w", err))
 		}
-		return tc.AsTime(n)
+		return tc.AsTimeWithConfig(config, n)
 
 	case []byte:
-		switch config.ByteSliceFormat {
-		case TimeCastByteSliceFormatBinary:
-			tm := time.Time{}
-			err := tm.UnmarshalBinary(origin)
-			if err != nil {
-				return tm, newCastError(err, input)
-			}
-		case TimeCastByteSliceFormatString:
-			return tc.AsTime(string(origin))
-		}
-		return time.Time{}, newCastError(ErrInvalidType, input)
+		return tc.fromByteSlice(config, origin)
 
 	case bool:
 		return time.Time{}, newCastError(ErrInvalidType, input)
@@ -142,6 +105,64 @@ func (tc timeCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Ti
 
 		return tryCastUsingReflect[time.Time](input)
 	}
+}
+
+func (tc timeCaster) fromInt64(config TimeCastConfig, origin int64) (time.Time, error) {
+	var tm time.Time
+	switch config.NumberFormat {
+	case TimeCastNumberFormatUnix:
+		tm = time.Unix(origin, 0).UTC()
+	case TimeCastNumberFormatUnixMilli:
+		tm = time.UnixMilli(origin).UTC()
+	case TimeCastNumberFormatUnixMicro:
+		tm = time.UnixMicro(origin).UTC()
+	default:
+		return tm, newCastError(ErrInvalidType, origin)
+	}
+	return tm, nil
+}
+
+func (tc timeCaster) fromUint64(config TimeCastConfig, origin uint64) (time.Time, error) {
+	if !uint64CastValid(origin, reflect.Int64) {
+		d, _ := tc.AsTimeWithConfig(config, int64(origin))
+		return d, newCastError(ErrCastOverFlow, origin)
+	}
+	return tc.AsTimeWithConfig(config, int64(origin))
+}
+
+func (tc timeCaster) fromString(config TimeCastConfig, origin string) (time.Time, error) {
+	if config.PraseStringAsNumber {
+		n, err := strconv.ParseInt(origin, 10, 64)
+		if err != nil {
+			return time.Time{}, newCastError(err, fmt.Errorf("error converting string to number: %w", err))
+		}
+		return tc.AsTimeWithConfig(config, n)
+	}
+	var tm time.Time
+	var err error
+	if config.ParseInLocation != nil {
+		tm, err = time.ParseInLocation(config.getStringFormat(), origin, config.ParseInLocation)
+	} else {
+		tm, err = time.Parse(config.getStringFormat(), origin)
+	}
+	if err != nil {
+		return time.Time{}, newCastError(err, origin)
+	}
+	return tm, nil
+}
+
+func (tc timeCaster) fromByteSlice(config TimeCastConfig, origin []byte) (time.Time, error) {
+	switch config.ByteSliceFormat {
+	case TimeCastByteSliceFormatBinary:
+		tm := time.Time{}
+		err := tm.UnmarshalBinary(origin)
+		if err != nil {
+			return tm, newCastError(err, origin)
+		}
+	case TimeCastByteSliceFormatString:
+		return tc.AsTimeWithConfig(config, string(origin))
+	}
+	return time.Time{}, newCastError(ErrInvalidType, origin)
 }
 
 func (tc timeCaster) AsTimeSlice(input any) ([]time.Time, error) {
