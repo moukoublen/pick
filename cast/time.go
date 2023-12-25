@@ -43,10 +43,10 @@ type timeCaster struct{}
 func newTimeCaster() timeCaster { return timeCaster{} }
 
 func (tc timeCaster) AsTime(input any) (time.Time, error) {
-	return tc.AsTimeWithConfig(input, TimeCastConfig{})
+	return tc.AsTimeWithConfig(TimeCastConfig{}, input)
 }
 
-func (tc timeCaster) AsTimeWithConfig(input any, config TimeCastConfig) (time.Time, error) {
+func (tc timeCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error) {
 	switch origin := input.(type) {
 	case int:
 		return tc.AsTime(int64(origin))
@@ -94,7 +94,7 @@ func (tc timeCaster) AsTimeWithConfig(input any, config TimeCastConfig) (time.Ti
 			if err != nil {
 				return time.Time{}, newCastError(err, fmt.Errorf("error converting string to number: %w", err))
 			}
-			return tc.AsTimeWithConfig(n, config)
+			return tc.AsTimeWithConfig(config, n)
 		}
 		var tm time.Time
 		var err error
@@ -137,7 +137,7 @@ func (tc timeCaster) AsTimeWithConfig(input any, config TimeCastConfig) (time.Ti
 	default:
 		// try to cast to basic (in case input is ~basic)
 		if basic, err := tryCastToBasicType(input); err == nil {
-			return tc.AsTimeWithConfig(basic, config)
+			return tc.AsTimeWithConfig(config, basic)
 		}
 
 		return tryCastUsingReflect[time.Time](input)
@@ -145,12 +145,12 @@ func (tc timeCaster) AsTimeWithConfig(input any, config TimeCastConfig) (time.Ti
 }
 
 func (tc timeCaster) AsTimeSlice(input any) ([]time.Time, error) {
-	return tc.AsTimeSliceWithConfig(input, TimeCastConfig{})
+	return tc.AsTimeSliceWithConfig(TimeCastConfig{}, input)
 }
 
-func (tc timeCaster) AsTimeSliceWithConfig(input any, config TimeCastConfig) ([]time.Time, error) {
+func (tc timeCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
 	return ToSlice[time.Time](input, func(a any) (time.Time, error) {
-		return tc.AsTimeWithConfig(a, config)
+		return tc.AsTimeWithConfig(config, a)
 	})
 }
 

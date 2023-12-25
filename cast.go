@@ -59,9 +59,9 @@ type byteCaster interface {
 
 type timeCaster interface {
 	AsTime(input any) (time.Time, error)
-	AsTimeWithConfig(input any, config cast.TimeCastConfig) (time.Time, error)
+	AsTimeWithConfig(config cast.TimeCastConfig, input any) (time.Time, error)
 	AsTimeSlice(input any) ([]time.Time, error)
-	AsTimeSliceWithConfig(input any, config cast.TimeCastConfig) ([]time.Time, error)
+	AsTimeSliceWithConfig(config cast.TimeCastConfig, input any) ([]time.Time, error)
 }
 
 type Caster interface {

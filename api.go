@@ -6,6 +6,150 @@ import (
 	"github.com/moukoublen/pick/cast"
 )
 
+// Default Selector API (embedded into Picker)
+
+func (p *Picker) Bool(selector string) (bool, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsBool)
+}
+
+func (p *Picker) BoolSlice(selector string) ([]bool, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsBoolSlice)
+}
+
+func (p *Picker) Byte(selector string) (byte, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsByte)
+}
+
+func (p *Picker) ByteSlice(selector string) ([]byte, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsByteSlice)
+}
+
+func (p *Picker) Float32(selector string) (float32, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsFloat32)
+}
+
+func (p *Picker) Float32Slice(selector string) ([]float32, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsFloat32Slice)
+}
+
+func (p *Picker) Float64(selector string) (float64, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsFloat64)
+}
+
+func (p *Picker) Float64Slice(selector string) ([]float64, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsFloat64Slice)
+}
+
+func (p *Picker) Int(selector string) (int, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt)
+}
+
+func (p *Picker) IntSlice(selector string) ([]int, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsIntSlice)
+}
+
+func (p *Picker) Int8(selector string) (int8, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt8)
+}
+
+func (p *Picker) Int8Slice(selector string) ([]int8, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt8Slice)
+}
+
+func (p *Picker) Int16(selector string) (int16, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt16)
+}
+
+func (p *Picker) Int16Slice(selector string) ([]int16, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt16Slice)
+}
+
+func (p *Picker) Int32(selector string) (int32, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt32)
+}
+
+func (p *Picker) Int32Slice(selector string) ([]int32, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt32Slice)
+}
+
+func (p *Picker) Int64(selector string) (int64, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt64)
+}
+
+func (p *Picker) Int64Slice(selector string) ([]int64, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsInt64Slice)
+}
+
+func (p *Picker) Uint(selector string) (uint, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint)
+}
+
+func (p *Picker) UintSlice(selector string) ([]uint, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUintSlice)
+}
+
+func (p *Picker) Uint8(selector string) (uint8, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint8)
+}
+
+func (p *Picker) Uint8Slice(selector string) ([]uint8, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint8Slice)
+}
+
+func (p *Picker) Uint16(selector string) (uint16, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint16)
+}
+
+func (p *Picker) Uint16Slice(selector string) ([]uint16, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint16Slice)
+}
+
+func (p *Picker) Uint32(selector string) (uint32, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint32)
+}
+
+func (p *Picker) Uint32Slice(selector string) ([]uint32, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint32Slice)
+}
+
+func (p *Picker) Uint64(selector string) (uint64, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint64)
+}
+
+func (p *Picker) Uint64Slice(selector string) ([]uint64, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsUint64Slice)
+}
+
+func (p *Picker) String(selector string) (string, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsString)
+}
+
+func (p *Picker) StringSlice(selector string) ([]string, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsStringSlice)
+}
+
+func (p *Picker) Time(selector string) (time.Time, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsTime)
+}
+
+func (p *Picker) TimeWithConfig(config cast.TimeCastConfig, selector string) (time.Time, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, func(input any) (time.Time, error) {
+		return p.caster.AsTimeWithConfig(config, input)
+	})
+}
+
+func (p *Picker) TimeSlice(selector string) ([]time.Time, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, p.caster.AsTimeSlice)
+}
+
+func (p *Picker) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) ([]time.Time, error) {
+	return Selector(p.data, p.notation, p.traverser, selector, func(input any) ([]time.Time, error) {
+		return p.caster.AsTimeSliceWithConfig(config, input)
+	})
+}
+
+// Selector Must API
+
 type SelectorMustAPI struct {
 	*Picker
 	onErr []func(selector string, err error)
@@ -132,14 +276,26 @@ func (a SelectorMustAPI) StringSlice(selector string) []string {
 }
 
 func (a *SelectorMustAPI) Time(selector string) time.Time {
-	return SelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsTime)
+	return SelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsTime, a.onErr...)
 }
 
 func (a *SelectorMustAPI) TimeWithConfig(config cast.TimeCastConfig, selector string) time.Time {
 	return SelectorMust(a.data, a.notation, a.traverser, selector, func(input any) (time.Time, error) {
-		return a.caster.AsTimeWithConfig(input, config)
-	})
+		return a.caster.AsTimeWithConfig(config, input)
+	}, a.onErr...)
 }
+
+func (a *SelectorMustAPI) TimeSlice(selector string) []time.Time {
+	return SelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsTimeSlice, a.onErr...)
+}
+
+func (a *SelectorMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) []time.Time {
+	return SelectorMust(a.data, a.notation, a.traverser, selector, func(input any) ([]time.Time, error) {
+		return a.caster.AsTimeSliceWithConfig(config, input)
+	}, a.onErr...)
+}
+
+// Path API
 
 type PathAPI struct {
 	*Picker
@@ -271,9 +427,21 @@ func (a *PathAPI) Time(path ...Key) (time.Time, error) {
 
 func (a *PathAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) (time.Time, error) {
 	return Path(a.data, a.traverser, path, func(input any) (time.Time, error) {
-		return a.caster.AsTimeWithConfig(input, config)
+		return a.caster.AsTimeWithConfig(config, input)
 	})
 }
+
+func (a *PathAPI) TimeSlice(path ...Key) ([]time.Time, error) {
+	return Path(a.data, a.traverser, path, a.caster.AsTimeSlice)
+}
+
+func (a *PathAPI) TimeSliceWithConfig(config cast.TimeCastConfig, path ...Key) ([]time.Time, error) {
+	return Path(a.data, a.traverser, path, func(input any) ([]time.Time, error) {
+		return a.caster.AsTimeSliceWithConfig(config, input)
+	})
+}
+
+// Path Must API
 
 type PathMustAPI struct {
 	*Picker
@@ -401,11 +569,21 @@ func (a PathMustAPI) StringSlice(path ...Key) []string {
 }
 
 func (a *PathMustAPI) Time(path ...Key) time.Time {
-	return PathMust(a.data, a.traverser, path, a.caster.AsTime)
+	return PathMust(a.data, a.traverser, path, a.caster.AsTime, a.onErr...)
 }
 
 func (a *PathMustAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) time.Time {
 	return PathMust(a.data, a.traverser, path, func(input any) (time.Time, error) {
-		return a.caster.AsTimeWithConfig(input, config)
-	})
+		return a.caster.AsTimeWithConfig(config, input)
+	}, a.onErr...)
+}
+
+func (a *PathMustAPI) TimeSlice(path ...Key) []time.Time {
+	return PathMust(a.data, a.traverser, path, a.caster.AsTimeSlice, a.onErr...)
+}
+
+func (a *PathMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, path ...Key) []time.Time {
+	return PathMust(a.data, a.traverser, path, func(input any) ([]time.Time, error) {
+		return a.caster.AsTimeSliceWithConfig(config, input)
+	}, a.onErr...)
 }

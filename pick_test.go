@@ -790,8 +790,9 @@ func TestReadme(t *testing.T) {
 
 	// time API
 	dateData := map[string]any{
-		"time1": "1977-05-25T22:30:00Z",
-		"time2": "Wed, 25 May 1977 18:30:00 -0400",
+		"time1":     "1977-05-25T22:30:00Z",
+		"time2":     "Wed, 25 May 1977 18:30:00 -0400",
+		"timeSlice": []string{"1977-05-25T18:30:00Z", "1977-05-25T20:30:00Z", "1977-05-25T22:30:00Z"},
 	}
 	p3 := Wrap(dateData)
 	{
@@ -803,6 +804,18 @@ func TestReadme(t *testing.T) {
 		loc, _ := time.LoadLocation("America/New_York")
 		got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
 		assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
+		assert(err, nil)
+	}
+	{
+		got, err := p3.TimeSlice("timeSlice")
+		assert(
+			got,
+			[]time.Time{
+				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
+				time.Date(1977, time.May, 25, 20, 30, 0, 0, time.UTC),
+				time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
+			},
+		)
 		assert(err, nil)
 	}
 }
