@@ -77,7 +77,7 @@ func (p *Picker) PathMust(onErr ...func(string, error)) PathMustAPI {
 
 //nolint:ireturn
 func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, error)) ([]Output, error) {
-	item, err := Selector(p.data, p.notation, p.traverser, selector, omitCast)
+	item, err := pickSelector(p.data, p.notation, p.traverser, selector, omitCast)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, er
 
 //nolint:ireturn
 func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Output, error)) ([]Output, error) {
-	item, err := Selector(p.data, p.notation, p.traverser, selector, omitCast)
+	item, err := pickSelector(p.data, p.notation, p.traverser, selector, omitCast)
 	if err != nil {
 		return nil, err
 	}
@@ -110,18 +110,38 @@ func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Outp
 }
 
 //nolint:ireturn
-func Selector[Output any](data any, notation Notation, traverser Traverser, selector string, castFn func(any) (Output, error)) (Output, error) {
+func Selector[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
+	return pickSelector(p.data, p.notation, p.traverser, selector, castFn)
+}
+
+//nolint:ireturn
+func Path[Output any](p *Picker, path []Key, castFn func(any) (Output, error)) (Output, error) {
+	return pickPath(p.data, p.traverser, path, castFn)
+}
+
+//nolint:ireturn
+func SelectorMust[Output any](p *Picker, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	return pickSelectorMust(p.data, p.notation, p.traverser, selector, castFn, onErr...)
+}
+
+//nolint:ireturn
+func PathMust[Output any](p *Picker, path []Key, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	return pickPathMust(p.data, p.traverser, path, castFn, onErr...)
+}
+
+//nolint:ireturn
+func pickSelector[Output any](data any, notation Notation, traverser Traverser, selector string, castFn func(any) (Output, error)) (Output, error) {
 	path, err := notation.Parse(selector)
 	if err != nil {
 		var d Output
 		return d, err
 	}
 
-	return Path(data, traverser, path, castFn)
+	return pickPath(data, traverser, path, castFn)
 }
 
 //nolint:ireturn
-func Path[Output any](data any, traverser Traverser, path []Key, castFn func(any) (Output, error)) (Output, error) {
+func pickPath[Output any](data any, traverser Traverser, path []Key, castFn func(any) (Output, error)) (Output, error) {
 	item, err := traverser.Retrieve(data, path)
 	if err != nil {
 		var d Output
@@ -133,8 +153,8 @@ func Path[Output any](data any, traverser Traverser, path []Key, castFn func(any
 }
 
 //nolint:ireturn
-func SelectorMust[Output any](data any, notation Notation, traverser Traverser, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
-	casted, err := Selector(data, notation, traverser, selector, castFn)
+func pickSelectorMust[Output any](data any, notation Notation, traverser Traverser, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	casted, err := pickSelector(data, notation, traverser, selector, castFn)
 	if err != nil {
 		for _, fn := range onErr {
 			fn(selector, err)
@@ -144,8 +164,8 @@ func SelectorMust[Output any](data any, notation Notation, traverser Traverser, 
 }
 
 //nolint:ireturn
-func PathMust[Output any](data any, traverser Traverser, path []Key, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
-	casted, err := Path(data, traverser, path, castFn)
+func pickPathMust[Output any](data any, traverser Traverser, path []Key, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	casted, err := pickPath(data, traverser, path, castFn)
 	if err != nil {
 		selector := DotNotation{}.Format(path...)
 		for _, fn := range onErr {
