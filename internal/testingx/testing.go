@@ -38,7 +38,7 @@ func ExpectedErrorIsOfType(expected error) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
 		if !errorIsOfType(err, expected) {
-			t.Errorf("given error (and sub-errors) %T(%s) is not of type %T", err, err, expected)
+			t.Errorf("Error type check failed.\nExpected error type: %T\nGot                : %T(%s)", expected, err, err)
 		}
 	}
 }
@@ -79,7 +79,7 @@ func ExpectedErrorStringContains(s string) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
 		if !strings.Contains(err.Error(), s) {
-			t.Errorf("error expected to contain \n%s\n but is \n%s\n", s, err.Error())
+			t.Errorf("error string check failed. \nExpected to contain: %s\nGot                : %s\n", s, err.Error())
 		}
 	}
 }

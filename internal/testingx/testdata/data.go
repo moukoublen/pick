@@ -1,6 +1,8 @@
 package testdata
 
-import "math"
+import (
+	"math"
+)
 
 type SampleStruct struct {
 	A int32
@@ -34,6 +36,16 @@ var MixedTypesMap = map[string]any{
 	"float32":     float32(7.7),
 	"bool":        true,
 	"int32Number": int32(8),
+	"times": map[string]any{
+		"timeRFC3339Nano": "1977-05-25T22:30:00Z",
+		"timeUnixSecondsSlice": []int64{
+			233433000, 233433001, 233433002,
+		},
+	},
+	"durations": map[string]any{
+		"single": "4s",
+		"slice":  []string{"5s", "6s", "7s"},
+	},
 }
 
 func ptr[T any](x T) *T { return &x }

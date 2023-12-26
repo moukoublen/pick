@@ -572,6 +572,150 @@ func TestMixedTypesMapByte(t *testing.T) {
 	}
 }
 
+// TestMixedTypesMapTime makes an extensive test in Time/TimeSlice functions using all APIs.
+func TestMixedTypesMapTime(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Time,
+			Selector:      "times.timeRFC3339Nano",
+			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Time,
+			Selector:      "times.timeRFC3339Nano",
+			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Time,
+			Path:          []Key{Field("times"), Field("timeRFC3339Nano")},
+			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Time,
+			Path:          []Key{Field("times"), Field("timeRFC3339Nano")},
+			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: p.TimeSlice,
+			Selector: "times.timeUnixSecondsSlice",
+			ExpectedValue: []time.Time{
+				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 1, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 2, 0, time.UTC),
+			},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: p.Must().TimeSlice,
+			Selector: "times.timeUnixSecondsSlice",
+			ExpectedValue: []time.Time{
+				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 1, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 2, 0, time.UTC),
+			},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: p.Path().TimeSlice,
+			Path:     []Key{Field("times"), Field("timeUnixSecondsSlice")},
+			ExpectedValue: []time.Time{
+				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 1, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 2, 0, time.UTC),
+			},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn: p.PathMust().TimeSlice,
+			Path:     []Key{Field("times"), Field("timeUnixSecondsSlice")},
+			ExpectedValue: []time.Time{
+				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 1, 0, time.UTC),
+				time.Date(1977, time.May, 25, 18, 30, 2, 0, time.UTC),
+			},
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
+// TestMixedTypesMapDuration makes an extensive test in Duration/DurationSlice functions using all APIs.
+func TestMixedTypesMapDuration(t *testing.T) {
+	t.Parallel()
+
+	p := Wrap(testdata.MixedTypesMap)
+
+	tests := []PickerTestCase{
+		{
+			AccessFn:      p.Duration,
+			Selector:      "durations.single",
+			ExpectedValue: time.Duration(4) * time.Second,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().Duration,
+			Selector:      "durations.single",
+			ExpectedValue: time.Duration(4) * time.Second,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().Duration,
+			Path:          []Key{Field("durations"), Field("single")},
+			ExpectedValue: time.Duration(4) * time.Second,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().Duration,
+			Path:          []Key{Field("durations"), Field("single")},
+			ExpectedValue: time.Duration(4) * time.Second,
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.DurationSlice,
+			Selector:      "durations.slice",
+			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Must().DurationSlice,
+			Selector:      "durations.slice",
+			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.Path().DurationSlice,
+			Path:          []Key{Field("durations"), Field("slice")},
+			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
+			ExpectedError: nil,
+		},
+		{
+			AccessFn:      p.PathMust().DurationSlice,
+			Path:          []Key{Field("durations"), Field("slice")},
+			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
+			ExpectedError: nil,
+		},
+	}
+
+	for idx, tc := range tests {
+		tc := tc
+		name := fmt.Sprintf("%d_%s", idx, tc.Name())
+		t.Run(name, tc.Run)
+	}
+}
+
 //go:embed internal/testingx/testdata
 var testData embed.FS
 
