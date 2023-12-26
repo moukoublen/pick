@@ -2,6 +2,7 @@ package pick
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"math"
@@ -842,6 +843,67 @@ func TestNasaDataFile(t *testing.T) {
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
+}
+
+func TestMapMust(t *testing.T) {
+	t.Parallel()
+	file := loadTestData(t, "nasa.json")
+	p, err := WrapReaderJSON(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type Item struct {
+		Name   string
+		Sentry bool
+	}
+
+	t.Run("happy path", func(t *testing.T) {
+		t.Parallel()
+		itemsSlice, err := MapMust(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
+			return Item{
+				Name:   sm.String("name"),
+				Sentry: sm.Bool("is_sentry_object"),
+			}
+		})
+		testingx.AssertEqual(t, err, nil)
+		testingx.AssertEqual(t, itemsSlice, []Item{
+			{Name: "344133 (2000 AD6)", Sentry: false},
+			{Name: "369454 (2010 NZ1)", Sentry: false},
+			{Name: "452334 (2001 LB)", Sentry: false},
+			{Name: "(2003 MK4)", Sentry: false},
+			{Name: "(2006 HJ18)", Sentry: false},
+			{Name: "(2008 BX2)", Sentry: false},
+			{Name: "(2013 QM10)", Sentry: false},
+			{Name: "(2013 YL2)", Sentry: false},
+			{Name: "(2016 AE166)", Sentry: false},
+			{Name: "(2019 AR3)", Sentry: false},
+			{Name: "(2019 AJ8)", Sentry: false},
+			{Name: "(2021 RH)", Sentry: false},
+			{Name: "(2022 BB3)", Sentry: false},
+			{Name: "(2022 OF)", Sentry: false},
+			{Name: "(2022 YD6)", Sentry: false},
+			{Name: "(2023 AF)", Sentry: false},
+			{Name: "(2023 AG1)", Sentry: false},
+		})
+	})
+
+	t.Run("gather errors", func(t *testing.T) {
+		t.Parallel()
+		_, err := MapMust(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
+			return Item{
+				Name:   sm.String("name"),
+				Sentry: sm.Bool("wrong.path"),
+			}
+		})
+
+		var g *multipleError
+		testingx.AssertEqual(t, errors.As(err, &g), true)
+		testingx.AssertEqual(t, len(g.errors), 17)
+		for _, e := range g.errors {
+			testingx.ExpectedErrorIs(ErrFieldNotFound)(t, e)
+		}
+	})
 }
 
 func TestReadme(t *testing.T) {

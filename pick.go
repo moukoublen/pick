@@ -85,6 +85,38 @@ func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, er
 	return cast.ToSlice(item, func(a any) (Output, error) { return mapFn(p.Wrap(a)) })
 }
 
+// MapMust is like Map but provides a SelectorMust into the map function's argument.
+// It also gathers any possible error of Must API to `multipleError` and returns it.
+// It's helpful when a clean field-to-field mapping is preferred, but a possible error
+// for each field must also be perceived.
+// Example:
+//
+//	itemsSlice, err := MapMust(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
+//		return Item{
+//			Name:   sm.String("name"),
+//			Sentry: sm.Bool("is_sentry_object"),
+//		}
+//	})
+//
+//nolint:ireturn
+func MapMust[Output any](p *Picker, selector string, mapFn func(SelectorMustAPI) Output) (_ []Output, returnedError error) {
+	item, err := pickSelector(p.data, p.notation, p.traverser, selector, omitCast)
+	if err != nil {
+		return nil, err
+	}
+
+	gatherErrors := GatherErrorsFn(&returnedError)
+
+	sl, err := cast.ToSlice(item, func(a any) (Output, error) {
+		return mapFn(p.Wrap(a).Must(gatherErrors)), nil
+	})
+	if err != nil {
+		gather(&returnedError, err)
+	}
+
+	return sl, returnedError
+}
+
 //nolint:ireturn
 func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Output, error)) ([]Output, error) {
 	item, err := pickSelector(p.data, p.notation, p.traverser, selector, omitCast)
