@@ -12,18 +12,20 @@ type Caster struct {
 	stringCaster
 	boolCaster
 	timeCaster
+	durationCaster
 	integerCaster
 	byteCaster
 }
 
 func NewCaster() Caster {
 	return Caster{
-		floatCaster:   newFloatCaster(),
-		stringCaster:  newStringCaster(),
-		boolCaster:    newBoolCaster(),
-		timeCaster:    newTimeCaster(),
-		integerCaster: newIntegerCaster(),
-		byteCaster:    newByteCaster(),
+		floatCaster:    newFloatCaster(),
+		stringCaster:   newStringCaster(),
+		boolCaster:     newBoolCaster(),
+		timeCaster:     newTimeCaster(),
+		durationCaster: newDurationCaster(),
+		integerCaster:  newIntegerCaster(),
+		byteCaster:     newByteCaster(),
 	}
 }
 
@@ -86,35 +88,35 @@ func ToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T, rE
 	// attempt to quick return on slice of basic types by avoiding reflect.
 	switch cc := input.(type) {
 	case []any:
-		return sliceToSlice[any, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []string:
-		return sliceToSlice[string, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []int:
-		return sliceToSlice[int, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []int8:
-		return sliceToSlice[int8, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []int16:
-		return sliceToSlice[int16, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []int32:
-		return sliceToSlice[int32, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []int64:
-		return sliceToSlice[int64, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []uint:
-		return sliceToSlice[uint, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []uint8:
-		return sliceToSlice[uint8, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []uint16:
-		return sliceToSlice[uint16, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []uint32:
-		return sliceToSlice[uint32, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []uint64:
-		return sliceToSlice[uint64, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []float32:
-		return sliceToSlice[float32, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []float64:
-		return sliceToSlice[float64, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	case []bool:
-		return sliceToSlice[bool, T](cc, singleItemCastFn)
+		return sliceToSlice(cc, singleItemCastFn)
 	}
 
 	// slow/costly attempt with reflect

@@ -71,7 +71,7 @@ type Foo struct{ ID int16 }
 }
 ```
 
-** time functions **
+**Time functions**
 ```golang
 dateData := map[string]any{
     "time1":     "1977-05-25T22:30:00Z",
@@ -113,6 +113,15 @@ As an `API` we define a set of functions like this `Bool(T) Output` for all basi
   * Path API that can be accessed by calling `Picker.Path()`. <br>E.g. `Picker.Path().Bool(path []Key) (bool, error)`
   * Path Must API that can be accessed by calling `Picker.PathMust()`. <br>E.g. `Picker.PathMust().Bool(path []Key) bool`
 
+**Supported Types in API**
+  * `bool` / `[]bool`
+  * `byte` / `[]byte`
+  * `float{32,64}` / `[]float{32,64}`
+  * `int{,8,16,32,64}` / `[]int{,8,16,32,64}`
+  * `uint{,8,16,32,64}` / `[]uint{,8,16,32,64}`
+  * `string` / `[]string`
+  * `time.Time` / `[]time.Time`
+  * `time.Duration` / `[]time.Duration`
 
 Examples:
 

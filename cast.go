@@ -64,6 +64,13 @@ type timeCaster interface {
 	AsTimeSliceWithConfig(config cast.TimeCastConfig, input any) ([]time.Time, error)
 }
 
+type durationCaster interface {
+	AsDuration(input any) (time.Duration, error)
+	AsDurationWithConfig(config cast.DurationCastConfig, input any) (time.Duration, error)
+	AsDurationSlice(input any) ([]time.Duration, error)
+	AsDurationSliceWithConfig(config cast.DurationCastConfig, input any) ([]time.Duration, error)
+}
+
 type Caster interface {
 	signedIntegerCaster
 	unsignedIntegerCaster
@@ -72,5 +79,6 @@ type Caster interface {
 	boolCaster
 	byteCaster
 	timeCaster
+	durationCaster
 	As(input any, asKind reflect.Kind) (any, error)
 }

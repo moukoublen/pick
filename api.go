@@ -148,6 +148,26 @@ func (p *Picker) TimeSliceWithConfig(config cast.TimeCastConfig, selector string
 	})
 }
 
+func (p *Picker) Duration(selector string) (time.Duration, error) {
+	return pickSelector(p.data, p.notation, p.traverser, selector, p.caster.AsDuration)
+}
+
+func (p *Picker) DurationWithConfig(config cast.DurationCastConfig, selector string) (time.Duration, error) {
+	return pickSelector(p.data, p.notation, p.traverser, selector, func(input any) (time.Duration, error) {
+		return p.caster.AsDurationWithConfig(config, input)
+	})
+}
+
+func (p *Picker) DurationSlice(selector string) ([]time.Duration, error) {
+	return pickSelector(p.data, p.notation, p.traverser, selector, p.caster.AsDurationSlice)
+}
+
+func (p *Picker) DurationSliceWithConfig(config cast.DurationCastConfig, selector string) ([]time.Duration, error) {
+	return pickSelector(p.data, p.notation, p.traverser, selector, func(input any) ([]time.Duration, error) {
+		return p.caster.AsDurationSliceWithConfig(config, input)
+	})
+}
+
 // Selector Must API
 
 type SelectorMustAPI struct {
@@ -275,23 +295,43 @@ func (a SelectorMustAPI) StringSlice(selector string) []string {
 	return pickSelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsStringSlice, a.onErr...)
 }
 
-func (a *SelectorMustAPI) Time(selector string) time.Time {
+func (a SelectorMustAPI) Time(selector string) time.Time {
 	return pickSelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsTime, a.onErr...)
 }
 
-func (a *SelectorMustAPI) TimeWithConfig(config cast.TimeCastConfig, selector string) time.Time {
+func (a SelectorMustAPI) TimeWithConfig(config cast.TimeCastConfig, selector string) time.Time {
 	return pickSelectorMust(a.data, a.notation, a.traverser, selector, func(input any) (time.Time, error) {
 		return a.caster.AsTimeWithConfig(config, input)
 	}, a.onErr...)
 }
 
-func (a *SelectorMustAPI) TimeSlice(selector string) []time.Time {
+func (a SelectorMustAPI) TimeSlice(selector string) []time.Time {
 	return pickSelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsTimeSlice, a.onErr...)
 }
 
-func (a *SelectorMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) []time.Time {
+func (a SelectorMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) []time.Time {
 	return pickSelectorMust(a.data, a.notation, a.traverser, selector, func(input any) ([]time.Time, error) {
 		return a.caster.AsTimeSliceWithConfig(config, input)
+	}, a.onErr...)
+}
+
+func (a SelectorMustAPI) Duration(selector string) time.Duration {
+	return pickSelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsDuration, a.onErr...)
+}
+
+func (a SelectorMustAPI) DurationWithConfig(config cast.DurationCastConfig, selector string) time.Duration {
+	return pickSelectorMust(a.data, a.notation, a.traverser, selector, func(input any) (time.Duration, error) {
+		return a.caster.AsDurationWithConfig(config, input)
+	}, a.onErr...)
+}
+
+func (a SelectorMustAPI) DurationSlice(selector string) []time.Duration {
+	return pickSelectorMust(a.data, a.notation, a.traverser, selector, a.caster.AsDurationSlice, a.onErr...)
+}
+
+func (a SelectorMustAPI) DurationSliceWithConfig(config cast.DurationCastConfig, selector string) []time.Duration {
+	return pickSelectorMust(a.data, a.notation, a.traverser, selector, func(input any) ([]time.Duration, error) {
+		return a.caster.AsDurationSliceWithConfig(config, input)
 	}, a.onErr...)
 }
 
@@ -421,23 +461,43 @@ func (a PathAPI) StringSlice(path ...Key) ([]string, error) {
 	return pickPath(a.data, a.traverser, path, a.caster.AsStringSlice)
 }
 
-func (a *PathAPI) Time(path ...Key) (time.Time, error) {
+func (a PathAPI) Time(path ...Key) (time.Time, error) {
 	return pickPath(a.data, a.traverser, path, a.caster.AsTime)
 }
 
-func (a *PathAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) (time.Time, error) {
+func (a PathAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) (time.Time, error) {
 	return pickPath(a.data, a.traverser, path, func(input any) (time.Time, error) {
 		return a.caster.AsTimeWithConfig(config, input)
 	})
 }
 
-func (a *PathAPI) TimeSlice(path ...Key) ([]time.Time, error) {
+func (a PathAPI) TimeSlice(path ...Key) ([]time.Time, error) {
 	return pickPath(a.data, a.traverser, path, a.caster.AsTimeSlice)
 }
 
-func (a *PathAPI) TimeSliceWithConfig(config cast.TimeCastConfig, path ...Key) ([]time.Time, error) {
+func (a PathAPI) TimeSliceWithConfig(config cast.TimeCastConfig, path ...Key) ([]time.Time, error) {
 	return pickPath(a.data, a.traverser, path, func(input any) ([]time.Time, error) {
 		return a.caster.AsTimeSliceWithConfig(config, input)
+	})
+}
+
+func (a PathAPI) Duration(path ...Key) (time.Duration, error) {
+	return pickPath(a.data, a.traverser, path, a.caster.AsDuration)
+}
+
+func (a PathAPI) DurationWithConfig(config cast.DurationCastConfig, path ...Key) (time.Duration, error) {
+	return pickPath(a.data, a.traverser, path, func(input any) (time.Duration, error) {
+		return a.caster.AsDurationWithConfig(config, input)
+	})
+}
+
+func (a PathAPI) DurationSlice(path ...Key) ([]time.Duration, error) {
+	return pickPath(a.data, a.traverser, path, a.caster.AsDurationSlice)
+}
+
+func (a PathAPI) DurationSliceWithConfig(config cast.DurationCastConfig, path ...Key) ([]time.Duration, error) {
+	return pickPath(a.data, a.traverser, path, func(input any) ([]time.Duration, error) {
+		return a.caster.AsDurationSliceWithConfig(config, input)
 	})
 }
 
@@ -568,22 +628,42 @@ func (a PathMustAPI) StringSlice(path ...Key) []string {
 	return pickPathMust(a.data, a.traverser, path, a.caster.AsStringSlice, a.onErr...)
 }
 
-func (a *PathMustAPI) Time(path ...Key) time.Time {
+func (a PathMustAPI) Time(path ...Key) time.Time {
 	return pickPathMust(a.data, a.traverser, path, a.caster.AsTime, a.onErr...)
 }
 
-func (a *PathMustAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) time.Time {
+func (a PathMustAPI) TimeWithConfig(config cast.TimeCastConfig, path ...Key) time.Time {
 	return pickPathMust(a.data, a.traverser, path, func(input any) (time.Time, error) {
 		return a.caster.AsTimeWithConfig(config, input)
 	}, a.onErr...)
 }
 
-func (a *PathMustAPI) TimeSlice(path ...Key) []time.Time {
+func (a PathMustAPI) TimeSlice(path ...Key) []time.Time {
 	return pickPathMust(a.data, a.traverser, path, a.caster.AsTimeSlice, a.onErr...)
 }
 
-func (a *PathMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, path ...Key) []time.Time {
+func (a PathMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, path ...Key) []time.Time {
 	return pickPathMust(a.data, a.traverser, path, func(input any) ([]time.Time, error) {
 		return a.caster.AsTimeSliceWithConfig(config, input)
+	}, a.onErr...)
+}
+
+func (a PathMustAPI) Duration(path ...Key) time.Duration {
+	return pickPathMust(a.data, a.traverser, path, a.caster.AsDuration, a.onErr...)
+}
+
+func (a PathMustAPI) DurationWithConfig(config cast.DurationCastConfig, path ...Key) time.Duration {
+	return pickPathMust(a.data, a.traverser, path, func(input any) (time.Duration, error) {
+		return a.caster.AsDurationWithConfig(config, input)
+	}, a.onErr...)
+}
+
+func (a PathMustAPI) DurationSlice(path ...Key) []time.Duration {
+	return pickPathMust(a.data, a.traverser, path, a.caster.AsDurationSlice, a.onErr...)
+}
+
+func (a PathMustAPI) DurationSliceWithConfig(config cast.DurationCastConfig, path ...Key) []time.Duration {
+	return pickPathMust(a.data, a.traverser, path, func(input any) ([]time.Duration, error) {
+		return a.caster.AsDurationSliceWithConfig(config, input)
 	}, a.onErr...)
 }
