@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	errorsx "github.com/moukoublen/pick/errors"
+	"github.com/moukoublen/pick/internal/testingx/errorsx"
 )
 
 type DefaultTraverser struct {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	errorsx "github.com/moukoublen/pick/errors"
+	"github.com/moukoublen/pick/internal/testingx/errorsx"
 )
 
 type Caster struct {

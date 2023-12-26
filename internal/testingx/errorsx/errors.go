@@ -1,4 +1,4 @@
-package errors
+package errorsx
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 
 func RecoverPanicToError(out *error) {
 	if r := recover(); r != nil {
-		panicError := &RecoverPanicError{recovered: r}
+		panicError := &recoveredPanicError{recovered: r}
 		if *out != nil {
 			*out = errors.Join(panicError, *out)
 		} else {
@@ -16,23 +16,23 @@ func RecoverPanicToError(out *error) {
 	}
 }
 
-type RecoverPanicError struct {
+type recoveredPanicError struct {
 	recovered any
 }
 
-func (r *RecoverPanicError) Error() string {
+func (r *recoveredPanicError) Error() string {
 	if err, is := r.recovered.(error); is {
-		return err.Error()
+		return fmt.Sprintf("recovered panic: %s", err.Error())
 	}
 
 	return fmt.Sprintf("recovered panic: %#v", r.recovered)
 }
 
-func (r *RecoverPanicError) Recovered() any {
+func (r *recoveredPanicError) Recovered() any {
 	return r.recovered
 }
 
-func (r *RecoverPanicError) Unwrap() error {
+func (r *recoveredPanicError) Unwrap() error {
 	err, _ := r.recovered.(error)
 	return err
 }
