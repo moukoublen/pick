@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/exp/constraints"
+	"github.com/moukoublen/pick/numbers"
 )
 
 type integerCaster struct {
@@ -118,12 +118,12 @@ func (c integerCaster) AsUint64Slice(input any) ([]uint64, error) {
 	return ToSlice[uint64](input, c.AsUint64)
 }
 
-type intCast[T constraints.Integer] struct {
+type intCast[T numbers.Integer] struct {
 	signed bool
 	kind   reflect.Kind
 }
 
-func newIntCast[T constraints.Integer]() intCast[T] {
+func newIntCast[T numbers.Integer]() intCast[T] {
 	ic := intCast[T]{}
 	var t T
 	ic.kind = reflect.TypeOf(t).Kind()
