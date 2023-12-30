@@ -104,3 +104,8 @@ linters-settings:
     enable-all: true
     disable:
       - fieldalignment
+
+  misspell:
+    ignore-words:
+      - ""
+    locale: US
