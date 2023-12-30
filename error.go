@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-type multipleError struct {
+type multiError struct {
 	errors []error
 }
 
-func (e *multipleError) Error() string {
+func (e *multiError) Error() string {
 	if e == nil || len(e.errors) == 0 {
 		return ""
 	}
@@ -27,11 +27,11 @@ func (e *multipleError) Error() string {
 	return s.String()
 }
 
-func (e *multipleError) Add(err error) {
+func (e *multiError) Add(err error) {
 	e.errors = append(e.errors, err)
 }
 
-func (e *multipleError) Unwrap() []error {
+func (e *multiError) Unwrap() []error {
 	return e.errors
 }
 
@@ -43,14 +43,14 @@ func gather(dst *error, newErr error) {
 		return
 	}
 
-	var gatherer *multipleError
+	var gatherer *multiError
 	if *dst == nil {
-		gatherer = &multipleError{}
+		gatherer = &multiError{}
 		*dst = gatherer
-	} else if g, is := (*dst).(*multipleError); is { //nolint:errorlint // this is specifically this way.
+	} else if g, is := (*dst).(*multiError); is { //nolint:errorlint // this is specifically this way.
 		gatherer = g
 	} else {
-		gatherer = &multipleError{}
+		gatherer = &multiError{}
 		gatherer.Add(*dst)
 		*dst = gatherer
 	}
@@ -58,7 +58,7 @@ func gather(dst *error, newErr error) {
 	gatherer.Add(newErr)
 }
 
-func GatherErrorsFn(dst *error) func(string, error) {
+func gatherErrorsFn(dst *error) func(string, error) {
 	return func(selector string, err error) {
 		gather(dst, &PickerError{selector: selector, inner: err})
 	}

@@ -73,18 +73,6 @@ func ToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T, rE
 		return ss, nil
 	}
 
-	typeOfInput := reflect.TypeOf(input)
-	kindOfInput := typeOfInput.Kind()
-
-	// if not slice or array => single cast attempt
-	if kindOfInput != reflect.Array && kindOfInput != reflect.Slice {
-		asT, err := singleItemCastFn(input)
-		if err != nil {
-			return nil, err
-		}
-		return []T{asT}, nil
-	}
-
 	// attempt to quick return on slice of basic types by avoiding reflect.
 	switch cc := input.(type) {
 	case []any:
@@ -119,9 +107,20 @@ func ToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T, rE
 		return sliceToSlice(cc, singleItemCastFn)
 	}
 
+	typeOfInput := reflect.TypeOf(input)
+	kindOfInput := typeOfInput.Kind()
+
+	// if not slice or array then single cast attempt
+	if kindOfInput != reflect.Array && kindOfInput != reflect.Slice {
+		asT, err := singleItemCastFn(input)
+		if err != nil {
+			return nil, err
+		}
+		return []T{asT}, nil
+	}
+
 	// slow/costly attempt with reflect
 	valueOfInput := reflect.ValueOf(input)
-
 	castedSlice := make([]T, 0, valueOfInput.Len())
 	for i := 0; i < valueOfInput.Len(); i++ {
 		item := valueOfInput.Index(i)

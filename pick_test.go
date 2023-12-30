@@ -897,7 +897,7 @@ func TestMapMust(t *testing.T) {
 			}
 		})
 
-		var g *multipleError
+		var g *multiError
 		testingx.AssertEqual(t, errors.As(err, &g), true)
 		testingx.AssertEqual(t, len(g.errors), 17)
 		for _, e := range g.errors {

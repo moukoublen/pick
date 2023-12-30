@@ -3,6 +3,7 @@ package pick
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 
 	"github.com/moukoublen/pick/cast"
@@ -75,6 +76,30 @@ func (p *Picker) PathMust(onErr ...func(string, error)) PathMustAPI {
 	return PathMustAPI{Picker: p, onErr: onErr}
 }
 
+// Each applies operation function to each element of the given selector.
+// The operation functions receives the index of the element, a SelectorMustAPI
+// and the total length of the slice (or 1 if input is a single element and not a slice).
+func (p *Picker) Each(selector string, operation func(index int, item any, length int)) (returnedError error) {
+	item, err := pickSelector(p.data, p.notation, p.traverser, selector, omitCast)
+	if err != nil {
+		if errors.Is(err, ErrFieldNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	gatherErrors := gatherErrorsFn(&returnedError)
+
+	err = traverseEach(item, func(i int, a any, l int) {
+		operation(i, p.Wrap(a).Must(gatherErrors), l)
+	})
+	if err != nil {
+		gather(&returnedError, err)
+	}
+
+	return returnedError
+}
+
 //nolint:ireturn
 func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, error)) ([]Output, error) {
 	item, err := pickSelector(p.data, p.notation, p.traverser, selector, omitCast)
@@ -105,7 +130,7 @@ func MapMust[Output any](p *Picker, selector string, mapFn func(SelectorMustAPI)
 		return nil, err
 	}
 
-	gatherErrors := GatherErrorsFn(&returnedError)
+	gatherErrors := gatherErrorsFn(&returnedError)
 
 	sl, err := cast.ToSlice(item, func(a any) (Output, error) {
 		return mapFn(p.Wrap(a).Must(gatherErrors)), nil

@@ -10,6 +10,8 @@ import (
 	"github.com/moukoublen/pick/internal/testingx/errorsx"
 )
 
+var ErrFieldNotFound = errors.New("field not found")
+
 type DefaultTraverser struct {
 	caster              Caster
 	skipItemDereference bool
@@ -249,4 +251,81 @@ func formatErrorAt(path []Key, idx int) string {
 	return sb.String()
 }
 
-var ErrFieldNotFound = errors.New("field not found")
+func traverseEach(input any, operation func(index int, item any, length int)) (rErr error) {
+	defer errorsx.RecoverPanicToError(&rErr)
+
+	// attempt to quick return on slice of basic types by avoiding reflect.
+	switch cc := input.(type) {
+	case []any:
+		each(cc, operation)
+		return rErr
+	case []string:
+		each(cc, operation)
+		return rErr
+	case []int:
+		each(cc, operation)
+		return rErr
+	case []int8:
+		each(cc, operation)
+		return rErr
+	case []int16:
+		each(cc, operation)
+		return rErr
+	case []int32:
+		each(cc, operation)
+		return rErr
+	case []int64:
+		each(cc, operation)
+		return rErr
+	case []uint:
+		each(cc, operation)
+		return rErr
+	case []uint8:
+		each(cc, operation)
+		return rErr
+	case []uint16:
+		each(cc, operation)
+		return rErr
+	case []uint32:
+		each(cc, operation)
+		return rErr
+	case []uint64:
+		each(cc, operation)
+		return rErr
+	case []float32:
+		each(cc, operation)
+		return rErr
+	case []float64:
+		each(cc, operation)
+		return rErr
+	case []bool:
+		each(cc, operation)
+		return rErr
+	}
+
+	typeOfInput := reflect.TypeOf(input)
+	kindOfInput := typeOfInput.Kind()
+
+	// if not slice or array => single operation call attempt
+	if kindOfInput != reflect.Array && kindOfInput != reflect.Slice {
+		operation(0, input, 1)
+		return rErr
+	}
+
+	// slow/costly attempt with reflect
+	valueOfInput := reflect.ValueOf(input)
+	length := valueOfInput.Len()
+	for i := 0; i < length; i++ {
+		item := valueOfInput.Index(i)
+		operation(i, item.Interface(), length)
+	}
+
+	return rErr
+}
+
+func each[T any](s []T, operation func(index int, item any, length int)) {
+	l := len(s)
+	for i := range s {
+		operation(i, s[i], l)
+	}
+}

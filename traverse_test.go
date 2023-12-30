@@ -189,122 +189,122 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 		input any
 		keys  []Key
 	}{
-		"index access level 1": {
+		"[]any": {
 			input: []any{"one", "two"},
 			keys:  []Key{Index(1)},
 		},
 
-		"index access level 1 out of range": {
+		"[]any(index out of range)": {
 			input: []any{"one", "two"},
 			keys:  []Key{Index(6)},
 		},
 
-		"index access level 1 slice of string ": {
+		"[]string": {
 			input: []string{"one", "two"},
 			keys:  []Key{Index(1)},
 		},
 
-		"index access level 2": {
+		"[]any -> []any": {
 			input: []any{"one", []any{"two", "three"}},
 			keys:  []Key{Index(1), Index(1)},
 		},
 
-		"index access level 3": {
+		"[]any -> []any -> []any": {
 			input: []any{"one", []any{"two", []any{"three", "four"}}},
 			keys:  []Key{Index(1), Index(1), Index(1)},
 		},
 
-		"index access level 3 mixed slice of string": {
+		"[]any -> []any -> []string": {
 			input: []any{"one", []any{"two", []string{"three", "four"}}},
 			keys:  []Key{Index(1), Index(1), Index(1)},
 		},
 
-		"name access level 1": {
+		"map[string]any": {
 			input: map[string]any{"one": "value"},
 			keys:  []Key{Field("one")},
 		},
 
-		"name access level 1 not found": {
+		"map[string]any(field not found)": {
 			input: map[string]any{"one": "value"},
 			keys:  []Key{Field("two")},
 		},
 
-		"name access level 2": {
+		"map[string]any -> map[string]any": {
 			input: map[string]any{"one": map[string]any{"two": "value"}},
 			keys:  []Key{Field("one"), Field("two")},
 		},
 
-		"name access level 2 renamed": {
+		"map[string]any -> renamed(map[string]any)": {
 			input: map[string]any{"one": renamed{"two": "value"}},
 			keys:  []Key{Field("one"), Field("two")},
 		},
 
-		"name access level 3": {
+		"map[string]any -> map[string]any -> map[string]any": {
 			input: map[string]any{"one": map[string]any{"two": map[string]any{"three": "value"}}},
 			keys:  []Key{Field("one"), Field("two"), Field("three")},
 		},
 
-		"name access level 3 renamed": {
+		"map[string]any -> renamed(map[string]any) -> map[string]any": {
 			input: map[string]any{"one": renamed{"two": map[string]any{"three": "value"}}},
 			keys:  []Key{Field("one"), Field("two")},
 		},
 
-		"name access to struct level 1": {
+		"struct": {
 			input: itemOne{FieldOne: "one", FieldTwo: 2},
 			keys:  []Key{Field("FieldOne")},
 		},
 
-		"mixed access level 2": {
+		"[]any -> map[string]any": {
 			input: []any{"one", map[string]any{"two": "value"}},
 			keys:  []Key{Index(1), Field("two")},
 		},
 
-		"mixed access level 2 with key cast index to name": {
+		"[]any -> map[string]any(using index)": {
 			input: []any{"one", map[string]any{"4": "value"}},
 			keys:  []Key{Index(1), Index(4)},
 		},
 
-		"mixed access level 2 with key cast name to index": {
+		"map[string]any -> []string(using field)": {
 			input: map[string]any{"one": []string{"s0", "s1", "s2"}},
 			keys:  []Key{Field("one"), Field("1")},
 		},
 
-		"mixed access level 3": {
+		"[]any -> map[string]any -> []any": {
 			input: []any{"one", map[string]any{"two": []any{"a", "b", "c"}}},
 			keys:  []Key{Index(1), Field("two"), Index(2)},
 		},
 
-		"mixed access level 3 with struct": {
+		"map[string]any -> renamed(map[string]any) -> struct": {
 			input: map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Field("two"), Field("FieldOne")},
 		},
 
-		"mixed access level 3 with struct using index": {
+		"map[string]any -> renamed(map[string]any) -> struct(using index)": {
 			input: map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Field("two"), Index(0)},
 		},
 
-		"mixed access level 3 with struct using wrong index": {
+		"map[string]any -> renamed(map[string]any) -> struct(using wrong index)": {
 			input: map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Field("two"), Index(12)},
 		},
 
-		"mixed access level 3 with struct using wrong field": {
+		"map[string]any -> renamed(map[string]any) -> struct(using wrong field)": {
 			input: map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Field("two"), Field("Wrong")},
 		},
 
-		"mixed access level 3 with pointer struct": {
+		"map[string]any -> renamed(map[string]any) -> &struct": {
 			input: map[string]any{"one": renamed{"two": &itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Field("two"), Field("FieldOne")},
 		},
 
-		"mixed access level 3 with key cast name to int32 and struct index field": {
+		"map[string]any -> map[int32]struct(using field) -> struct(using index)": {
 			input: map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Field("42"), Index(0)},
 		},
 
-		"mixed access level 3 with key cast int to int32 and struct index field": {
+		"map[string]any -> map[int32]struct(using index) -> struct(using index)": {
 			input: map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
 			keys:  []Key{Field("one"), Index(42), Index(0)},
 		},
