@@ -135,29 +135,6 @@ assert(sm.Float32("float"), float32(2.12))
 assert(sm.Int64("float"), int64(2))
 ```
 
-**Path API**
-```golang
-{
-    got, err := p1.Path().String(Field("item"), Field("three"), Index(1))
-    assert(got, "2")
-    assert(err, nil)
-}
-pa := p1.Path()
-{
-    got, err := pa.Uint64(Field("item"), Field("three"), Index(1))
-    assert(got, uint64(2))
-    assert(err, nil)
-}
-{
-    got, err := pa.Int32(Field("item"), Field("one"))
-    assert(got, int32(1))
-    assert(err, nil)
-}
-pm := p1.PathMust()
-assert(pm.Float32(Field("float")), float32(2.12))
-assert(pm.Int64(Field("float")), int64(2))
-```
-
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.
 
 

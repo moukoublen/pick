@@ -20,17 +20,12 @@ import (
 type PickerTestCase struct {
 	AccessFn      any
 	Selector      string // selector or path
-	Path          []Key  // selector or path
 	ExpectedValue any
 	ExpectedError func(*testing.T, error)
 }
 
 func (tc *PickerTestCase) Name() string {
-	if tc.Selector != "" {
-		return fmt.Sprintf("selector(%s)", tc.Selector)
-	}
-
-	return fmt.Sprintf("path(%s)", DotNotation{}.Format(tc.Path...))
+	return fmt.Sprintf("selector(%s)", tc.Selector)
 }
 
 func (tc *PickerTestCase) Run(t *testing.T) {
@@ -38,15 +33,7 @@ func (tc *PickerTestCase) Run(t *testing.T) {
 	t.Parallel()
 	pickerFunctionCall := reflect.ValueOf(tc.AccessFn)
 
-	var args []reflect.Value
-	if len(tc.Path) > 0 {
-		for _, k := range tc.Path {
-			args = append(args, reflect.ValueOf(k))
-		}
-	} else {
-		args = []reflect.Value{reflect.ValueOf(tc.Selector)}
-	}
-
+	args := []reflect.Value{reflect.ValueOf(tc.Selector)}
 	returned := pickerFunctionCall.Call(args)
 
 	got := returned[0].Interface()
@@ -60,117 +47,117 @@ func (tc *PickerTestCase) Run(t *testing.T) {
 	testingx.AssertError(t, tc.ExpectedError, receivedError)
 }
 
-func TestMixedTypesMap(t *testing.T) {
+func TestWithMixedTypesMap(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
 
 	tests := []PickerTestCase{
 		{
-			AccessFn:      p.Path().String,
-			Path:          []Key{Field("stringField")},
+			AccessFn:      p.String,
+			Selector:      "stringField",
 			ExpectedValue: "abcd",
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			AccessFn:      p.Must().Int,
+			Selector:      "sliceOfAnyComplex[0]",
 			ExpectedValue: int(2),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int8,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			AccessFn:      p.Int8,
+			Selector:      "sliceOfAnyComplex[0]",
 			ExpectedValue: int8(2),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int16,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
+			AccessFn:      p.Int16,
+			Selector:      "sliceOfAnyComplex[0]",
 			ExpectedValue: int16(2),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int32,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(4)},
+			AccessFn:      p.Int32,
+			Selector:      "sliceOfAnyComplex[4]",
 			ExpectedValue: int32(5),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int64,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(4)},
+			AccessFn:      p.Int64,
+			Selector:      "sliceOfAnyComplex[4]",
 			ExpectedValue: int64(5),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int64,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(3), Field("key3")},
+			AccessFn:      p.Int64,
+			Selector:      "sliceOfAnyComplex[3].key3",
 			ExpectedValue: int64(6565),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int32,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(2), Field("A")},
+			AccessFn:      p.Int32,
+			Selector:      "sliceOfAnyComplex[2].A",
 			ExpectedValue: int32(3),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int32,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(2), Field("Foo")},
+			AccessFn:      p.Int32,
+			Selector:      "sliceOfAnyComplex[2].Foo",
 			ExpectedValue: int32(0),
 			ExpectedError: testingx.ExpectedErrorIs(ErrFieldNotFound),
 		},
 		{
-			AccessFn:      p.Path().Uint,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			AccessFn:      p.Uint,
+			Selector:      "pointerMapStringAny.fieldInt32",
 			ExpectedValue: uint(6),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Uint8,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			AccessFn:      p.Uint8,
+			Selector:      "pointerMapStringAny.fieldInt32",
 			ExpectedValue: uint8(6),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Uint16,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			AccessFn:      p.Uint16,
+			Selector:      "pointerMapStringAny.fieldInt32",
 			ExpectedValue: uint16(6),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Uint32,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			AccessFn:      p.Uint32,
+			Selector:      "pointerMapStringAny.fieldInt32",
 			ExpectedValue: uint32(6),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Uint64,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldInt32")},
+			AccessFn:      p.Uint64,
+			Selector:      "pointerMapStringAny.fieldInt32",
 			ExpectedValue: uint64(6),
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Uint64Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			AccessFn:      p.Must().Uint64Slice,
+			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []uint64{10, 11, 12, 13, 14},
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Int64Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			AccessFn:      p.Int64Slice,
+			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []int64{10, 11, 12, 13, 14},
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().StringSlice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
+			AccessFn:      p.Must().StringSlice,
+			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []string{"10", "11", "12", "13", "14"},
 			ExpectedError: nil,
 		},
 		{
-			AccessFn:      p.Path().Bool,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
+			AccessFn:      p.Bool,
+			Selector:      "pointerMapStringAny.fieldBool",
 			ExpectedValue: true,
 			ExpectedError: nil,
 		},
@@ -184,7 +171,7 @@ func TestMixedTypesMap(t *testing.T) {
 }
 
 // TestMixedTypesMapBool makes an extensive test in Bool/BoolSlice functions using all APIs.
-func TestMixedTypesMapBool(t *testing.T) {
+func TestWithMixedTypesMapUsingBoolAPI(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -202,18 +189,6 @@ func TestMixedTypesMapBool(t *testing.T) {
 			ExpectedValue: true,
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Bool,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
-			ExpectedValue: true,
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Bool,
-			Path:          []Key{Field("pointerMapStringAny"), Field("fieldBool")},
-			ExpectedValue: true,
-			ExpectedError: nil,
-		},
 
 		{
 			AccessFn:      p.BoolSlice,
@@ -227,18 +202,6 @@ func TestMixedTypesMapBool(t *testing.T) {
 			ExpectedValue: []bool{true, true, true, false, true, true},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().BoolSlice,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(5)},
-			ExpectedValue: []bool{true, true, true, false, true, true},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().BoolSlice,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(5)},
-			ExpectedValue: []bool{true, true, true, false, true, true},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -249,7 +212,7 @@ func TestMixedTypesMapBool(t *testing.T) {
 }
 
 // TestMixedTypesMapString makes an extensive test in String/StringSlice functions using all APIs.
-func TestMixedTypesMapString(t *testing.T) {
+func TestWithMixedTypesMapUsingStringAPI(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -267,18 +230,6 @@ func TestMixedTypesMapString(t *testing.T) {
 			ExpectedValue: "stringElement",
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().String,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(1)},
-			ExpectedValue: "stringElement",
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().String,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(1)},
-			ExpectedValue: "stringElement",
-			ExpectedError: nil,
-		},
 
 		{
 			AccessFn:      p.StringSlice,
@@ -292,18 +243,6 @@ func TestMixedTypesMapString(t *testing.T) {
 			ExpectedValue: []string{"abc", "def", "ghi"},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().StringSlice,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(6)},
-			ExpectedValue: []string{"abc", "def", "ghi"},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().StringSlice,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(6)},
-			ExpectedValue: []string{"abc", "def", "ghi"},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -314,7 +253,7 @@ func TestMixedTypesMapString(t *testing.T) {
 }
 
 // TestMixedTypesMapInt64 makes an extensive test in Int64/Int64Slice functions using all APIs.
-func TestMixedTypesMapInt64(t *testing.T) {
+func TestWithMixedTypesMapUsingInt64(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -332,18 +271,6 @@ func TestMixedTypesMapInt64(t *testing.T) {
 			ExpectedValue: int64(2),
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Int64,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
-			ExpectedValue: int64(2),
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Int64,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(0)},
-			ExpectedValue: int64(2),
-			ExpectedError: nil,
-		},
 
 		{
 			AccessFn:      p.Int64Slice,
@@ -357,18 +284,6 @@ func TestMixedTypesMapInt64(t *testing.T) {
 			ExpectedValue: []int64{10, 11, 12, 13, 14},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Int64Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
-			ExpectedValue: []int64{10, 11, 12, 13, 14},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Int64Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
-			ExpectedValue: []int64{10, 11, 12, 13, 14},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -379,7 +294,7 @@ func TestMixedTypesMapInt64(t *testing.T) {
 }
 
 // TestMixedTypesMapFloat64 makes an extensive test in Float64/Float64Slice functions using all APIs.
-func TestMixedTypesMapFloat64(t *testing.T) {
+func TestUsingMixedTypesMapUsingFloat64API(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -397,18 +312,6 @@ func TestMixedTypesMapFloat64(t *testing.T) {
 			ExpectedValue: float64(0.4),
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Float64,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice"), Index(3)},
-			ExpectedValue: float64(0.4),
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Float64,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice"), Index(3)},
-			ExpectedValue: float64(0.4),
-			ExpectedError: nil,
-		},
 
 		{
 			AccessFn:      p.Float64Slice,
@@ -422,18 +325,6 @@ func TestMixedTypesMapFloat64(t *testing.T) {
 			ExpectedValue: []float64{0.1, 0.2, 0.3, 0.4},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Float64Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
-			ExpectedValue: []float64{0.1, 0.2, 0.3, 0.4},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Float64Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
-			ExpectedValue: []float64{0.1, 0.2, 0.3, 0.4},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -444,7 +335,7 @@ func TestMixedTypesMapFloat64(t *testing.T) {
 }
 
 // TestMixedTypesMapFloat32 makes an extensive test in Float32/Float32Slice functions using all APIs.
-func TestMixedTypesMapFloat32(t *testing.T) {
+func TestWithMixedTypesMapUsingFloat32API(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -462,18 +353,6 @@ func TestMixedTypesMapFloat32(t *testing.T) {
 			ExpectedValue: float32(0.4),
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Float32,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice"), Index(3)},
-			ExpectedValue: float32(0.4),
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Float32,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice"), Index(3)},
-			ExpectedValue: float32(0.4),
-			ExpectedError: nil,
-		},
 
 		{
 			AccessFn:      p.Float32Slice,
@@ -487,18 +366,6 @@ func TestMixedTypesMapFloat32(t *testing.T) {
 			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Float32Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
-			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Float32Slice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("float64Slice")},
-			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -509,7 +376,7 @@ func TestMixedTypesMapFloat32(t *testing.T) {
 }
 
 // TestMixedTypesMapByte makes an extensive test in Byte/ByteSlice functions using all APIs.
-func TestMixedTypesMapByte(t *testing.T) {
+func TestWithMixedTypesMapUsingByteAPI(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -527,18 +394,6 @@ func TestMixedTypesMapByte(t *testing.T) {
 			ExpectedValue: byte(math.MaxUint8),
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Byte,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(7)},
-			ExpectedValue: byte(math.MaxUint8),
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Byte,
-			Path:          []Key{Field("sliceOfAnyComplex"), Index(7)},
-			ExpectedValue: byte(math.MaxUint8),
-			ExpectedError: nil,
-		},
 
 		{
 			AccessFn:      p.ByteSlice,
@@ -552,18 +407,6 @@ func TestMixedTypesMapByte(t *testing.T) {
 			ExpectedValue: []byte{10, 11, 12, 13, 14},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().ByteSlice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
-			ExpectedValue: []byte{10, 11, 12, 13, 14},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().ByteSlice,
-			Path:          []Key{Field("pointerMapStringAny"), Field("int32Slice")},
-			ExpectedValue: []byte{10, 11, 12, 13, 14},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -573,8 +416,8 @@ func TestMixedTypesMapByte(t *testing.T) {
 	}
 }
 
-// TestMixedTypesMapTime makes an extensive test in Time/TimeSlice functions using all APIs.
-func TestMixedTypesMapTime(t *testing.T) {
+// TestWithMixedTypesMapUsingTimeAPI makes an extensive test in Time/TimeSlice functions using all APIs.
+func TestWithMixedTypesMapUsingTimeAPI(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -592,18 +435,7 @@ func TestMixedTypesMapTime(t *testing.T) {
 			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Time,
-			Path:          []Key{Field("times"), Field("timeRFC3339Nano")},
-			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Time,
-			Path:          []Key{Field("times"), Field("timeRFC3339Nano")},
-			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
-			ExpectedError: nil,
-		},
+
 		{
 			AccessFn: p.TimeSlice,
 			Selector: "times.timeUnixSecondsSlice",
@@ -624,26 +456,6 @@ func TestMixedTypesMapTime(t *testing.T) {
 			},
 			ExpectedError: nil,
 		},
-		{
-			AccessFn: p.Path().TimeSlice,
-			Path:     []Key{Field("times"), Field("timeUnixSecondsSlice")},
-			ExpectedValue: []time.Time{
-				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
-				time.Date(1977, time.May, 25, 18, 30, 1, 0, time.UTC),
-				time.Date(1977, time.May, 25, 18, 30, 2, 0, time.UTC),
-			},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn: p.PathMust().TimeSlice,
-			Path:     []Key{Field("times"), Field("timeUnixSecondsSlice")},
-			ExpectedValue: []time.Time{
-				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
-				time.Date(1977, time.May, 25, 18, 30, 1, 0, time.UTC),
-				time.Date(1977, time.May, 25, 18, 30, 2, 0, time.UTC),
-			},
-			ExpectedError: nil,
-		},
 	}
 
 	for idx, tc := range tests {
@@ -653,8 +465,8 @@ func TestMixedTypesMapTime(t *testing.T) {
 	}
 }
 
-// TestMixedTypesMapDuration makes an extensive test in Duration/DurationSlice functions using all APIs.
-func TestMixedTypesMapDuration(t *testing.T) {
+// TestWithMixedTypesMapUsingDurationAPI makes an extensive test in Duration/DurationSlice functions using all APIs.
+func TestWithMixedTypesMapUsingDurationAPI(t *testing.T) {
 	t.Parallel()
 
 	p := Wrap(testdata.MixedTypesMap)
@@ -672,18 +484,7 @@ func TestMixedTypesMapDuration(t *testing.T) {
 			ExpectedValue: time.Duration(4) * time.Second,
 			ExpectedError: nil,
 		},
-		{
-			AccessFn:      p.Path().Duration,
-			Path:          []Key{Field("durations"), Field("single")},
-			ExpectedValue: time.Duration(4) * time.Second,
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().Duration,
-			Path:          []Key{Field("durations"), Field("single")},
-			ExpectedValue: time.Duration(4) * time.Second,
-			ExpectedError: nil,
-		},
+
 		{
 			AccessFn:      p.DurationSlice,
 			Selector:      "durations.slice",
@@ -693,18 +494,6 @@ func TestMixedTypesMapDuration(t *testing.T) {
 		{
 			AccessFn:      p.Must().DurationSlice,
 			Selector:      "durations.slice",
-			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.Path().DurationSlice,
-			Path:          []Key{Field("durations"), Field("slice")},
-			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
-			ExpectedError: nil,
-		},
-		{
-			AccessFn:      p.PathMust().DurationSlice,
-			Path:          []Key{Field("durations"), Field("slice")},
 			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
 			ExpectedError: nil,
 		},
@@ -972,27 +761,6 @@ func TestReadme(t *testing.T) {
 	assert(sm.Int32("item.one"), int32(1))
 	assert(sm.Float32("float"), float32(2.12))
 	assert(sm.Int64("float"), int64(2))
-
-	// Path API
-	{
-		got, err := p1.Path().String(Field("item"), Field("three"), Index(1))
-		assert(got, "2")
-		assert(err, nil)
-	}
-	pa := p1.Path()
-	{
-		got, err := pa.Uint64(Field("item"), Field("three"), Index(1))
-		assert(got, uint64(2))
-		assert(err, nil)
-	}
-	{
-		got, err := pa.Int32(Field("item"), Field("one"))
-		assert(got, int32(1))
-		assert(err, nil)
-	}
-	pm := p1.PathMust()
-	assert(pm.Float32(Field("float")), float32(2.12))
-	assert(pm.Int64(Field("float")), int64(2))
 
 	// time API
 	dateData := map[string]any{
