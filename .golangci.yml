@@ -45,9 +45,19 @@ linters:
     - godox       # TODO: reconsider
 
 issues:
+  # https://golangci-lint.run/usage/false-positives/#default-exclusions
+  exclude-use-default: true
+  include:
+    - EXC0004
+    - EXC0005
+    - EXC0006
   exclude-rules:
-    - path: _test\.go
+    - path: '(.+)_test\.go'
       linters: [gochecknoglobals, goconst, goerr113, gomnd, dupl]
+    # Exclude govet fieldalignment in tests.
+    - path: '(.+)_test\.go'
+      linters: [govet]
+      text: 'fieldalignment:'
     - path: internal/tesatingx/testdata
       linters: [gochecknoglobals, goconst, goerr113, gomnd, dupl]
 
@@ -102,8 +112,8 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
-    disable:
-      - fieldalignment
+    #disable:
+    #  - fieldalignment
 
   misspell:
     ignore-words:

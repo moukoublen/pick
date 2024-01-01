@@ -28,7 +28,7 @@ func WrapReaderJSON(r io.Reader) (*Picker, error) {
 }
 
 func WrapDecoder(decoder interface{ Decode(destination any) error }) (*Picker, error) {
-	m := map[string]any{}
+	var m any
 	if err := decoder.Decode(&m); err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func Wrap(data any) *Picker {
 type Picker struct {
 	data      any
 	traverser Traverser
-	caster    Caster
+	Caster    Caster
 	notation  Notation
 }
 
@@ -52,14 +52,14 @@ func NewPicker(data any, t Traverser, c Caster, n Notation) *Picker {
 	return &Picker{
 		data:      data,
 		traverser: t,
-		caster:    c,
+		Caster:    c,
 		notation:  n,
 	}
 }
 
 // Wrap returns a new Picker using the same traverser, caster and notation.
 func (p *Picker) Wrap(data any) *Picker {
-	return NewPicker(data, p.traverser, p.caster, p.notation)
+	return NewPicker(data, p.traverser, p.Caster, p.notation)
 }
 
 func (p *Picker) Data() any { return p.data }
@@ -172,7 +172,7 @@ func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Outp
 }
 
 //nolint:ireturn
-func Selector[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
+func pickSelector[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		var o Output
@@ -183,8 +183,8 @@ func Selector[Output any](p *Picker, selector string, castFn func(any) (Output, 
 }
 
 //nolint:ireturn
-func SelectorMust[Output any](p *Picker, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
-	casted, err := Selector(p, selector, castFn)
+func pickSelectorMust[Output any](p *Picker, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
+	casted, err := pickSelector(p, selector, castFn)
 	if err != nil {
 		for _, fn := range onErr {
 			fn(selector, err)
