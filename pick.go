@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/moukoublen/pick/cast"
+	"github.com/moukoublen/pick/internal"
 )
 
 type Notation interface {
@@ -81,94 +82,69 @@ func (p *Picker) Traverse(path []Key) (any, error) {
 	return p.traverser.Retrieve(p.data, path)
 }
 
-// Each applies operation function to each element of the given selector.
-// The operation functions receives the index of the element, a SelectorMustAPI
-// and the total length of the slice (or 1 if input is a single element and not a slice).
-func (p *Picker) Each(selector string, operation func(index int, item any, length int)) (returnedError error) {
+//
+// Top level functions that use default API.
+//
+
+func Each(p *Picker, selector string, operation func(index int, p *Picker, length int) error) error {
 	item, err := p.Any(selector)
 	if err != nil {
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil
-		}
 		return err
 	}
 
-	gatherErrors := gatherErrorsFn(&returnedError)
-
-	err = traverseEach(item, func(i int, a any, l int) {
-		operation(i, p.Wrap(a).Must(gatherErrors), l)
-	})
-	if err != nil {
-		gather(&returnedError, err)
-	}
-
-	return returnedError
+	return internal.TraverseSlice(
+		item,
+		func(i int, a any, l int) error {
+			return operation(i, p.Wrap(a), l)
+		},
+	)
 }
 
 //nolint:ireturn
-func Map[Output any](p *Picker, selector string, mapFn func(*Picker) (Output, error)) ([]Output, error) {
+func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output, error)) ([]Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		return nil, err
 	}
 
-	return cast.ToSlice(item, func(a any) (Output, error) { return mapFn(p.Wrap(a)) })
+	return cast.ToSlice(
+		item,
+		func(_ int, a any, _ int) (Output, error) {
+			return transform(p.Wrap(a))
+		},
+	)
 }
 
-// MapMust is like Map but provides a SelectorMust into the map function's argument.
-// It also gathers any possible error of Must API to `multipleError` and returns it.
-// It's helpful when a clean field-to-field mapping is preferred, but a possible error
-// for each field must also be perceived.
-// Example:
-//
-//	itemsSlice, err := MapMust(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
-//		return Item{
-//			Name:   sm.String("name"),
-//			Sentry: sm.Bool("is_sentry_object"),
-//		}
-//	})
-//
 //nolint:ireturn
-func MapMust[Output any](p *Picker, selector string, mapFn func(SelectorMustAPI) Output) (_ []Output, returnedError error) {
+func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (Output, bool, error)) ([]Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		return nil, err
 	}
 
-	gatherErrors := gatherErrorsFn(&returnedError)
-
-	sl, err := cast.ToSlice(item, func(a any) (Output, error) {
-		return mapFn(p.Wrap(a).Must(gatherErrors)), nil
-	})
-	if err != nil {
-		gather(&returnedError, err)
-	}
-
-	return sl, returnedError
+	return cast.ToSliceFilter(
+		item,
+		func(_ int, a any, _ int) (Output, bool, error) {
+			return transform(p.Wrap(a))
+		},
+	)
 }
 
 //nolint:ireturn
-func FlatMap[Output any](p *Picker, selector string, mapFn func(*Picker) ([]Output, error)) ([]Output, error) {
+func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]Output, error)) ([]Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		return nil, err
 	}
 
-	doubleSlice, err := cast.ToSlice(item, func(a any) ([]Output, error) { return mapFn(p.Wrap(a)) })
-	if err != nil {
-		return nil, err
-	}
-	l := 0
-	for i := range doubleSlice {
-		l += len(doubleSlice[i])
-	}
+	doubleSlice, err := cast.ToSlice(
+		item,
+		func(_ int, a any, _ int) ([]Output, error) {
+			return transform(p.Wrap(a))
+		},
+	)
 
-	outputSlice := make([]Output, 0, l)
-	for _, ds := range doubleSlice {
-		outputSlice = append(outputSlice, ds...)
-	}
-
-	return outputSlice, nil
+	return flatten[Output](doubleSlice), err
 }
 
 //nolint:ireturn
@@ -214,4 +190,154 @@ func PathMust[Output any](p *Picker, path []Key, castFn func(any) (Output, error
 		}
 	}
 	return casted
+}
+
+//
+// Top level functions that use must API. (They have the `M` postfix in name)
+//
+
+// EachM applies operation function to each element of the given selector.
+// The operation functions receives the index of the element, a SelectorMustAPI
+// and the total length of the slice (or 1 if input is a single element and not a slice).
+func EachM(p *Picker, selector string, operation func(index int, item SelectorMustAPI, length int) error) (returnedError error) {
+	item, err := p.Any(selector)
+	if err != nil {
+		if errors.Is(err, ErrFieldNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	gatherErrors := gatherErrorsFn(&returnedError)
+
+	err = internal.TraverseSlice(
+		item,
+		func(i int, a any, l int) error {
+			opErr := operation(i, p.Wrap(a).Must(gatherErrors), l)
+			if opErr != nil {
+				gatherErrors(selector, opErr)
+			}
+			return nil
+		},
+	)
+	if err != nil {
+		gather(&returnedError, err)
+	}
+
+	return returnedError
+}
+
+// MapM transform each element of a slice (or a the single element if selector leads to not slice)
+// by applying the transform function.
+// It also gathers any possible error of Must API to `multipleError` and returns it.
+// Example:
+//
+//	itemsSlice, err := MapM(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
+//		return Item{
+//			Name:   sm.String("name"),
+//			Sentry: sm.Bool("is_sentry_object"),
+//		}
+//	})
+//
+//nolint:ireturn
+func MapM[Output any](p *Picker, selector string, transform func(SelectorMustAPI) (Output, error)) (_ []Output, returnedError error) {
+	item, err := p.Any(selector)
+	if err != nil {
+		if errors.Is(err, ErrFieldNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	gatherErrors := gatherErrorsFn(&returnedError)
+
+	sl, err := cast.ToSlice(
+		item,
+		func(_ int, a any, _ int) (Output, error) {
+			t, opErr := transform(p.Wrap(a).Must(gatherErrors))
+			if opErr != nil {
+				gatherErrors(selector, opErr)
+			}
+			return t, nil
+		},
+	)
+	if err != nil {
+		gather(&returnedError, err)
+	}
+
+	return sl, returnedError
+}
+
+//nolint:ireturn
+func MapFilterM[Output any](p *Picker, selector string, transform func(SelectorMustAPI) (Output, bool, error)) (_ []Output, returnedError error) {
+	item, err := p.Any(selector)
+	if err != nil {
+		if errors.Is(err, ErrFieldNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	gatherErrors := gatherErrorsFn(&returnedError)
+
+	sl, err := cast.ToSliceFilter(
+		item,
+		func(_ int, a any, _ int) (Output, bool, error) {
+			t, keep, opErr := transform(p.Wrap(a).Must(gatherErrors))
+			if opErr != nil {
+				gatherErrors(selector, opErr)
+			}
+			return t, keep, nil
+		},
+	)
+	if err != nil {
+		gather(&returnedError, err)
+	}
+
+	return sl, returnedError
+}
+
+//nolint:ireturn
+func FlatMapM[Output any](p *Picker, selector string, transform func(SelectorMustAPI) ([]Output, error)) (_ []Output, returnedError error) {
+	item, err := p.Any(selector)
+	if err != nil {
+		if errors.Is(err, ErrFieldNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	gatherErrors := gatherErrorsFn(&returnedError)
+
+	doubleSlice, err := cast.ToSlice(
+		item,
+		func(_ int, a any, _ int) ([]Output, error) {
+			t, opErr := transform(p.Wrap(a).Must(gatherErrors))
+			if opErr != nil {
+				gatherErrors(selector, opErr)
+			}
+			return t, nil
+		},
+	)
+	if err != nil {
+		gather(&returnedError, err)
+	}
+
+	return flatten[Output](doubleSlice), returnedError
+}
+
+func flatten[Output any](doubleSlice [][]Output) []Output {
+	// calculate total capacity
+	l := 0
+	for i := range doubleSlice {
+		l += len(doubleSlice[i])
+	}
+
+	// flatten
+	outputSlice := make([]Output, 0, l)
+	for _, ds := range doubleSlice {
+		outputSlice = append(outputSlice, ds...)
+	}
+
+	return outputSlice
 }

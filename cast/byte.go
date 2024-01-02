@@ -56,5 +56,5 @@ func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return ToSlice[byte](input, bc.AsByte)
+	return ToSlice[byte](input, sliceOp(bc.AsByte))
 }

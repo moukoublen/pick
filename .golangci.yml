@@ -119,3 +119,8 @@ linters-settings:
     ignore-words:
       - ""
     locale: US
+
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true

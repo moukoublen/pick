@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/moukoublen/pick/internal"
 	"github.com/moukoublen/pick/internal/testingx/errorsx"
 )
 
@@ -65,87 +66,41 @@ func (c Caster) As(input any, asKind reflect.Kind) (any, error) {
 	return nil, newCastError(ErrInvalidType, input)
 }
 
-func ToSlice[T any](input any, singleItemCastFn func(any) (T, error)) (_ []T, rErr error) {
-	defer errorsx.RecoverPanicToError(&rErr)
+func ToSlice[T any](input any, singleItemCastFn func(int, any, int) (T, error)) (_ []T, rErr error) {
+	filterTrue := func(index int, item any, length int) (T, bool, error) {
+		casted, err := singleItemCastFn(index, item, length)
+		return casted, true, err
+	}
 
+	return ToSliceFilter(input, filterTrue)
+}
+
+func ToSliceFilter[T any](input any, singleItemCastFn func(index int, item any, length int) (T, bool, error)) (_ []T, rErr error) {
 	// quick returns just in case its already slice of T.
 	if ss, is := input.([]T); is {
 		return ss, nil
 	}
 
-	// attempt to quick return on slice of basic types by avoiding reflect.
-	switch cc := input.(type) {
-	case []any:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []string:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []int:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []int8:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []int16:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []int32:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []int64:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []uint:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []uint8:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []uint16:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []uint32:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []uint64:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []float32:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []float64:
-		return sliceToSlice(cc, singleItemCastFn)
-	case []bool:
-		return sliceToSlice(cc, singleItemCastFn)
-	}
-
-	typeOfInput := reflect.TypeOf(input)
-	kindOfInput := typeOfInput.Kind()
-
-	// if not slice or array then single cast attempt
-	if kindOfInput != reflect.Array && kindOfInput != reflect.Slice {
-		asT, err := singleItemCastFn(input)
-		if err != nil {
-			return nil, err
+	var castedSlice []T
+	err := internal.TraverseSlice(input, func(index int, item any, length int) error {
+		casted, keep, err := singleItemCastFn(index, item, length)
+		switch {
+		case err != nil:
+			return err
+		case !keep:
+			return nil
+		default:
+			if index == 0 && length > 0 {
+				castedSlice = make([]T, 0, length)
+			}
+			castedSlice = append(castedSlice, casted)
+			return nil
 		}
-		return []T{asT}, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	// slow/costly attempt with reflect
-	valueOfInput := reflect.ValueOf(input)
-	castedSlice := make([]T, 0, valueOfInput.Len())
-	for i := 0; i < valueOfInput.Len(); i++ {
-		item := valueOfInput.Index(i)
-		ifc := item.Interface()
-		asStr, err := singleItemCastFn(ifc)
-		if err != nil {
-			return nil, err
-		}
-		castedSlice = append(castedSlice, asStr)
-	}
-
-	return castedSlice, nil
-}
-
-func sliceToSlice[In any, Out any](input []In, singleItemCastFn func(any) (Out, error)) (_ []Out, rErr error) {
-	defer errorsx.RecoverPanicToError(&rErr)
-
-	castedSlice := make([]Out, 0, len(input))
-	for _, a := range input {
-		casted, err := singleItemCastFn(a)
-		if err != nil {
-			return nil, err
-		}
-		castedSlice = append(castedSlice, casted)
-	}
 	return castedSlice, nil
 }
 
@@ -219,6 +174,10 @@ func tryCastUsingReflect[Out any](input any) (output Out, err error) {
 
 	//nolint:forcetypeassert // if we get here we can safely assert.
 	return convertedValue.Interface().(Out), nil
+}
+
+func sliceOp[T any](fn func(any) (T, error)) func(int, any, int) (T, error) {
+	return func(_ int, item any, _ int) (T, error) { return fn(item) }
 }
 
 var (

@@ -79,43 +79,43 @@ func (c integerCaster) AsUint64(input any) (uint64, error) {
 }
 
 func (c integerCaster) AsIntSlice(input any) ([]int, error) {
-	return ToSlice[int](input, c.AsInt)
+	return ToSlice[int](input, sliceOp(c.AsInt))
 }
 
 func (c integerCaster) AsInt8Slice(input any) ([]int8, error) {
-	return ToSlice[int8](input, c.AsInt8)
+	return ToSlice[int8](input, sliceOp(c.AsInt8))
 }
 
 func (c integerCaster) AsInt16Slice(input any) ([]int16, error) {
-	return ToSlice[int16](input, c.AsInt16)
+	return ToSlice[int16](input, sliceOp(c.AsInt16))
 }
 
 func (c integerCaster) AsInt32Slice(input any) ([]int32, error) {
-	return ToSlice[int32](input, c.AsInt32)
+	return ToSlice[int32](input, sliceOp(c.AsInt32))
 }
 
 func (c integerCaster) AsInt64Slice(input any) ([]int64, error) {
-	return ToSlice[int64](input, c.AsInt64)
+	return ToSlice[int64](input, sliceOp(c.AsInt64))
 }
 
 func (c integerCaster) AsUintSlice(input any) ([]uint, error) {
-	return ToSlice[uint](input, c.AsUint)
+	return ToSlice[uint](input, sliceOp(c.AsUint))
 }
 
 func (c integerCaster) AsUint8Slice(input any) ([]uint8, error) {
-	return ToSlice[uint8](input, c.AsUint8)
+	return ToSlice[uint8](input, sliceOp(c.AsUint8))
 }
 
 func (c integerCaster) AsUint16Slice(input any) ([]uint16, error) {
-	return ToSlice[uint16](input, c.AsUint16)
+	return ToSlice[uint16](input, sliceOp(c.AsUint16))
 }
 
 func (c integerCaster) AsUint32Slice(input any) ([]uint32, error) {
-	return ToSlice[uint32](input, c.AsUint32)
+	return ToSlice[uint32](input, sliceOp(c.AsUint32))
 }
 
 func (c integerCaster) AsUint64Slice(input any) ([]uint64, error) {
-	return ToSlice[uint64](input, c.AsUint64)
+	return ToSlice[uint64](input, sliceOp(c.AsUint64))
 }
 
 type intCast[T numbers.Integer] struct {

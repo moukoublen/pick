@@ -143,7 +143,7 @@ func (c durationCaster) AsDurationSlice(input any) ([]time.Duration, error) {
 }
 
 func (c durationCaster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
-	return ToSlice[time.Duration](input, func(a any) (time.Duration, error) {
+	return ToSlice[time.Duration](input, func(_ int, a any, _ int) (time.Duration, error) {
 		return c.AsDurationWithConfig(config, a)
 	})
 }

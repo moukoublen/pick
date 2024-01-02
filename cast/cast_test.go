@@ -76,7 +76,7 @@ func TestToSliceErrorScenarios(t *testing.T) {
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			_, gotErr := ToSlice(tc.input, tc.inputSingleItemCastFn)
+			_, gotErr := ToSlice(tc.input, sliceOp(tc.inputSingleItemCastFn))
 			testingx.AssertError(t, tc.expectedErr, gotErr)
 		})
 	}

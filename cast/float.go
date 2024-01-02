@@ -134,9 +134,9 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 }
 
 func (fc floatCaster) AsFloat32Slice(input any) ([]float32, error) {
-	return ToSlice[float32](input, fc.AsFloat32)
+	return ToSlice[float32](input, sliceOp(fc.AsFloat32))
 }
 
 func (fc floatCaster) AsFloat64Slice(input any) ([]float64, error) {
-	return ToSlice[float64](input, fc.AsFloat64)
+	return ToSlice[float64](input, sliceOp(fc.AsFloat64))
 }

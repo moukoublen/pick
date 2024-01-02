@@ -73,7 +73,7 @@ func TestStringSliceCaster(t *testing.T) {
 		},
 		{
 			input:       []int32(nil),
-			expected:    []string{},
+			expected:    []string(nil),
 			expectedErr: nil,
 		},
 		{

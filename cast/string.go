@@ -66,5 +66,5 @@ func (sc stringCaster) AsString(input any) (string, error) {
 }
 
 func (sc stringCaster) AsStringSlice(input any) ([]string, error) {
-	return ToSlice[string](input, sc.AsString)
+	return ToSlice[string](input, sliceOp(sc.AsString))
 }
