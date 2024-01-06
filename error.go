@@ -58,10 +58,20 @@ func gather(dst *error, newErr error) {
 	gatherer.Add(newErr)
 }
 
-func gatherErrorsFn(dst *error) func(string, error) {
-	return func(selector string, err error) {
-		gather(dst, &PickerError{selector: selector, inner: err})
-	}
+type ErrorsSink struct {
+	err error
+}
+
+func (e *ErrorsSink) GatherSelector(selector string, err error) {
+	gather(&e.err, &PickerError{selector: selector, inner: err})
+}
+
+func (e *ErrorsSink) Gather(err error) {
+	gather(&e.err, err)
+}
+
+func (e *ErrorsSink) Error() error {
+	return e.err
 }
 
 type PickerError struct {
