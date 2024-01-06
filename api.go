@@ -175,162 +175,192 @@ type SelectorMustAPI struct {
 	onErr []func(selector string, err error)
 }
 
+func (a SelectorMustAPI) gather(selector string, err error) {
+	for _, fn := range a.onErr {
+		fn(selector, err)
+	}
+}
+
 func (a SelectorMustAPI) Bool(selector string) bool {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsBool, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsBool)
 }
 
 func (a SelectorMustAPI) BoolSlice(selector string) []bool {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsBoolSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsBoolSlice)
 }
 
 func (a SelectorMustAPI) Byte(selector string) byte {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsByte, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsByte)
 }
 
 func (a SelectorMustAPI) ByteSlice(selector string) []byte {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsByteSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsByteSlice)
 }
 
 func (a SelectorMustAPI) Float32(selector string) float32 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsFloat32, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsFloat32)
 }
 
 func (a SelectorMustAPI) Float32Slice(selector string) []float32 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsFloat32Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsFloat32Slice)
 }
 
 func (a SelectorMustAPI) Float64(selector string) float64 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsFloat64, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsFloat64)
 }
 
 func (a SelectorMustAPI) Float64Slice(selector string) []float64 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsFloat64Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsFloat64Slice)
 }
 
 func (a SelectorMustAPI) Int(selector string) int {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt)
 }
 
 func (a SelectorMustAPI) IntSlice(selector string) []int {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsIntSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsIntSlice)
 }
 
 func (a SelectorMustAPI) Int8(selector string) int8 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt8, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt8)
 }
 
 func (a SelectorMustAPI) Int8Slice(selector string) []int8 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt8Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt8Slice)
 }
 
 func (a SelectorMustAPI) Int16(selector string) int16 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt16, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt16)
 }
 
 func (a SelectorMustAPI) Int16Slice(selector string) []int16 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt16Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt16Slice)
 }
 
 func (a SelectorMustAPI) Int32(selector string) int32 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt32, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt32)
 }
 
 func (a SelectorMustAPI) Int32Slice(selector string) []int32 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt32Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt32Slice)
 }
 
 func (a SelectorMustAPI) Int64(selector string) int64 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt64, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt64)
 }
 
 func (a SelectorMustAPI) Int64Slice(selector string) []int64 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsInt64Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsInt64Slice)
 }
 
 func (a SelectorMustAPI) Uint(selector string) uint {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint)
 }
 
 func (a SelectorMustAPI) UintSlice(selector string) []uint {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUintSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUintSlice)
 }
 
 func (a SelectorMustAPI) Uint8(selector string) uint8 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint8, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint8)
 }
 
 func (a SelectorMustAPI) Uint8Slice(selector string) []uint8 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint8Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint8Slice)
 }
 
 func (a SelectorMustAPI) Uint16(selector string) uint16 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint16, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint16)
 }
 
 func (a SelectorMustAPI) Uint16Slice(selector string) []uint16 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint16Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint16Slice)
 }
 
 func (a SelectorMustAPI) Uint32(selector string) uint32 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint32, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint32)
 }
 
 func (a SelectorMustAPI) Uint32Slice(selector string) []uint32 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint32Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint32Slice)
 }
 
 func (a SelectorMustAPI) Uint64(selector string) uint64 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint64, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint64)
 }
 
 func (a SelectorMustAPI) Uint64Slice(selector string) []uint64 {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsUint64Slice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsUint64Slice)
 }
 
 func (a SelectorMustAPI) String(selector string) string {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsString, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsString)
 }
 
 func (a SelectorMustAPI) StringSlice(selector string) []string {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsStringSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsStringSlice)
 }
 
 func (a SelectorMustAPI) Time(selector string) time.Time {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsTime, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsTime)
 }
 
 func (a SelectorMustAPI) TimeWithConfig(config cast.TimeCastConfig, selector string) time.Time {
-	return pickSelectorMust(a.Picker, selector, func(input any) (time.Time, error) {
+	return pickSelectorMust(a, selector, func(input any) (time.Time, error) {
 		return a.Caster.AsTimeWithConfig(config, input)
-	}, a.onErr...)
+	})
 }
 
 func (a SelectorMustAPI) TimeSlice(selector string) []time.Time {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsTimeSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsTimeSlice)
 }
 
 func (a SelectorMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) []time.Time {
-	return pickSelectorMust(a.Picker, selector, func(input any) ([]time.Time, error) {
+	return pickSelectorMust(a, selector, func(input any) ([]time.Time, error) {
 		return a.Caster.AsTimeSliceWithConfig(config, input)
-	}, a.onErr...)
+	})
 }
 
 func (a SelectorMustAPI) Duration(selector string) time.Duration {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsDuration, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsDuration)
 }
 
 func (a SelectorMustAPI) DurationWithConfig(config cast.DurationCastConfig, selector string) time.Duration {
-	return pickSelectorMust(a.Picker, selector, func(input any) (time.Duration, error) {
+	return pickSelectorMust(a, selector, func(input any) (time.Duration, error) {
 		return a.Caster.AsDurationWithConfig(config, input)
-	}, a.onErr...)
+	})
 }
 
 func (a SelectorMustAPI) DurationSlice(selector string) []time.Duration {
-	return pickSelectorMust(a.Picker, selector, a.Caster.AsDurationSlice, a.onErr...)
+	return pickSelectorMust(a, selector, a.Caster.AsDurationSlice)
 }
 
 func (a SelectorMustAPI) DurationSliceWithConfig(config cast.DurationCastConfig, selector string) []time.Duration {
-	return pickSelectorMust(a.Picker, selector, func(input any) ([]time.Duration, error) {
+	return pickSelectorMust(a, selector, func(input any) ([]time.Duration, error) {
 		return a.Caster.AsDurationSliceWithConfig(config, input)
-	}, a.onErr...)
+	})
+}
+
+func (a SelectorMustAPI) Wrap(data any) SelectorMustAPI {
+	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.onErr...)
+}
+
+//nolint:ireturn
+func pickSelector[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
+	item, err := p.Any(selector)
+	if err != nil {
+		var o Output
+		return o, err
+	}
+
+	return castFn(item)
+}
+
+//nolint:ireturn
+func pickSelectorMust[Output any](a SelectorMustAPI, selector string, castFn func(any) (Output, error)) Output {
+	casted, err := pickSelector(a.Picker, selector, castFn)
+	if err != nil {
+		a.gather(selector, err)
+	}
+	return casted
 }

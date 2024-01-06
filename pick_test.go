@@ -614,8 +614,8 @@ func TestNasaDataFile(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{
-			AccessFn: func(selector string) ([]string, error) {
-				return MapM(p, selector, func(a SelectorMustAPI) (string, error) { return a.String("id"), nil })
+			AccessFn: func(selector string) []string {
+				return MapM(p.Must(), selector, func(a SelectorMustAPI) (string, error) { return a.String("id"), nil })
 			},
 			Selector:      "near_earth_objects.2023-01-01",
 			ExpectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
@@ -634,11 +634,11 @@ func TestNasaDataFile(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{
-			AccessFn: func(selector string) ([]string, error) {
-				return FlatMapM(p, "near_earth_objects.2023-01-01", func(a SelectorMustAPI) ([]string, error) {
-					return MapM(a.Picker, "close_approach_data", func(a SelectorMustAPI) (string, error) {
+			AccessFn: func(selector string) []string {
+				return FlatMapM(p.Must(), "near_earth_objects.2023-01-01", func(a SelectorMustAPI) ([]string, error) {
+					return MapM(a, "close_approach_data", func(a SelectorMustAPI) (string, error) {
 						return a.String("close_approach_date_full"), nil
-					})
+					}), nil
 				})
 			},
 			Selector:      "",
@@ -657,9 +657,9 @@ func TestNasaDataFile(t *testing.T) {
 func TestMapMust(t *testing.T) {
 	t.Parallel()
 	file := loadTestData(t, "nasa.json")
-	p, err := WrapReaderJSON(file)
-	if err != nil {
-		t.Fatal(err)
+	p, pErr := WrapReaderJSON(file)
+	if pErr != nil {
+		t.Fatal(pErr)
 	}
 
 	type Item struct {
@@ -669,13 +669,14 @@ func TestMapMust(t *testing.T) {
 
 	t.Run("happy path", func(t *testing.T) {
 		t.Parallel()
-		itemsSlice, err := MapM(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		errSink := &ErrorsSink{}
+		itemsSlice := MapM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("is_sentry_object"),
 			}, nil
 		})
-		testingx.AssertEqual(t, err, nil)
+		testingx.AssertEqual(t, errSink.Error(), nil)
 		testingx.AssertEqual(t, itemsSlice, []Item{
 			{Name: "344133 (2000 AD6)", Sentry: false},
 			{Name: "369454 (2010 NZ1)", Sentry: false},
@@ -699,7 +700,8 @@ func TestMapMust(t *testing.T) {
 
 	t.Run("gather errors", func(t *testing.T) {
 		t.Parallel()
-		_, err := MapM(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		errSink := &ErrorsSink{}
+		_ = MapM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("wrong.path"),
@@ -707,11 +709,74 @@ func TestMapMust(t *testing.T) {
 		})
 
 		var g *multiError
-		testingx.AssertEqual(t, errors.As(err, &g), true)
+		testingx.AssertEqual(t, errors.As(errSink.Error(), &g), true)
 		testingx.AssertEqual(t, len(g.errors), 17)
 		for _, e := range g.errors {
 			testingx.ExpectedErrorIs(ErrFieldNotFound)(t, e)
 		}
+	})
+}
+
+func TestEach(t *testing.T) {
+	t.Parallel()
+	file := loadTestData(t, "nasa.json")
+	p, pErr := WrapReaderJSON(file)
+	if pErr != nil {
+		t.Fatal(pErr)
+	}
+
+	t.Run("Each happy path", func(t *testing.T) {
+		t.Parallel()
+		err := Each(p, "near_earth_objects.2023-01-07", func(index int, p *Picker, length int) error {
+			testingx.AssertEqual(t, length, 17)
+			if index == 4 {
+				s, err := p.String("name")
+				testingx.AssertEqual(t, s, "(2006 HJ18)")
+				testingx.AssertEqual(t, err, nil)
+			}
+			return nil
+		})
+		testingx.AssertEqual(t, err, nil)
+	})
+
+	t.Run("Each error", func(t *testing.T) {
+		t.Parallel()
+		err := Each(p, "near_earth_objects.2023-01-07", func(index int, _ *Picker, length int) error {
+			testingx.AssertEqual(t, length, 17)
+			if index == 4 {
+				return errors.New("error")
+			}
+			return nil
+		})
+		testingx.AssertEqual(t, err, errors.New("error"))
+	})
+
+	t.Run("EachM happy path", func(t *testing.T) {
+		t.Parallel()
+		errSink := &ErrorsSink{}
+		EachM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+			testingx.AssertEqual(t, length, 17)
+			if index == 4 {
+				s := a.String("name")
+				testingx.AssertEqual(t, s, "(2006 HJ18)")
+			}
+			return nil
+		})
+		testingx.AssertEqual(t, errSink.Error(), nil)
+	})
+
+	t.Run("EachM error", func(t *testing.T) {
+		t.Parallel()
+		errSink := &ErrorsSink{}
+		EachM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+			testingx.AssertEqual(t, length, 17)
+			if index == 4 {
+				s := a.String("name")
+				testingx.AssertEqual(t, s, "(2006 HJ18)")
+			}
+			return nil
+		})
+		testingx.AssertEqual(t, errSink.Error(), nil)
 	})
 }
 

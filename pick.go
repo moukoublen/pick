@@ -3,7 +3,6 @@ package pick
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 
 	"github.com/moukoublen/pick/cast"
@@ -148,28 +147,6 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 }
 
 //nolint:ireturn
-func pickSelector[Output any](p *Picker, selector string, castFn func(any) (Output, error)) (Output, error) {
-	item, err := p.Any(selector)
-	if err != nil {
-		var o Output
-		return o, err
-	}
-
-	return castFn(item)
-}
-
-//nolint:ireturn
-func pickSelectorMust[Output any](p *Picker, selector string, castFn func(any) (Output, error), onErr ...func(selector string, err error)) Output {
-	casted, err := pickSelector(p, selector, castFn)
-	if err != nil {
-		for _, fn := range onErr {
-			fn(selector, err)
-		}
-	}
-	return casted
-}
-
-//nolint:ireturn
 func Path[Output any](p *Picker, path []Key, castFn func(any) (Output, error)) (Output, error) {
 	item, err := p.Traverse(path)
 	if err != nil {
@@ -199,32 +176,28 @@ func PathMust[Output any](p *Picker, path []Key, castFn func(any) (Output, error
 // EachM applies operation function to each element of the given selector.
 // The operation functions receives the index of the element, a SelectorMustAPI
 // and the total length of the slice (or 1 if input is a single element and not a slice).
-func EachM(p *Picker, selector string, operation func(index int, item SelectorMustAPI, length int) error) error {
-	item, err := p.Any(selector)
+func EachM(a SelectorMustAPI, selector string, operation func(index int, item SelectorMustAPI, length int) error) {
+	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
 	if err != nil {
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil
-		}
-		return err
+		a.gather(selector, err)
+		return
 	}
-
-	errSink := &ErrorsSink{}
 
 	err = internal.TraverseSlice(
 		item,
-		func(i int, a any, l int) error {
-			opErr := operation(i, p.Wrap(a).Must(errSink.GatherSelector), l)
+		func(idx int, item any, l int) error {
+			opErr := operation(idx, a.Wrap(item), l)
 			if opErr != nil {
-				errSink.GatherSelector(selector, opErr)
+				path = append(path, Index(idx))
+				a.gather(a.notation.Format(path...), opErr)
+				path = path[:len(path)-1]
 			}
 			return nil
 		},
 	)
 	if err != nil {
-		errSink.Gather(err)
+		a.gather(selector, err)
 	}
-
-	return errSink.Error()
 }
 
 // MapM transform each element of a slice (or a the single element if selector leads to not slice)
@@ -232,7 +205,7 @@ func EachM(p *Picker, selector string, operation func(index int, item SelectorMu
 // It also gathers any possible error of Must API to `multipleError` and returns it.
 // Example:
 //
-//	itemsSlice, err := MapM(p, "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
+//	itemsSlice, err := MapM(p.Must(), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
 //		return Item{
 //			Name:   sm.String("name"),
 //			Sentry: sm.Bool("is_sentry_object"),
@@ -240,90 +213,44 @@ func EachM(p *Picker, selector string, operation func(index int, item SelectorMu
 //	})
 //
 //nolint:ireturn
-func MapM[Output any](p *Picker, selector string, transform func(SelectorMustAPI) (Output, error)) ([]Output, error) {
-	item, err := p.Any(selector)
-	if err != nil {
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	errSink := &ErrorsSink{}
-
-	sl, err := cast.ToSlice(
-		item,
-		func(_ int, a any, _ int) (Output, error) {
-			t, opErr := transform(p.Wrap(a).Must(errSink.GatherSelector))
-			if opErr != nil {
-				errSink.GatherSelector(selector, opErr)
-			}
-			return t, nil
-		},
-	)
-	if err != nil {
-		errSink.Gather(err)
-	}
-
-	return sl, errSink.Error()
+func MapM[Output any](a SelectorMustAPI, selector string, transform func(SelectorMustAPI) (Output, error)) []Output {
+	return MapFilterM[Output](a, selector, func(sma SelectorMustAPI) (Output, bool, error) {
+		o, err := transform(sma)
+		return o, true, err
+	})
 }
 
 //nolint:ireturn
-func MapFilterM[Output any](p *Picker, selector string, transform func(SelectorMustAPI) (Output, bool, error)) ([]Output, error) {
-	item, err := p.Any(selector)
+func MapFilterM[Output any](a SelectorMustAPI, selector string, transform func(SelectorMustAPI) (Output, bool, error)) []Output {
+	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
 	if err != nil {
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil, nil
-		}
-		return nil, err
+		a.gather(selector, err)
+		return nil
 	}
-
-	errSink := &ErrorsSink{}
 
 	sl, err := cast.ToSliceFilter(
 		item,
-		func(_ int, a any, _ int) (Output, bool, error) {
-			t, keep, opErr := transform(p.Wrap(a).Must(errSink.GatherSelector))
+		func(idx int, item any, _ int) (Output, bool, error) {
+			t, keep, opErr := transform(a.Wrap(item))
 			if opErr != nil {
-				errSink.GatherSelector(selector, opErr)
+				path = append(path, Index(idx))
+				a.gather(a.notation.Format(path...), opErr)
+				path = path[:len(path)-1]
 			}
 			return t, keep, nil
 		},
 	)
 	if err != nil {
-		errSink.Gather(err)
+		a.gather(selector, err)
 	}
 
-	return sl, errSink.Error()
+	return sl
 }
 
 //nolint:ireturn
-func FlatMapM[Output any](p *Picker, selector string, transform func(SelectorMustAPI) ([]Output, error)) ([]Output, error) {
-	item, err := p.Any(selector)
-	if err != nil {
-		if errors.Is(err, ErrFieldNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	errSink := &ErrorsSink{}
-
-	doubleSlice, err := cast.ToSlice(
-		item,
-		func(_ int, a any, _ int) ([]Output, error) {
-			t, opErr := transform(p.Wrap(a).Must(errSink.GatherSelector))
-			if opErr != nil {
-				errSink.GatherSelector(selector, opErr)
-			}
-			return t, nil
-		},
-	)
-	if err != nil {
-		errSink.Gather(err)
-	}
-
-	return flatten[Output](doubleSlice), errSink.Error()
+func FlatMapM[Output any](a SelectorMustAPI, selector string, transform func(SelectorMustAPI) ([]Output, error)) []Output {
+	item := MapM[[]Output](a, selector, transform)
+	return flatten[Output](item)
 }
 
 func flatten[Output any](doubleSlice [][]Output) []Output {
@@ -340,4 +267,14 @@ func flatten[Output any](doubleSlice [][]Output) []Output {
 	}
 
 	return outputSlice
+}
+
+func parseSelectorAndTraverse(p *Picker, selector string) (any, []Key, error) {
+	path, err := p.notation.Parse(selector)
+	if err != nil {
+		return nil, path, err
+	}
+
+	item, err := p.Traverse(path)
+	return item, path, err
 }
