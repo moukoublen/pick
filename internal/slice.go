@@ -3,7 +3,7 @@ package internal
 import (
 	"reflect"
 
-	"github.com/moukoublen/pick/internal/testingx/errorsx"
+	"github.com/moukoublen/pick/internal/errorsx"
 )
 
 func TraverseSlice(input any, operation func(index int, item any, length int) error) (rErr error) {

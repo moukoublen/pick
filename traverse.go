@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/moukoublen/pick/internal/testingx/errorsx"
+	"github.com/moukoublen/pick/internal/errorsx"
 )
 
 var ErrFieldNotFound = errors.New("field not found")

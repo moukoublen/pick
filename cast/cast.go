@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/moukoublen/pick/internal"
-	"github.com/moukoublen/pick/internal/testingx/errorsx"
+	"github.com/moukoublen/pick/internal/errorsx"
 )
 
 type Caster struct {
