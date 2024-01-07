@@ -42,6 +42,11 @@ func TestDotNotation(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			input:         "[1][-1].field",
+			expectedPath:  []Key{Index(1), Index(-1), Field("field")},
+			expectedError: nil,
+		},
+		{
 			input:         "[154][34][376]",
 			expectedPath:  []Key{Index(154), Index(34), Index(376)},
 			expectedError: nil,
@@ -122,6 +127,7 @@ func BenchmarkDotNotation(b *testing.B) {
 		"one.two",
 		"one[1]",
 		"[154][34][376]",
+		"[1][-1].field",
 		"[154].a[2].three",
 		"ελληνικά[154].a[2].three",
 		"start[3].ελληνικά.a[2].three",

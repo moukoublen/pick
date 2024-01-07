@@ -35,6 +35,19 @@ type Key struct {
 	Type  KeyType
 }
 
+func (s Key) calculateIndex(length int) (int, error) {
+	i := s.Index
+	if i < 0 {
+		i = length + i
+	}
+
+	if i >= length {
+		return i, ErrIndexOutOfRange
+	}
+
+	return i, nil
+}
+
 func (s Key) IsIndex() bool { return s.Type == KeyTypeIndex }
 func (s Key) IsField() bool { return s.Type == KeyTypeField }
 
@@ -139,6 +152,8 @@ func (s fsmState) stateReset(received rune) (fsmState, error) {
 func (s fsmState) stateIndexStarted(received rune) (fsmState, error) {
 	switch {
 	case unicode.IsNumber(received):
+		return fsmStateIndex, nil
+	case received == '-':
 		return fsmStateIndex, nil
 
 	default:
@@ -304,7 +319,7 @@ func (d dotNotationParser) estimatePathSize(selector string) int {
 
 func (d dotNotationParser) parseIndexToken(token string) (Key, error) {
 	k := Key{Type: KeyTypeIndex}
-	i, err := strconv.ParseUint(token, 10, 64)
+	i, err := strconv.ParseInt(token, 10, 64)
 	if err != nil {
 		return Key{}, errors.Join(ErrInvalidSelectorFormatForName, err)
 	}

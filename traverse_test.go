@@ -37,6 +37,20 @@ func TestDefaultTraverser(t *testing.T) {
 			expectedErr: nil,
 		},
 
+		"index access level 1 negative index": {
+			input:       []any{"one", "two", "three"},
+			keys:        []Key{Index(-1)},
+			expected:    "three",
+			expectedErr: nil,
+		},
+
+		"index access level 1 negative index 2": {
+			input:       []any{"one", "two", "three"},
+			keys:        []Key{Index(-2)},
+			expected:    "two",
+			expectedErr: nil,
+		},
+
 		"index access level 1 out of range": {
 			input:       []any{"one", "two"},
 			keys:        []Key{Index(6)},

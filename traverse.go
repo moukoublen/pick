@@ -75,10 +75,11 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	case KeyTypeIndex:
 		// fast return if item is []any.
 		if s, isSlice := item.([]any); isSlice {
-			if key.Index >= len(s) || key.Index < 0 {
-				return nil, ErrIndexOutOfRange
+			i, err := key.calculateIndex(len(s))
+			if err != nil {
+				return nil, err
 			}
-			return s[key.Index], nil
+			return s[i], nil
 		}
 	}
 
@@ -97,7 +98,7 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 
 	case reflect.Array, reflect.Slice:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessSlice(typeOfItem, kindOfItem, valueOfItem, key)
+		return d.accessSlice(valueOfItem, key)
 
 	case reflect.Pointer, reflect.Interface: // if pointer/interface get target and re-call.
 		derefItem := d.deref(item)
@@ -141,26 +142,25 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	return resultValue.Interface(), nil
 }
 
-func (d DefaultTraverser) accessSlice(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
+func (d DefaultTraverser) accessSlice(valueOfItem reflect.Value, key Key) (returnValue any, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
 
 	if key.IsIndex() {
-		if key.Index >= valueOfItem.Len() {
-			return nil, ErrIndexOutOfRange
+		idx, err := key.calculateIndex(valueOfItem.Len())
+		if err != nil {
+			return nil, err
 		}
-		resultValue = valueOfItem.Index(key.Index)
+		resultValue = valueOfItem.Index(idx)
 	} else if key.IsField() {
 		// try to cast to int
 		i, err := d.caster.AsInt(key.Name)
 		if err != nil {
 			return nil, errors.Join(ErrKeyCast, err)
 		}
-		if i >= valueOfItem.Len() {
-			return nil, ErrIndexOutOfRange
-		}
-		resultValue = valueOfItem.Index(i)
+		k := Index(i)
+		return d.accessSlice(valueOfItem, k)
 	}
 
 	if !resultValue.IsValid() {

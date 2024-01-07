@@ -32,6 +32,11 @@ p1, _ := WrapJSON([]byte(j))
     assert(err, nil)
 }
 {
+    got, err := p1.String("item.three[-1]") // access the last element
+    assert(got, "element 3")
+    assert(err, nil)
+}
+{
     got := p1.Must().Int32("item.one")
     assert(got, int32(1))
 }
