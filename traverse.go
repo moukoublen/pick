@@ -42,14 +42,11 @@ func (d DefaultTraverser) Retrieve(data any, path []Key) (any, error) {
 		}
 	}
 
-	if d.skipItemDereference {
+	if currentItem == nil || d.skipItemDereference {
 		return currentItem, nil
 	}
 
-	if currentItem == nil {
-		return currentItem, nil
-	}
-
+	// try dereference if pointer or interface
 	typeOfItem := reflect.TypeOf(currentItem)
 	kindOfItem := typeOfItem.Kind()
 	if kindOfItem == reflect.Pointer || kindOfItem == reflect.Interface {

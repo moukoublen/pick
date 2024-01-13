@@ -74,10 +74,10 @@ func (p *Picker) Any(selector string) (any, error) {
 		return nil, err
 	}
 
-	return p.Traverse(path)
+	return p.Path(path)
 }
 
-func (p *Picker) Traverse(path []Key) (any, error) {
+func (p *Picker) Path(path []Key) (any, error) {
 	return p.traverser.Retrieve(p.data, path)
 }
 
@@ -148,7 +148,7 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 
 //nolint:ireturn
 func Path[Output any](p *Picker, path []Key, castFn func(any) (Output, error)) (Output, error) {
-	item, err := p.Traverse(path)
+	item, err := p.Path(path)
 	if err != nil {
 		var o Output
 		return o, err
@@ -183,18 +183,17 @@ func EachM(a SelectorMustAPI, selector string, operation func(index int, item Se
 		return
 	}
 
-	err = internal.TraverseSlice(
-		item,
-		func(idx int, item any, l int) error {
-			opErr := operation(idx, a.Wrap(item), l)
-			if opErr != nil {
-				path = append(path, Index(idx))
-				a.gather(a.notation.Format(path...), opErr)
-				path = path[:len(path)-1]
-			}
-			return nil
-		},
-	)
+	sliceOp := func(idx int, item any, l int) error {
+		opErr := operation(idx, a.Wrap(item), l)
+		if opErr != nil {
+			path = append(path, Index(idx))
+			a.gather(a.notation.Format(path...), opErr)
+			path = path[:len(path)-1]
+		}
+		return nil
+	}
+
+	err = internal.TraverseSlice(item, sliceOp)
 	if err != nil {
 		a.gather(selector, err)
 	}
@@ -228,18 +227,17 @@ func MapFilterM[Output any](a SelectorMustAPI, selector string, transform func(S
 		return nil
 	}
 
-	sl, err := cast.ToSliceFilter(
-		item,
-		func(idx int, item any, _ int) (Output, bool, error) {
-			t, keep, opErr := transform(a.Wrap(item))
-			if opErr != nil {
-				path = append(path, Index(idx))
-				a.gather(a.notation.Format(path...), opErr)
-				path = path[:len(path)-1]
-			}
-			return t, keep, nil
-		},
-	)
+	sliceOp := func(idx int, item any, _ int) (Output, bool, error) {
+		t, keep, opErr := transform(a.Wrap(item))
+		if opErr != nil {
+			path = append(path, Index(idx))
+			a.gather(a.notation.Format(path...), opErr)
+			path = path[:len(path)-1]
+		}
+		return t, keep, nil
+	}
+
+	sl, err := cast.ToSliceFilter(item, sliceOp)
 	if err != nil {
 		a.gather(selector, err)
 	}
@@ -275,6 +273,6 @@ func parseSelectorAndTraverse(p *Picker, selector string) (any, []Key, error) {
 		return nil, path, err
 	}
 
-	item, err := p.Traverse(path)
+	item, err := p.Path(path)
 	return item, path, err
 }

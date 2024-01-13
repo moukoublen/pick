@@ -8,6 +8,10 @@ import (
 
 // Default Selector API (embedded into Picker)
 
+func (p *Picker) Each(selector string, operation func(index int, p *Picker, length int) error) error {
+	return Each(p, selector, operation)
+}
+
 func (p *Picker) Bool(selector string) (bool, error) {
 	return pickSelector(p, selector, p.Caster.AsBool)
 }
@@ -179,6 +183,10 @@ func (a SelectorMustAPI) gather(selector string, err error) {
 	for _, fn := range a.onErr {
 		fn(selector, err)
 	}
+}
+
+func (a SelectorMustAPI) Each(selector string, operation func(index int, item SelectorMustAPI, length int) error) {
+	EachM(a, selector, operation)
 }
 
 func (a SelectorMustAPI) Bool(selector string) bool {

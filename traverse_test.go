@@ -30,6 +30,13 @@ func TestDefaultTraverser(t *testing.T) {
 			expectedErr: nil,
 		},
 
+		"access zero level": {
+			input:       []any{"one", "two"},
+			keys:        []Key{},
+			expected:    []any{"one", "two"},
+			expectedErr: nil,
+		},
+
 		"index access level 1": {
 			input:       []any{"one", "two"},
 			keys:        []Key{Index(1)},
