@@ -124,3 +124,7 @@ linters-settings:
     simple: true
     range-loops: true
     for-loops: true
+
+  gofumpt:
+    module-path: github.com/moukoublen/pick
+    extra-rules: true
