@@ -676,7 +676,7 @@ func TestMapMust(t *testing.T) {
 				Sentry: sm.Bool("is_sentry_object"),
 			}, nil
 		})
-		testingx.AssertEqual(t, errSink.Error(), nil)
+		testingx.AssertEqual(t, errSink.Outcome(), nil)
 		testingx.AssertEqual(t, itemsSlice, []Item{
 			{Name: "344133 (2000 AD6)", Sentry: false},
 			{Name: "369454 (2010 NZ1)", Sentry: false},
@@ -709,7 +709,7 @@ func TestMapMust(t *testing.T) {
 		})
 
 		var g *multiError
-		testingx.AssertEqual(t, errors.As(errSink.Error(), &g), true)
+		testingx.AssertEqual(t, errors.As(errSink.Outcome(), &g), true)
 		testingx.AssertEqual(t, len(g.errors), 17)
 		for _, e := range g.errors {
 			testingx.ExpectedErrorIs(ErrFieldNotFound)(t, e)
@@ -762,7 +762,7 @@ func TestEach(t *testing.T) {
 			}
 			return nil
 		})
-		testingx.AssertEqual(t, errSink.Error(), nil)
+		testingx.AssertEqual(t, errSink.Outcome(), nil)
 	})
 
 	t.Run("EachM error", func(t *testing.T) {
@@ -776,7 +776,7 @@ func TestEach(t *testing.T) {
 			}
 			return nil
 		})
-		testingx.AssertEqual(t, errSink.Error(), nil)
+		testingx.AssertEqual(t, errSink.Outcome(), nil)
 	})
 }
 

@@ -68,7 +68,7 @@ func (e *ErrorsSink) Gather(err error) {
 	gather(&e.err, err)
 }
 
-func (e *ErrorsSink) Error() error {
+func (e *ErrorsSink) Outcome() error {
 	return e.err
 }
 
