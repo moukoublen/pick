@@ -615,7 +615,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) []string {
-				return MapM(p.Must(), selector, func(a SelectorMustAPI) (string, error) { return a.String("id"), nil })
+				return MustMap(p.Must(), selector, func(a SelectorMustAPI) (string, error) { return a.String("id"), nil })
 			},
 			Selector:      "near_earth_objects.2023-01-01",
 			ExpectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
@@ -635,8 +635,8 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) []string {
-				return FlatMapM(p.Must(), "near_earth_objects.2023-01-01", func(a SelectorMustAPI) ([]string, error) {
-					return MapM(a, "close_approach_data", func(a SelectorMustAPI) (string, error) {
+				return MustFlatMap(p.Must(), "near_earth_objects.2023-01-01", func(a SelectorMustAPI) ([]string, error) {
+					return MustMap(a, "close_approach_data", func(a SelectorMustAPI) (string, error) {
 						return a.String("close_approach_date_full"), nil
 					}), nil
 				})
@@ -670,7 +670,7 @@ func TestMapMust(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		itemsSlice := MapM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		itemsSlice := MustMap(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("is_sentry_object"),
@@ -701,7 +701,7 @@ func TestMapMust(t *testing.T) {
 	t.Run("gather errors", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		_ = MapM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		_ = MustMap(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("wrong.path"),
@@ -754,7 +754,7 @@ func TestEach(t *testing.T) {
 	t.Run("EachM happy path", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		EachM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+		MustEach(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
 			testingx.AssertEqual(t, length, 17)
 			if index == 4 {
 				s := a.String("name")
@@ -768,7 +768,7 @@ func TestEach(t *testing.T) {
 	t.Run("EachM error", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		EachM(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+		MustEach(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
 			testingx.AssertEqual(t, length, 17)
 			if index == 4 {
 				s := a.String("name")
