@@ -15,14 +15,12 @@ func (e *multiError) Error() string {
 	}
 
 	s := strings.Builder{}
-	s.WriteRune('{')
 	for i, err := range e.errors {
 		if i != 0 {
-			s.WriteRune('|')
+			s.WriteString(" | ")
 		}
 		s.WriteString(err.Error())
 	}
-	s.WriteRune('}')
 
 	return s.String()
 }
