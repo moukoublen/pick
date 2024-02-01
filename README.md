@@ -146,5 +146,5 @@ assert(sm.Int64("float"), int64(2))
 More technical details about pick internals, in [architecture](doc/architecture.md) documentation.
 
 ___
-## Special Mentions
+## Acknowledgements
 Special thanks to **Konstantinos Pittas** ([@kostaspt](https://github.com/kostaspt)) for helping me ... **pick** the name of the library.

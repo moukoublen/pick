@@ -10,8 +10,6 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
-var ErrFieldNotFound = errors.New("field not found")
-
 type DefaultTraverser struct {
 	caster              Caster
 	skipItemDereference bool
@@ -219,7 +217,8 @@ func (t *TraverseError) Error() string {
 }
 
 var (
-	ErrIndexOutOfRange = errors.New("index out of range")
+	ErrFieldNotFound   = errors.New("field not found")
+	ErrIndexOutOfRange = fmt.Errorf("%w: index out of range", ErrFieldNotFound)
 	ErrKeyCast         = errors.New("key cast error")
 )
 
