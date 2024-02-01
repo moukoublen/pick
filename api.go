@@ -172,15 +172,20 @@ func (p *Picker) DurationSliceWithConfig(config cast.DurationCastConfig, selecto
 	})
 }
 
+// Wrap returns a new Picker using the same traverser, caster and notation.
+func (p *Picker) Wrap(data any) *Picker {
+	return NewPicker(data, p.traverser, p.Caster, p.notation)
+}
+
 // Selector Must API
 
 type SelectorMustAPI struct {
 	*Picker
-	onErr []func(selector string, err error)
+	errCallbacks []func(selector string, err error)
 }
 
 func (a SelectorMustAPI) gather(selector string, err error) {
-	for _, fn := range a.onErr {
+	for _, fn := range a.errCallbacks {
 		fn(selector, err)
 	}
 }
@@ -350,7 +355,7 @@ func (a SelectorMustAPI) DurationSliceWithConfig(config cast.DurationCastConfig,
 }
 
 func (a SelectorMustAPI) Wrap(data any) SelectorMustAPI {
-	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.onErr...)
+	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.errCallbacks...)
 }
 
 //nolint:ireturn

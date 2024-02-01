@@ -57,15 +57,10 @@ func NewPicker(data any, t Traverser, c Caster, n Notation) *Picker {
 	}
 }
 
-// Wrap returns a new Picker using the same traverser, caster and notation.
-func (p *Picker) Wrap(data any) *Picker {
-	return NewPicker(data, p.traverser, p.Caster, p.notation)
-}
-
 func (p *Picker) Data() any { return p.data }
 
 func (p *Picker) Must(onErr ...func(string, error)) SelectorMustAPI {
-	return SelectorMustAPI{Picker: p, onErr: onErr}
+	return SelectorMustAPI{Picker: p, errCallbacks: onErr}
 }
 
 func (p *Picker) Any(selector string) (any, error) {

@@ -47,7 +47,7 @@ func gather(dst *error, newErr error) {
 	if *dst == nil {
 		gatherer = &multiError{}
 		*dst = gatherer
-	} else if g, is := (*dst).(*multiError); is { //nolint:errorlint // this cast and not `is` is on purpose.
+	} else if g, is := (*dst).(*multiError); is { //nolint:errorlint // we need to check only the top layer.
 		gatherer = g
 	} else {
 		gatherer = &multiError{}
