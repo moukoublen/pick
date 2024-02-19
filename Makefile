@@ -58,13 +58,7 @@ env:
 	@echo ">>> Path:"
 	@echo "$${PATH}" | tr ':' '\n'
 
-.PHONY: test-n-read
-test-n-read: test
-	@$(GO_EXEC) tool cover -func coverage.txt
 
-.PHONY: bench
-bench:
-	CGO_ENABLED=1 $(GO_EXEC) test -benchmem -run=^$$ -mod=readonly -count=1 -v -race -bench=. ./...
 
 ####################################################################################
 ## <ci & external tools> ###########################################################
@@ -74,6 +68,14 @@ test:
 	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags="$(TAGS)" -coverprofile cover.out -covermode atomic ./...
 	@$(GO_EXEC) tool cover -func cover.out
 	@rm cover.out
+
+.PHONY: test-n-read
+test-n-read: test
+	@$(GO_EXEC) tool cover -func coverage.txt
+
+.PHONY: bench
+bench:
+	CGO_ENABLED=1 $(GO_EXEC) test -benchmem -run=^$$ -mod=readonly -count=1 -v -race -bench=. ./...
 
 .PHONY: checks
 checks: vet staticcheck gofumpt goimports golangci-lint
@@ -95,8 +97,7 @@ tools: \
 	$(TOOLS_BIN)/goimports \
 	$(TOOLS_BIN)/staticcheck \
 	$(TOOLS_BIN)/golangci-lint \
-	$(TOOLS_BIN)/gofumpt \
-	$(TOOLS_BIN)/gojq
+	$(TOOLS_BIN)/gofumpt
 
 .PHONY: clean-tools
 clean-tools:
