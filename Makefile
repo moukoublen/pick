@@ -8,8 +8,9 @@ SHELL := /bin/bash
 MODULE := $(shell cat go.mod | grep -e "^module" | sed "s/^module //")
 VERSION ?= 0.0.0
 
-PACKAGES = $(GO_EXEC) list -tags=$(TAGS) ./...
-FOLDERS = $(GO_EXEC) list -tags=$(TAGS) -f '{{.Dir}}' ./...
+GO_PACKAGES = $(GO_EXEC) list -tags='$(TAGS)' ./...
+GO_FOLDERS = $(GO_EXEC) list -tags='$(TAGS)' -f '{{.Dir}}' ./...
+#GO_FILES = find . -type f -name '*.go' -not -path './vendor/*'
 
 export GO111MODULE := on
 #export GOFLAGS := -mod=vendor
@@ -27,7 +28,7 @@ default: checks test
 
 .PHONY: mod
 mod:
-	$(GO_EXEC) mod tidy -go=1.20
+	$(GO_EXEC) mod tidy -go=1.21
 	$(GO_EXEC) mod verify
 
 # https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
@@ -46,23 +47,16 @@ env:
 	$(GO_EXEC) env
 	@echo ""
 	@echo ">>> Packages:"
-	$(PACKAGES)
+	$(GO_PACKAGES)
 	@echo ""
 	@echo ">>> Folders:"
-	$(FOLDERS)
+	$(GO_FOLDERS)
 	@echo ""
 	@echo ">>> Tools:"
-	@echo '$(TOOLSBIN)'
+	@echo '$(TOOLS_BIN)'
+	@echo ""
 	@echo ">>> Path:"
-	@echo $${PATH}
-
-
-####################################################################################
-## <ci & external tools> ###########################################################
-####################################################################################
-.PHONY: test
-test:
-	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags="$(TAGS)" -coverprofile=coverage.txt -covermode=atomic ./...
+	@echo "$${PATH}" | tr ':' '\n'
 
 .PHONY: test-n-read
 test-n-read: test
@@ -72,79 +66,88 @@ test-n-read: test
 bench:
 	CGO_ENABLED=1 $(GO_EXEC) test -benchmem -run=^$$ -mod=readonly -count=1 -v -race -bench=. ./...
 
+####################################################################################
+## <ci & external tools> ###########################################################
+####################################################################################
+.PHONY: test
+test:
+	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags="$(TAGS)" -coverprofile cover.out -covermode atomic ./...
+	@$(GO_EXEC) tool cover -func cover.out
+	@rm cover.out
+
 .PHONY: checks
 checks: vet staticcheck gofumpt goimports golangci-lint
 
 .PHONY: vet
 vet:
-	$(GO_EXEC) vet `$(PACKAGES)`
+	$(GO_EXEC) vet `$(GO_PACKAGES)`
 	@echo ""
 
-TOOLSDIR ?= $(shell pwd)/.ext
-TOOLSBIN ?= $(TOOLSDIR)/bin
-export TOOLSBIN
-export PATH := $(TOOLSBIN):$(PATH)
-TOOLSDB ?= $(TOOLSDIR)/.db
+TOOLS_DIR ?= $(shell pwd)/.tools
+TOOLS_DB ?= $(TOOLS_DIR)/.db
+TOOLS_BIN ?= $(TOOLS_DIR)/bin
+export PATH := $(TOOLS_BIN):$(PATH)
 
 uppercase = $(shell echo '$(1)' | tr '[:lower:]' '[:upper:]')
 
 .PHONY: tools
 tools: \
-	$(TOOLSBIN)/goimports \
-	$(TOOLSBIN)/staticcheck \
-	$(TOOLSBIN)/golangci-lint \
-	$(TOOLSBIN)/gofumpt
+	$(TOOLS_BIN)/goimports \
+	$(TOOLS_BIN)/staticcheck \
+	$(TOOLS_BIN)/golangci-lint \
+	$(TOOLS_BIN)/gofumpt \
+	$(TOOLS_BIN)/gojq
 
-$(TOOLSBIN):
-	@mkdir -p $(TOOLSBIN)
+.PHONY: clean-tools
+clean-tools:
+	rm -rf $(TOOLS_DIR)
 
-$(TOOLSDB):
-	@mkdir -p $(TOOLSDB)
+$(TOOLS_BIN):
+	@mkdir -p $(TOOLS_BIN)
+
+$(TOOLS_DB):
+	@mkdir -p $(TOOLS_DB)
 
 # In make >= 4.4. .NOTINTERMEDIATE will do the job.
-.PRECIOUS: $(TOOLSDB)/%.ver
-$(TOOLSDB)/%.ver: | $(TOOLSDB)
-	@rm -f $(TOOLSDB)/$(word 1,$(subst ., ,$*)).*
-	@touch $(TOOLSDB)/$*.ver
+.PRECIOUS: $(TOOLS_DB)/%.ver
+$(TOOLS_DB)/%.ver: | $(TOOLS_DB)
+	@rm -f $(TOOLS_DB)/$(word 1,$(subst ., ,$*)).*
+	@touch $(TOOLS_DB)/$*.ver
 
-# In make >= 4.4 .NOTINTERMEDIATE will do the job.
-.PRECIOUS: $(TOOLSBIN)/%
-$(TOOLSBIN)/%: DSC=$*
-$(TOOLSBIN)/%: VER=$($(call uppercase,$*)_VER)
-$(TOOLSBIN)/%: CMD=$($(call uppercase,$*)_CMD)
-$(TOOLSBIN)/%: $(TOOLSDB)/$$(DSC).$$(VER).$(GO_VER).ver
-	@echo -e "Installing \e[1;36m$(DSC)\e[0m@\e[1;36m$(VER)\e[0m using \e[1;36m$(GO_VER)\e[0m"
-	GOBIN="$(TOOLSBIN)" CGO_ENABLED=0 $(GO_EXEC) install -trimpath -ldflags '-s -w -extldflags "-static"' "$(CMD)@$(VER)"
+define go_install
+	@echo -e "Installing \e[1;36m$(1)\e[0m@\e[1;36m$(3)\e[0m using \e[1;36m$(GO_VER)\e[0m"
+	GOBIN="$(TOOLS_BIN)" CGO_ENABLED=0 $(GO_EXEC) install -trimpath -ldflags '-s -w -extldflags "-static"' "$(2)@$(3)"
 	@echo ""
+endef
 
 ## <staticcheck>
 # https://github.com/dominikh/go-tools/releases    https://staticcheck.io/c
-STATICCHECK_CMD=honnef.co/go/tools/cmd/staticcheck
+STATICCHECK_CMD:=honnef.co/go/tools/cmd/staticcheck
 STATICCHECK_VER:=2023.1.6
-$(TOOLSDB)/staticcheck.$(STATICCHECK_VER).$(GO_VER).ver:
-$(TOOLSBIN)/staticcheck:
+$(TOOLS_BIN)/staticcheck: $(TOOLS_DB)/staticcheck.$(STATICCHECK_VER).$(GO_VER).ver
+	$(call go_install,staticcheck,$(STATICCHECK_CMD),$(STATICCHECK_VER))
 
 .PHONY: staticcheck
-staticcheck: $(TOOLSBIN)/staticcheck
-	staticcheck -f=text -checks=all,-ST1000 -tests ./...
+staticcheck: $(TOOLS_BIN)/staticcheck
+	staticcheck -f=stylish -checks=all,-ST1000 -tests ./...
 	@echo ''
 ## </staticcheck>
 
 ## <golangci-lint>
 # https://github.com/golangci/golangci-lint/releases
 GOLANGCI-LINT_CMD:=github.com/golangci/golangci-lint/cmd/golangci-lint
-GOLANGCI-LINT_VER:=v1.55.2
-$(TOOLSDB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_VER).ver:
-$(TOOLSBIN)/golangci-lint:
+GOLANGCI-LINT_VER:=v1.56.1
+$(TOOLS_BIN)/golangci-lint: $(TOOLS_DB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_VER).ver
+	$(call go_install,golangci-lint,$(GOLANGCI-LINT_CMD),$(GOLANGCI-LINT_VER))
 
 .PHONY: golangci-lint
-golangci-lint: $(TOOLSBIN)/golangci-lint
+golangci-lint: $(TOOLS_BIN)/golangci-lint
 	golangci-lint run
 	@echo ''
 
 .PHONY: golangci-lint-github-actions
-golangci-lint-github-actions: $(TOOLSBIN)/golangci-lint
-	golangci-lint run
+golangci-lint-github-actions: $(TOOLS_BIN)/golangci-lint
+	golangci-lint run --out-format github-actions
 	@echo ''
 ## </golangci-lint>
 
@@ -152,13 +155,13 @@ golangci-lint-github-actions: $(TOOLSBIN)/golangci-lint
 # https://pkg.go.dev/golang.org/x/tools?tab=versions
 GOIMPORTS_CMD := golang.org/x/tools/cmd/goimports
 GOIMPORTS_VER := v0.17.0
-$(TOOLSDB)/goimports.$(GOIMPORTS_VER).$(GO_VER).ver:
-$(TOOLSBIN)/goimports:
+$(TOOLS_BIN)/goimports: $(TOOLS_DB)/goimports.$(GOIMPORTS_VER).$(GO_VER).ver
+	$(call go_install,goimports,$(GOIMPORTS_CMD),$(GOIMPORTS_VER))
 
 .PHONY: goimports
-goimports: $(TOOLSBIN)/goimports
-	@echo '$(TOOLSBIN)/goimports -l `$(FOLDERS)`'
-	@if [[ -n "$$(goimports -l `$(FOLDERS)` | tee /dev/stderr)" ]]; then \
+goimports: $(TOOLS_BIN)/goimports
+	@echo '$(TOOLS_BIN)/goimports -l `$(GO_FOLDERS)`'
+	@if [[ -n "$$(goimports -l `$(GO_FOLDERS)` | tee /dev/stderr)" ]]; then \
 		echo 'goimports errors'; \
 		echo ''; \
 		echo -e "\e[0;34m→\e[0m To display the needed changes run:"; \
@@ -172,25 +175,25 @@ goimports: $(TOOLSBIN)/goimports
 	@echo ''
 
 .PHONY: goimports.display
-goimports.display: $(TOOLSBIN)/goimports
-	goimports -d `$(FOLDERS)`
+goimports.display: $(TOOLS_BIN)/goimports
+	goimports -d `$(GO_FOLDERS)`
 
 .PHONY: goimports.fix
-goimports.fix: $(TOOLSBIN)/goimports
-	goimports -w `$(FOLDERS)`
+goimports.fix: $(TOOLS_BIN)/goimports
+	goimports -w `$(GO_FOLDERS)`
 ## </goimports>
 
 ## <gofumpt>
 # https://github.com/mvdan/gofumpt/releases
 GOFUMPT_CMD:=mvdan.cc/gofumpt
-GOFUMPT_VER:=v0.5.0
-$(TOOLSDB)/gofumpt.$(GOFUMPT_VER).$(GO_VER).ver:
-$(TOOLSBIN)/gofumpt:
+GOFUMPT_VER:=v0.6.0
+$(TOOLS_BIN)/gofumpt: $(TOOLS_DB)/gofumpt.$(GOFUMPT_VER).$(GO_VER).ver
+	$(call go_install,gofumpt,$(GOFUMPT_CMD),$(GOFUMPT_VER))
 
 .PHONY: gofumpt
-gofumpt: $(TOOLSBIN)/gofumpt
-	@echo '$(TOOLSBIN)/gofumpt -l `$(FOLDERS)`'
-	@if [[ -n "$$(gofumpt -l `$(FOLDERS)` | tee /dev/stderr)" ]]; then \
+gofumpt: $(TOOLS_BIN)/gofumpt
+	@echo '$(TOOLS_BIN)/gofumpt -l `$(GO_FOLDERS)`'
+	@if [[ -n "$$(gofumpt -l `$(GO_FOLDERS)` | tee /dev/stderr)" ]]; then \
 		echo 'gofumpt errors'; \
 		echo ''; \
 		echo -e "\e[0;34m→\e[0m To display the needed changes run:"; \
@@ -205,18 +208,18 @@ gofumpt: $(TOOLSBIN)/gofumpt
 
 .PHONY: gofumpt.display
 gofumpt.display:
-	gofumpt -d `$(FOLDERS)`
+	gofumpt -d `$(GO_FOLDERS)`
 
 .PHONY: gofumpt.fix
 gofumpt.fix:
-	gofumpt -w `$(FOLDERS)`
+	gofumpt -w `$(GO_FOLDERS)`
 ## </gofumpt>
 
 ## <gofmt>
 .PHONY: gofmt
 gofmt:
-	@echo 'gofmt -l `$(FOLDERS)`'
-	@if [[ -n "$$(gofmt -l `$(FOLDERS)` | tee /dev/stderr)" ]]; then \
+	@echo 'gofmt -l `$(GO_FOLDERS)`'
+	@if [[ -n "$$(gofmt -l `$(GO_FOLDERS)` | tee /dev/stderr)" ]]; then \
 		echo 'gofmt errors'; \
 		echo ''; \
 		echo -e "\e[0;34m→\e[0m To display the needed changes run:"; \
@@ -231,11 +234,11 @@ gofmt:
 
 .PHONY: gofmt.display
 gofmt.display:
-	gofmt -d `$(FOLDERS)`
+	gofmt -d `$(GO_FOLDERS)`
 
 .PHONY: gofmt.fix
 gofmt.fix:
-	gofmt -w `$(FOLDERS)`
+	gofmt -w `$(GO_FOLDERS)`
 ## </gofmt>
 ####################################################################################
 ## </ci & external tools> ##########################################################

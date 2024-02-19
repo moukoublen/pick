@@ -622,7 +622,7 @@ func TestNasaDataFile(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{
-			AccessFn: func(selector string) ([]string, error) {
+			AccessFn: func(_ string) ([]string, error) {
 				return FlatMap(p, "near_earth_objects.2023-01-01", func(p *Picker) ([]string, error) {
 					return Map(p, "close_approach_data", func(p *Picker) (string, error) {
 						return p.String("close_approach_date_full")
@@ -634,7 +634,7 @@ func TestNasaDataFile(t *testing.T) {
 			ExpectedError: nil,
 		},
 		{
-			AccessFn: func(selector string) []string {
+			AccessFn: func(_ string) []string {
 				return MustFlatMap(p.Must(), "near_earth_objects.2023-01-01", func(a SelectorMustAPI) ([]string, error) {
 					return MustMap(a, "close_approach_data", func(a SelectorMustAPI) (string, error) {
 						return a.String("close_approach_date_full"), nil

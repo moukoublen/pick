@@ -26,19 +26,28 @@ jobs:
     # https://github.com/actions/cache
     - name: Cache Tools
       id: cache-tools
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
-          .ext/
-        # ~/.cache/go-build
-        # ~/go/pkg/
-        key: lint-job-tools-${{ runner.os }}-${{ hashFiles('**/go.sum', '**/Makefile') }}
+          .tools/
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ci-tools-${{ runner.os }}-${{ hashFiles('**/go.sum', '**/Makefile') }}
         restore-keys: |
-          go-and-tools-${{ runner.os }}
+          ci-tools-${{ runner.os }}
 
     - name: Install Tools
-      if: steps.cache-tools.outputs.cache-hit != 'true'
+      # if: steps.cache-tools.outputs.cache-hit != 'true'
       run: make tools
+
+    - name: go mod verify
+      run: go mod verify
+
+    - name: version of make
+      run: make --version
+
+    - name: env
+      run: make env
 
     - name: gofumpt
       run: make gofumpt
@@ -56,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [ '1.20', '1.21' ]
+        go-version: [ '1.21', '1.22' ]
     steps:
     - uses: actions/checkout@v4
 
