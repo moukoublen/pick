@@ -21,7 +21,7 @@ jobs:
       with:
         go-version: '1.21'
         check-latest: true
-        cache: true
+        cache: false
 
     # https://github.com/actions/cache
     - name: Cache Tools

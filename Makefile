@@ -65,9 +65,7 @@ env:
 ####################################################################################
 .PHONY: test
 test:
-	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags="$(TAGS)" -coverprofile cover.out -covermode atomic ./...
-	@$(GO_EXEC) tool cover -func cover.out
-	@rm cover.out
+	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags='$(TAGS)' -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: test-n-read
 test-n-read: test
