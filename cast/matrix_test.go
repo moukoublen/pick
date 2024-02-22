@@ -118,7 +118,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("12", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 0, 12, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(12_000_000), nil),
+			Dur:     expectDuration(time.Duration(12), nil),
 		},
 		{
 			Input:   int8(math.MaxInt8),
@@ -138,7 +138,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("127", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 2, 7, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(127_000_000), nil),
+			Dur:     expectDuration(time.Duration(127), nil),
 		},
 		{
 			Input:   int8(math.MinInt8),
@@ -158,7 +158,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("-128", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1969, time.December, 31, 23, 57, 52, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(-128_000_000), nil),
+			Dur:     expectDuration(time.Duration(-128), nil),
 		},
 		{
 			Input:   int16(math.MaxInt16),
@@ -178,7 +178,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("32767", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 9, 6, 7, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(32767_000_000), nil),
+			Dur:     expectDuration(time.Duration(32767), nil),
 		},
 		{
 			Input:   int16(math.MinInt16),
@@ -198,7 +198,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("-32768", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1969, time.December, 31, 14, 53, 52, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(-32768_000_000), nil),
+			Dur:     expectDuration(time.Duration(-32768), nil),
 		},
 		{
 			Input:   int32(math.MaxInt32),
@@ -218,7 +218,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("2147483647", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(2038, time.January, 19, 3, 14, 7, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(2147483647_000_000), nil),
+			Dur:     expectDuration(time.Duration(2147483647), nil),
 		},
 		{
 			Input:   int32(math.MinInt32),
@@ -238,7 +238,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("-2147483648", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1901, time.December, 13, 20, 45, 52, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(-2147483648_000_000), nil),
+			Dur:     expectDuration(time.Duration(-2147483648), nil),
 		},
 		{
 			Input:   int64(math.MaxInt64),
@@ -258,7 +258,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("9223372036854775807", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(292277026596, time.December, 4, 15, 30, 7, 0, time.UTC), nil), // the largest int64 value does not have a corresponding time value.
-			Dur:     expectDuration(time.Duration(-1000000), expectOverFlowError),
+			Dur:     expectDuration(time.Duration(math.MaxInt64), nil),
 		},
 		{
 			Input:   int64(math.MinInt64),
@@ -278,7 +278,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("-9223372036854775808", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(292277026596, time.December, 4, 15, 30, 8, 0, time.UTC), nil), // the min int64 value does not have a corresponding time value.
-			Dur:     expectDuration(time.Duration(0), expectOverFlowError),
+			Dur:     expectDuration(time.Duration(math.MinInt64), nil),
 		},
 		{
 			Input:   uint8(math.MaxUint8),
@@ -298,7 +298,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("255", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 4, 15, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(255_000_000), nil),
+			Dur:     expectDuration(time.Duration(255), nil),
 		},
 		{
 			Input:   uint16(math.MaxUint16),
@@ -318,7 +318,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("65535", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 18, 12, 15, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(65535_000_000), nil),
+			Dur:     expectDuration(time.Duration(65535), nil),
 		},
 		{
 			Input:   uint32(math.MaxUint32),
@@ -338,7 +338,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("4294967295", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(2106, time.February, 7, 6, 28, 15, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(4294967295_000_000), nil),
+			Dur:     expectDuration(time.Duration(math.MaxUint32), nil),
 		},
 		{
 			Input:   uint64(math.MaxUint64),
@@ -358,7 +358,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("18446744073709551615", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1969, time.December, 31, 23, 59, 59, 0, time.UTC), expectOverFlowError), // max uint64 is not converted to valid date.
-			Dur:     expectDuration(time.Duration(-1000000), expectOverFlowError),
+			Dur:     expectDuration(time.Duration(-1), expectOverFlowError),
 		},
 		{
 			Input:   byte(12),
@@ -378,7 +378,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("12", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 0, 12, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(12_000_000), nil),
+			Dur:     expectDuration(time.Duration(12), nil),
 		},
 		{
 			Input:   "123",
@@ -518,7 +518,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("123", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(123_000_000), nil),
+			Dur:     expectDuration(time.Duration(123), nil),
 		},
 		{
 			Input:   float64(123),
@@ -537,7 +537,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: expectFloat64(123, nil),
 			String:  expectString("123", nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(123_000_000), nil),
+			Dur:     expectDuration(time.Duration(123), nil),
 		},
 		{
 			Input:   float64(123.12),
@@ -556,7 +556,7 @@ func TestCasterMatrix(t *testing.T) {
 			Float64: expectFloat64(123.12, nil),
 			String:  expectString("123.12", nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), expectLostDecimals),
-			Dur:     expectDuration(time.Duration(123_000_000), expectLostDecimals),
+			Dur:     expectDuration(time.Duration(123), expectLostDecimals),
 		},
 		{
 			Input:   float64(math.MaxFloat64),
@@ -576,7 +576,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("1.7977E+308", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(292277026596, time.December, 4, 15, 30, 8, 0, time.UTC), expectOverFlowError),
-			Dur:     expectDuration(time.Duration(0), expectOverFlowError),
+			Dur:     expectDuration(time.Duration(-9223372036854775808), expectOverFlowError),
 		},
 		{
 			Input:   struct{}{},
@@ -636,7 +636,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("123", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 0, 2, 3, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(123_000_000), nil),
+			Dur:     expectDuration(time.Duration(123), nil),
 		},
 		{
 			Input:   json.Number("56782"),
@@ -656,7 +656,7 @@ func TestCasterMatrix(t *testing.T) {
 			String:  expectString("56782", nil),
 			Bool:    expectBool(true, nil),
 			Time:    expectTime(time.Date(1970, time.January, 1, 15, 46, 22, 0, time.UTC), nil),
-			Dur:     expectDuration(time.Duration(56782_000_000), nil),
+			Dur:     expectDuration(time.Duration(56782), nil),
 		},
 		{
 			Input:   "1.79769313486231570814527423731704356798070e+308",

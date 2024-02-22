@@ -11,9 +11,9 @@ import (
 type DurationCastNumberFormat int
 
 const (
-	DurationNumberMilliseconds DurationCastNumberFormat = iota // default value
+	DurationNumberNanoseconds DurationCastNumberFormat = iota // default value
+	DurationNumberMilliseconds
 	DurationNumberMicroseconds
-	DurationNumberNanoseconds
 	DurationNumberSeconds
 	DurationNumberMinutes
 	DurationNumberHours
