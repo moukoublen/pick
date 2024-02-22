@@ -123,7 +123,17 @@ func TestTryCastUsingReflect(t *testing.T) {
 				t.Fatalf("number of returned values %d", len(returnedVals))
 			}
 
-			reflect.DeepEqual(returnedVals[0], reflect.ValueOf(tc.expected))
+			gotVal := returnedVals[0]
+			var pass bool
+			if gotVal.Type().Comparable() {
+				pass = gotVal.Equal(reflect.ValueOf(tc.expected))
+			} else {
+				a := gotVal.Interface()
+				pass = reflect.DeepEqual(a, tc.expected)
+			}
+			if !pass {
+				t.Fatalf("value comparison failed. Expected %#v got %#v", tc.expected, gotVal.Interface())
+			}
 
 			errVal := returnedVals[1]
 			errInf := errVal.Interface()
