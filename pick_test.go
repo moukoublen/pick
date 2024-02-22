@@ -808,10 +808,6 @@ func TestReadme(t *testing.T) {
 		assert(err, nil)
 	}
 	{
-		got := p1.Must().Int32("item.one")
-		assert(got, int32(1))
-	}
-	{
 		got, err := p1.Float32("float")
 		assert(got, float32(2.12))
 		assert(err, nil)
@@ -820,6 +816,15 @@ func TestReadme(t *testing.T) {
 		got, err := p1.Int64("float")
 		assert(got, int64(2))
 		assert(err, cast.ErrCastLostDecimals)
+	}
+	m := p1.Must()
+	{
+		got := m.Int32("item.one")
+		assert(got, int32(1))
+	}
+	{
+		got := m.Int32("non-existing")
+		assert(got, int32(0))
 	}
 
 	// Map examples

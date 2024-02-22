@@ -20,36 +20,36 @@ j := `{
     },
     "float": 2.12
 }`
+
 p1, _ := WrapJSON([]byte(j))
-{
-    got, err := p1.String("item.three[1]")
-    assert(got, "2")
-    assert(err, nil)
-}
-{
-    got, err := p1.Uint64("item.three[1]")
-    assert(got, uint64(2))
-    assert(err, nil)
-}
-{
-    got, err := p1.String("item.three[-1]") // access the last element
-    assert(got, "element 3")
-    assert(err, nil)
-}
-{
-    got := p1.Must().Int32("item.one")
-    assert(got, int32(1))
-}
-{
-    got, err := p1.Float32("float")
-    assert(got, float32(2.12))
-    assert(err, nil)
-}
-{
-    got, err := p1.Int64("float")
-    assert(got, int64(2))
-    assert(err, cast.ErrCastLostDecimals)
-}
+
+got, err := p1.String("item.three[1]")
+// got == "2"
+
+got, err := p1.Uint64("item.three[1]")
+// got == uint64(2)
+
+got, err := p1.String("item.three[-1]") // access the last element
+// got == "element 3"
+
+got, err := p1.Float32("float")
+// got == float32(2.12)
+
+got, err := p1.Int64("float")
+// got == int64(2)
+// err is cast.ErrCastLostDecimals
+
+got, err := p1.Int32("non-existing")
+// got == int32(0)
+// err is ErrFieldNotFound
+
+m := p1.Must()
+
+got := m.Int32("item.one")
+// got == int32(1)
+
+got := m.Int32("non-existing")
+// got == int32(0)
 ```
 
 **`Map` function**

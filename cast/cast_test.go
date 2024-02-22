@@ -3,6 +3,7 @@ package cast
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
@@ -78,6 +79,63 @@ func TestToSliceErrorScenarios(t *testing.T) {
 			t.Parallel()
 			_, gotErr := ToSlice(tc.input, sliceOp(tc.inputSingleItemCastFn))
 			testingx.AssertError(t, tc.expectedErr, gotErr)
+		})
+	}
+}
+
+func TestTryCastUsingReflect(t *testing.T) {
+	type intAlias int
+	tests := map[string]struct {
+		fn          any
+		input       any
+		expected    any
+		expectedErr func(*testing.T, error)
+	}{
+		"intAlias to int16": {
+			fn:          tryCastUsingReflect[int16],
+			input:       intAlias(13),
+			expected:    int16(13),
+			expectedErr: nil,
+		},
+		"struct to int16 expect error": {
+			fn:          tryCastUsingReflect[int16],
+			input:       struct{}{},
+			expected:    int16(0),
+			expectedErr: testingx.ExpectedErrorIs(ErrInvalidType),
+		},
+		"string to []byte": {
+			fn:          tryCastUsingReflect[[]byte],
+			input:       "str",
+			expected:    []byte("str"),
+			expectedErr: nil,
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			fnVal := reflect.ValueOf(tc.fn)
+			returnedVals := fnVal.Call([]reflect.Value{
+				reflect.ValueOf(tc.input),
+			})
+
+			if len(returnedVals) != 2 {
+				t.Fatalf("number of returned values %d", len(returnedVals))
+			}
+
+			reflect.DeepEqual(returnedVals[0], reflect.ValueOf(tc.expected))
+
+			errVal := returnedVals[1]
+			errInf := errVal.Interface()
+			if errInf == nil {
+				testingx.AssertError(t, tc.expectedErr, nil)
+			} else {
+				err, is := errInf.(error)
+				if !is {
+					t.Errorf("second returned item is not of type error. Type: %s", errVal.Type().String())
+				}
+				testingx.AssertError(t, tc.expectedErr, err)
+			}
 		})
 	}
 }
