@@ -1,6 +1,7 @@
 package cast
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -111,5 +112,41 @@ func TestTryCastUsingReflect(t *testing.T) {
 				testingx.AssertError(t, tc.expectedErr, err)
 			}
 		})
+	}
+}
+
+func TestReadme(t *testing.T) {
+	eq := testingx.AssertEqualFn(t)
+
+	c := NewCaster()
+
+	{
+		got, err := c.AsInt8(int32(10))
+		eq(got, int8(10))
+		eq(err, nil)
+	}
+
+	{
+		got, err := c.AsInt8("10")
+		eq(got, int8(10))
+		eq(err, nil)
+	}
+
+	{
+		got, err := c.AsInt8(128)
+		eq(got, int8(-128))
+		eq(errors.Is(err, ErrCastOverFlow), true)
+	}
+
+	{
+		got, err := c.AsInt8(10.12)
+		eq(got, int8(10))
+		eq(errors.Is(err, ErrCastLostDecimals), true)
+	}
+
+	{
+		got, err := c.AsInt8(float64(10.00))
+		eq(got, int8(10))
+		eq(err, nil)
 	}
 }

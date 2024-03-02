@@ -36,6 +36,48 @@ Traverser implements the functionality of accessing and retrieving a field on a 
 
 The default implementation `DefaultTraverser` aims to use reflect as last resort by attempting first to cast to most common types (`map[string]any` in case of `Field` and `[]any` in case of `Index`) and direct access to them. If the dataset is not one of those types, it attempts to access using reflect. This happens sequently for each `Key` of the path (`[]Key`).
 
+Note: _Traverser needs a caster just in case it tries to traverse a map that the key of is of different type than `string` or `int`_
+
+A simple example of traverser
+```golang
+data := map[string]any{
+    "one": map[string]any{
+        "two": map[string]any{
+            "three": "value"
+        },
+    },
+}
+
+tr := NewDefaultTraverser(cast.NewCaster())
+v, err := tr.Retrieve(data, []Key{ Field("one"), Field("two"), Field("three") })
+// v == any("value")
+// err == nil
+```
 
 ### 3) Caster
+Caster attempts to cast between types using reflect as a last resort. It also checks for overflows or lost decimals after casting and returns errors.
 
+Example:
+```golang
+c := NewCaster()
+
+got, err := c.AsInt8(int32(10))
+// got == int8(10)
+// err == nil
+
+got, err := c.AsInt16("10")
+// got == int8(10)
+// err == nil
+
+got, err := c.AsInt16(128)
+// got == int8(-128)
+// err is ErrCastOverFlow
+
+got, err := c.AsInt8(10.12)
+// got == int8(10)
+// err is ErrCastLostDecimals
+
+got, err := c.AsInt8(float64(10.00))
+// got == int8(10)
+// err == nil
+```
