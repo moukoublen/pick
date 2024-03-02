@@ -1,8 +1,7 @@
 package pick
 
 import (
-	"github.com/moukoublen/pick/cast"
-	"github.com/moukoublen/pick/internal"
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 // This file contains the top-level functions that operates to `Picker` and `SelectorMustAPI`
@@ -17,10 +16,10 @@ func Each(p *Picker, selector string, operation func(index int, p *Picker, lengt
 		return err
 	}
 
-	return internal.TraverseSlice(
+	return slices.ForEach(
 		item,
-		func(i int, a any, l int) error {
-			return operation(i, p.Wrap(a), l)
+		func(item any, meta slices.OpMeta) error {
+			return operation(meta.Index, p.Wrap(item), meta.Length)
 		},
 	)
 }
@@ -42,10 +41,10 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 		return nil, err
 	}
 
-	return cast.ToSlice(
+	return slices.AsSlice(
 		item,
-		func(_ int, a any, _ int) (Output, error) {
-			return transform(p.Wrap(a))
+		func(item any, _ slices.OpMeta) (Output, error) {
+			return transform(p.Wrap(item))
 		},
 	)
 }
@@ -57,10 +56,10 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 		return nil, err
 	}
 
-	return cast.ToSliceFilter(
+	return slices.AsSliceFilter(
 		item,
-		func(_ int, a any, _ int) (Output, bool, error) {
-			return transform(p.Wrap(a))
+		func(item any, _ slices.OpMeta) (Output, bool, error) {
+			return transform(p.Wrap(item))
 		},
 	)
 }
@@ -72,10 +71,10 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 		return nil, err
 	}
 
-	doubleSlice, err := cast.ToSlice(
+	doubleSlice, err := slices.AsSlice(
 		item,
-		func(_ int, a any, _ int) ([]Output, error) {
-			return transform(p.Wrap(a))
+		func(item any, _ slices.OpMeta) ([]Output, error) {
+			return transform(p.Wrap(item))
 		},
 	)
 
@@ -107,17 +106,15 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 		return
 	}
 
-	sliceOp := func(idx int, item any, l int) error {
-		opErr := operation(idx, a.Wrap(item), l)
+	err = slices.ForEach(item, func(item any, meta slices.OpMeta) error {
+		opErr := operation(meta.Index, a.Wrap(item), meta.Length)
 		if opErr != nil {
-			path = append(path, Index(idx))
+			path = append(path, Index(meta.Index))
 			a.gather(a.notation.Format(path...), opErr)
 			path = path[:len(path)-1]
 		}
 		return nil
-	}
-
-	err = internal.TraverseSlice(item, sliceOp)
+	})
 	if err != nil {
 		a.gather(selector, err)
 	}
@@ -166,17 +163,15 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 		return nil
 	}
 
-	sliceOp := func(idx int, item any, _ int) (Output, bool, error) {
+	sl, err := slices.AsSliceFilter(item, func(item any, meta slices.OpMeta) (Output, bool, error) {
 		t, keep, opErr := transform(a.Wrap(item))
 		if opErr != nil {
-			path = append(path, Index(idx))
+			path = append(path, Index(meta.Index))
 			a.gather(a.notation.Format(path...), opErr)
 			path = path[:len(path)-1]
 		}
 		return t, keep, nil
-	}
-
-	sl, err := cast.ToSliceFilter(item, sliceOp)
+	})
 	if err != nil {
 		a.gather(selector, err)
 	}

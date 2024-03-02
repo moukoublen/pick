@@ -2,6 +2,8 @@ package cast
 
 import (
 	"encoding/json"
+
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 type byteCaster struct {
@@ -56,5 +58,5 @@ func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return ToSlice[byte](input, sliceOp(bc.AsByte))
+	return slices.AsSlice(input, slices.CastOpFn(bc.AsByte))
 }

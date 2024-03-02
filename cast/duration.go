@@ -6,6 +6,8 @@ import (
 	"math"
 	"reflect"
 	"time"
+
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 type DurationCastNumberFormat int
@@ -143,7 +145,7 @@ func (c durationCaster) AsDurationSlice(input any) ([]time.Duration, error) {
 }
 
 func (c durationCaster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
-	return ToSlice[time.Duration](input, func(_ int, a any, _ int) (time.Duration, error) {
-		return c.AsDurationWithConfig(config, a)
+	return slices.AsSlice(input, func(item any, _ slices.OpMeta) (time.Duration, error) {
+		return c.AsDurationWithConfig(config, item)
 	})
 }

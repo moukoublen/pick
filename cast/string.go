@@ -3,6 +3,8 @@ package cast
 import (
 	"encoding/json"
 	"strconv"
+
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 type stringCaster struct{}
@@ -66,5 +68,5 @@ func (sc stringCaster) AsString(input any) (string, error) {
 }
 
 func (sc stringCaster) AsStringSlice(input any) ([]string, error) {
-	return ToSlice[string](input, sliceOp(sc.AsString))
+	return slices.AsSlice(input, slices.CastOpFn(sc.AsString))
 }

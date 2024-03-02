@@ -3,6 +3,8 @@ package cast
 import (
 	"encoding/json"
 	"strconv"
+
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 type boolCaster struct{}
@@ -70,5 +72,5 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 }
 
 func (bc boolCaster) AsBoolSlice(input any) ([]bool, error) {
-	return ToSlice[bool](input, sliceOp(bc.AsBool))
+	return slices.AsSlice(input, slices.CastOpFn(bc.AsBool))
 }

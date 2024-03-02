@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 type TimeCastNumberFormat int
@@ -170,8 +172,8 @@ func (tc timeCaster) AsTimeSlice(input any) ([]time.Time, error) {
 }
 
 func (tc timeCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
-	return ToSlice[time.Time](input, func(_ int, a any, _ int) (time.Time, error) {
-		return tc.AsTimeWithConfig(config, a)
+	return slices.AsSlice[time.Time](input, func(item any, _ slices.OpMeta) (time.Time, error) {
+		return tc.AsTimeWithConfig(config, item)
 	})
 }
 

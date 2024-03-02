@@ -4,7 +4,6 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/moukoublen/pick/internal"
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
@@ -64,44 +63,6 @@ func (c Caster) As(input any, asKind reflect.Kind) (any, error) {
 	}
 
 	return nil, newCastError(ErrInvalidType, input)
-}
-
-func ToSlice[T any](input any, singleItemCastFn func(int, any, int) (T, error)) (_ []T, rErr error) {
-	filterTrue := func(index int, item any, length int) (T, bool, error) {
-		casted, err := singleItemCastFn(index, item, length)
-		return casted, true, err
-	}
-
-	return ToSliceFilter(input, filterTrue)
-}
-
-func ToSliceFilter[T any](input any, singleItemCastFn func(index int, item any, length int) (T, bool, error)) (_ []T, rErr error) {
-	// quick returns just in case its already slice of T.
-	if ss, is := input.([]T); is {
-		return ss, nil
-	}
-
-	var castedSlice []T
-	err := internal.TraverseSlice(input, func(index int, item any, length int) error {
-		casted, keep, err := singleItemCastFn(index, item, length)
-		switch {
-		case err != nil:
-			return err
-		case !keep:
-			return nil
-		default:
-			if index == 0 && length > 0 {
-				castedSlice = make([]T, 0, length)
-			}
-			castedSlice = append(castedSlice, casted)
-			return nil
-		}
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return castedSlice, nil
 }
 
 // tryCastToBasicType checks input's Kind to identify if it can be casted as a basic type.
@@ -174,10 +135,6 @@ func tryCastUsingReflect[Out any](input any) (output Out, err error) {
 
 	//nolint:forcetypeassert // if we get here we can safely assert.
 	return convertedValue.Interface().(Out), nil
-}
-
-func sliceOp[T any](fn func(any) (T, error)) func(int, any, int) (T, error) {
-	return func(_ int, item any, _ int) (T, error) { return fn(item) }
 }
 
 var (
