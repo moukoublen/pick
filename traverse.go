@@ -55,6 +55,10 @@ func (d DefaultTraverser) Retrieve(data any, path []Key) (any, error) {
 }
 
 func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
+	if item == nil {
+		return nil, ErrFieldNotFound
+	}
+
 	// attempts to fast return without reflect.
 	switch key.Type {
 	case KeyTypeField:

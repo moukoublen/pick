@@ -100,6 +100,13 @@ func TestDefaultTraverser(t *testing.T) {
 			expectedErr: nil,
 		},
 
+		"name access level 2 but nil": {
+			input:       map[string]any{"one": nil},
+			keys:        []Key{Field("one"), Field("two")},
+			expected:    nil,
+			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
+		},
+
 		"name access level 2 renamed happy path": {
 			input:       map[string]any{"one": renamed{"two": "value"}},
 			keys:        []Key{Field("one"), Field("two")},
