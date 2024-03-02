@@ -63,17 +63,12 @@ j2 := `{
 }`
 p2, _ := WrapJSON([]byte(j2))
 
-type Foo struct{ ID int16 }
-
-{
-    got, err := Map(p2, "items", func(p *Picker) (Foo, error) {
-        f := Foo{}
-        f.ID, _ = p.Int16("id")
-        return f, nil
-    })
-    assert(got, []Foo{{ID: 34}, {ID: 35}, {ID: 36}})
-    assert(err, nil)
-}
+got, err := Map(p2, "items", func(p *Picker) (int16, error) {
+    n, _ := p.Int16("id")
+    return n, nil
+})
+// got == []int16{34, 35, 36}
+// err == nil
 ```
 
 **Time functions**
@@ -83,30 +78,25 @@ dateData := map[string]any{
     "time2":     "Wed, 25 May 1977 18:30:00 -0400",
     "timeSlice": []string{"1977-05-25T18:30:00Z", "1977-05-25T20:30:00Z", "1977-05-25T22:30:00Z"},
 }
+
 p3 := Wrap(dateData)
-{
-    got, err := p3.Time("time1")
-    assert(got, time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC))
-    assert(err, nil)
-}
-{
-    loc, _ := time.LoadLocation("America/New_York")
-    got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
-    assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
-    assert(err, nil)
-}
-{
-    got, err := p3.TimeSlice("timeSlice")
-    assert(
-        got,
-        []time.Time{
-            time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
-            time.Date(1977, time.May, 25, 20, 30, 0, 0, time.UTC),
-            time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
-        },
-    )
-    assert(err, nil)
-}
+
+got, err := p3.Time("time1")
+// got == time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC)
+// err == nil
+
+loc, _ := time.LoadLocation("America/New_York")
+got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
+// got == time.Date(1977, time.May, 25, 18, 30, 0, 0, loc)
+// err == nil
+
+got, err := p3.TimeSlice("timeSlice")
+// got == []time.Time{
+//     time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
+//     time.Date(1977, time.May, 25, 20, 30, 0, 0, time.UTC),
+//     time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
+// },
+// err == nil
 ```
 
 
@@ -132,12 +122,12 @@ Examples:
 
 **Selector Must API**
 ```golang
-assert(p1.Must().String("item.three[1]"), "2")
-assert(p1.Must().Uint64("item.three[1]"), uint64(2))
+p1.Must().String("item.three[1]") // == "2"
 sm := p1.Must()
-assert(sm.Int32("item.one"), int32(1))
-assert(sm.Float32("float"), float32(2.12))
-assert(sm.Int64("float"), int64(2))
+sm.Uint64("item.three[1]") // == uint64(2)
+sm.Int32("item.one")       // == int32(1)
+sm.Float32("float")        // == float32(2.12)
+sm.Int64("float")          // == int64(2)
 ```
 
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.

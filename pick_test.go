@@ -837,22 +837,19 @@ func TestReadme(t *testing.T) {
 }`
 	p2, _ := WrapJSON([]byte(j2))
 
-	type Foo struct{ ID int16 }
-
 	{
-		got, err := Map(p2, "items", func(p *Picker) (Foo, error) {
-			f := Foo{}
-			f.ID, _ = p.Int16("id")
-			return f, nil
+		got, err := Map(p2, "items", func(p *Picker) (int16, error) {
+			n, _ := p.Int16("id")
+			return n, nil
 		})
-		assert(got, []Foo{{ID: 34}, {ID: 35}, {ID: 36}})
+		assert(got, []int16{34, 35, 36})
 		assert(err, nil)
 	}
 
 	// Selector Must API
 	assert(p1.Must().String("item.three[1]"), "2")
-	assert(p1.Must().Uint64("item.three[1]"), uint64(2))
 	sm := p1.Must()
+	assert(sm.Uint64("item.three[1]"), uint64(2))
 	assert(sm.Int32("item.one"), int32(1))
 	assert(sm.Float32("float"), float32(2.12))
 	assert(sm.Int64("float"), int64(2))
