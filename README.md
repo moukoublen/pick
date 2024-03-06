@@ -11,7 +11,7 @@
 3. Best effort cast aiming to cast and convert between types as much as possible.
 
 ### Examples
-```golang
+```go
 j := `{
     "item": {
         "one": 1,
@@ -53,7 +53,7 @@ got := m.Int32("non-existing")
 ```
 
 **`Map` function**
-```golang
+```go
 j2 := `{
     "items": [
         {"id": 34, "name": "test1"},
@@ -72,7 +72,7 @@ got, err := Map(p2, "items", func(p *Picker) (int16, error) {
 ```
 
 **Time functions**
-```golang
+```go
 dateData := map[string]any{
     "time1":     "1977-05-25T22:30:00Z",
     "time2":     "Wed, 25 May 1977 18:30:00 -0400",
@@ -121,7 +121,7 @@ As an `API` we define a set of functions like this `Bool(T) Output` for all basi
 Examples:
 
 **Selector Must API**
-```golang
+```go
 p1.Must().String("item.three[1]") // == "2"
 sm := p1.Must()
 sm.Uint64("item.three[1]") // == uint64(2)
