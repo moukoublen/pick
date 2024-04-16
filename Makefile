@@ -191,7 +191,7 @@ $(TOOLS_BIN)/gofumpt: $(TOOLS_DB)/gofumpt.$(GOFUMPT_VER).$(GO_VER).ver
 
 .PHONY: gofumpt
 gofumpt: $(TOOLS_BIN)/gofumpt
-	@echo '$(TOOLS_BIN)/gofumpt -l `$(GO_FOLDERS)`'
+	@echo '$(TOOLS_BIN)/gofumpt -extra -l `$(GO_FOLDERS)`'
 	@if [[ -n "$$(gofumpt -l `$(GO_FOLDERS)` | tee /dev/stderr)" ]]; then \
 		echo 'gofumpt errors'; \
 		echo ''; \
@@ -207,11 +207,11 @@ gofumpt: $(TOOLS_BIN)/gofumpt
 
 .PHONY: gofumpt.display
 gofumpt.display:
-	gofumpt -d `$(GO_FOLDERS)`
+	gofumpt -extra -d `$(GO_FOLDERS)`
 
 .PHONY: gofumpt.fix
 gofumpt.fix:
-	gofumpt -w `$(GO_FOLDERS)`
+	gofumpt -extra -w `$(GO_FOLDERS)`
 ## </gofumpt>
 
 ## <gofmt>
