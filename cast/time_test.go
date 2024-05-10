@@ -20,7 +20,7 @@ func TestTimeCaster(t *testing.T) {
 
 	type int64Alias int64
 	type stringAlias string
-	testCases := []casterTestCase[time.Time]{
+	testCases := []singleCastTestCase[time.Time]{
 		{
 			input:       int64Alias(1700000000),
 			expected:    time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
@@ -30,7 +30,7 @@ func TestTimeCaster(t *testing.T) {
 			input:       int64(1700000000 * 1000),
 			expected:    time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
 			expectedErr: nil,
-			castFn: func(input any) (time.Time, error) {
+			directCastFn: func(input any) (time.Time, error) {
 				return caster.AsTimeWithConfig(TimeCastConfig{NumberFormat: TimeCastNumberFormatUnixMilli}, input)
 			},
 		},
@@ -38,7 +38,7 @@ func TestTimeCaster(t *testing.T) {
 			input:       int64(1700000000 * 1000 * 1000),
 			expected:    time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
 			expectedErr: nil,
-			castFn: func(input any) (time.Time, error) {
+			directCastFn: func(input any) (time.Time, error) {
 				return caster.AsTimeWithConfig(TimeCastConfig{NumberFormat: TimeCastNumberFormatUnixMicro}, input)
 			},
 		},
@@ -81,7 +81,7 @@ func TestTimeCaster(t *testing.T) {
 			input:       "1700000000000",
 			expected:    time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
 			expectedErr: nil,
-			castFn: func(input any) (time.Time, error) {
+			directCastFn: func(input any) (time.Time, error) {
 				return caster.AsTimeWithConfig(TimeCastConfig{PraseStringAsNumber: true, NumberFormat: TimeCastNumberFormatUnixMilli}, input)
 			},
 		},
@@ -89,7 +89,7 @@ func TestTimeCaster(t *testing.T) {
 			input:       "Mon, 02 Jan 2006 15:04:05 -0700",
 			expected:    time.Date(2006, time.January, 2, 15, 4, 5, 0, tzMinus7),
 			expectedErr: nil,
-			castFn: func(input any) (time.Time, error) {
+			directCastFn: func(input any) (time.Time, error) {
 				return caster.AsTimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, input)
 			},
 		},
@@ -97,7 +97,7 @@ func TestTimeCaster(t *testing.T) {
 			input:       "Mon Jan 2 15:04:05 2016",
 			expected:    time.Date(2016, time.January, 2, 15, 4, 5, 0, tzAthens),
 			expectedErr: nil,
-			castFn: func(input any) (time.Time, error) {
+			directCastFn: func(input any) (time.Time, error) {
 				return caster.AsTimeWithConfig(TimeCastConfig{StringFormat: time.ANSIC, ParseInLocation: tzAthens}, input)
 			},
 		},
@@ -113,12 +113,12 @@ func TestTimeSliceCaster(t *testing.T) {
 	tzPlus4, _ := time.LoadLocation("Etc/GMT-4")
 	tzPlus8, _ := time.LoadLocation("Etc/GMT-8")
 
-	testCases := []casterTestCase[[]time.Time]{
+	testCases := []singleCastTestCase[[]time.Time]{
 		{
 			input:       int64(1700000000 * 1000),
 			expected:    []time.Time{time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC)},
 			expectedErr: nil,
-			castFn: func(input any) ([]time.Time, error) {
+			directCastFn: func(input any) ([]time.Time, error) {
 				return caster.AsTimeSliceWithConfig(TimeCastConfig{NumberFormat: TimeCastNumberFormatUnixMilli}, input)
 			},
 		},

@@ -247,7 +247,7 @@ func (ic intCast[T]) cast(input any) (T, error) {
 			return ic.cast(basic)
 		}
 
-		return tryCastUsingReflect[T](input)
+		return tryReflectConvert[T](input)
 	}
 }
 

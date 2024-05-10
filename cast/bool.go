@@ -67,7 +67,7 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 			return bc.AsBool(basic)
 		}
 
-		return tryCastUsingReflect[bool](input)
+		return tryReflectConvert[bool](input)
 	}
 }
 

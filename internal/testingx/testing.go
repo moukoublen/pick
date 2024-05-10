@@ -102,6 +102,13 @@ func AssertEqual(t *testing.T, subject, expected any) {
 		return
 	}
 
+	subjectType := reflect.TypeOf(subject)
+	expectedType := reflect.TypeOf(expected)
+
+	if subjectType != expectedType {
+		t.Errorf("Expected types mismatch:\nExpected: %s\nGot     : %s", expectedType.String(), subjectType.String())
+	}
+
 	compFn := compareFn(expected)
 	if !compFn(subject, expected) {
 		t.Errorf("Expected value mismatch:\nExpected: %s\nGot     : %s", Format(expected), Format(subject))

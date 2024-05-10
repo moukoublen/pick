@@ -63,7 +63,7 @@ func (sc stringCaster) AsString(input any) (string, error) {
 			return sc.AsString(basic)
 		}
 
-		return tryCastUsingReflect[string](input)
+		return tryReflectConvert[string](input)
 	}
 }
 

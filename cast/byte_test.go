@@ -8,7 +8,7 @@ import (
 func TestByteCasterSlice(t *testing.T) {
 	t.Parallel()
 
-	testCases := []casterTestCase[[]byte]{
+	testCases := []singleCastTestCase[[]byte]{
 		{
 			input:       byte(12),
 			expected:    []byte{12},

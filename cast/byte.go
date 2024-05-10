@@ -44,7 +44,7 @@ func (bc byteCaster) AsByte(input any) (byte, error) {
 			return bc.AsByte(basic)
 		}
 
-		return tryCastUsingReflect[byte](input)
+		return tryReflectConvert[byte](input)
 	}
 }
 
