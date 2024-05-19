@@ -103,7 +103,7 @@ func TestTimeCaster(t *testing.T) {
 		},
 	}
 
-	casterTest[time.Time](t, testCases, caster.AsTime)
+	runSingleCastTestCases[time.Time](t, testCases, caster.AsTime)
 }
 
 func TestTimeSliceCaster(t *testing.T) {
@@ -159,5 +159,5 @@ func TestTimeSliceCaster(t *testing.T) {
 		},
 	}
 
-	casterTest(t, testCases, caster.AsTimeSlice)
+	runSingleCastTestCases(t, testCases, caster.AsTimeSlice)
 }

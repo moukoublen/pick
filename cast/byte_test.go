@@ -32,5 +32,5 @@ func TestByteCasterSlice(t *testing.T) {
 	}
 
 	caster := newByteCaster()
-	casterTest[[]byte](t, testCases, caster.AsByteSlice)
+	runSingleCastTestCases[[]byte](t, testCases, caster.AsByteSlice)
 }

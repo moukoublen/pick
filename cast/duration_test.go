@@ -118,5 +118,5 @@ func TestDurationCaster(t *testing.T) {
 		},
 	}
 
-	casterTest[time.Duration](t, testCases, caster.AsDuration)
+	runSingleCastTestCases[time.Duration](t, testCases, caster.AsDuration)
 }
