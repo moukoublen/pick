@@ -795,6 +795,180 @@ func TestCasterMatrix(t *testing.T) {
 				expectDuration(time.Duration(0), expectInvalidType),
 			},
 		},
+		"tc#032": {
+			Input: int(12),
+			Asserters: []CasterTester{
+				expectByte(12, nil),
+				expectInt8(12, nil),
+				expectInt16(12, nil),
+				expectInt32(12, nil),
+				expectInt64(12, nil),
+				expectInt(12, nil),
+				expectUInt8(12, nil),
+				expectUint16(12, nil),
+				expectUint32(12, nil),
+				expectUint64(12, nil),
+				expectUint(12, nil),
+				expectFloat32(12, nil),
+				expectFloat64(12, nil),
+				expectString("12", nil),
+				expectBool(true, nil),
+				expectTime(time.Date(1970, time.January, 1, 0, 0, 12, 0, time.UTC), nil),
+				expectDuration(time.Duration(12), nil),
+			},
+		},
+		"tc#033": {
+			Input: uint(12),
+			Asserters: []CasterTester{
+				expectByte(12, nil),
+				expectInt8(12, nil),
+				expectInt16(12, nil),
+				expectInt32(12, nil),
+				expectInt64(12, nil),
+				expectInt(12, nil),
+				expectUInt8(12, nil),
+				expectUint16(12, nil),
+				expectUint32(12, nil),
+				expectUint64(12, nil),
+				expectUint(12, nil),
+				expectFloat32(12, nil),
+				expectFloat64(12, nil),
+				expectString("12", nil),
+				expectBool(true, nil),
+				expectTime(time.Date(1970, time.January, 1, 0, 0, 12, 0, time.UTC), nil),
+				expectDuration(time.Duration(12), nil),
+			},
+		},
+	}
+
+	for k, tc := range testCases {
+		tc := tc
+		name := fmt.Sprintf("%s__%T(%#v)", k, tc.Input, tc.Input)
+		t.Run(name, func(t *testing.T) {
+			for _, a := range tc.Asserters {
+				a.SetInput(tc.Input)
+				a.Test(t)
+			}
+		})
+	}
+}
+
+func TestCasterSliceMatrix(t *testing.T) {
+	t.Parallel()
+
+	caster := NewCaster()
+
+	type stringAlias string
+
+	// matrixExpectedResult constructor function aliases.
+	expectByte := func(expected []byte, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[[]byte] {
+		return &casterTestCaseMel[[]byte]{
+			Caster:                caster,
+			Input:                 nil,
+			Expected:              expected,
+			ExpectedErr:           errorAssertFn,
+			OverwriteDirectCastFn: caster.AsByteSlice,
+			OmitCastByDirectFn:    false,
+			OmitCastByKind:        true,
+			OmitCastByType:        true,
+		}
+	}
+	expectInt8 := matrixTestConstructorFn[[]int8](caster)
+	expectInt16 := matrixTestConstructorFn[[]int16](caster)
+	expectInt32 := matrixTestConstructorFn[[]int32](caster)
+	expectInt64 := matrixTestConstructorFn[[]int64](caster)
+	expectInt := matrixTestConstructorFn[[]int](caster)
+	expectUInt8 := func(expected []uint8, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[[]uint8] {
+		return &casterTestCaseMel[[]uint8]{
+			Caster:                caster,
+			Input:                 nil,
+			Expected:              expected,
+			ExpectedErr:           errorAssertFn,
+			OverwriteDirectCastFn: caster.AsUint8Slice,
+			OmitCastByDirectFn:    false,
+			OmitCastByKind:        false,
+			OmitCastByType:        false,
+		}
+	}
+	expectUint16 := matrixTestConstructorFn[[]uint16](caster)
+	expectUint32 := matrixTestConstructorFn[[]uint32](caster)
+	expectUint64 := matrixTestConstructorFn[[]uint64](caster)
+	expectUint := matrixTestConstructorFn[[]uint](caster)
+	expectFloat32 := matrixTestConstructorFn[[]float32](caster)
+	expectFloat64 := matrixTestConstructorFn[[]float64](caster)
+	expectString := matrixTestConstructorFn[[]string](caster)
+	expectBool := matrixTestConstructorFn[[]bool](caster)
+	expectTime := matrixTestConstructorFn[[]time.Time](caster)
+	expectDuration := matrixTestConstructorFn[[]time.Duration](caster)
+
+	_ = []CasterTester{
+		expectByte([]byte{}, nil),
+		expectInt8([]int8{}, nil),
+		expectInt16([]int16{}, nil),
+		expectInt32([]int32{}, nil),
+		expectInt64([]int64{}, nil),
+		expectInt([]int{}, nil),
+		expectUInt8([]uint8{}, nil),
+		expectUint16([]uint16{}, nil),
+		expectUint32([]uint32{}, nil),
+		expectUint64([]uint64{}, nil),
+		expectUint([]uint{}, nil),
+		expectFloat32([]float32{}, nil),
+		expectFloat64([]float64{}, nil),
+		expectString([]string{}, nil),
+		expectBool([]bool{}, nil),
+		expectTime([]time.Time{}, nil),
+		expectDuration([]time.Duration{}, nil),
+	}
+
+	testCases := map[string]struct {
+		Input     any
+		Asserters []CasterTester
+	}{
+		"tc#000": {
+			Input: nil,
+			Asserters: []CasterTester{
+				expectByte([]byte(nil), nil),
+				expectInt8([]int8(nil), nil),
+				expectInt16([]int16(nil), nil),
+				expectInt32([]int32(nil), nil),
+				expectInt64([]int64(nil), nil),
+				expectInt([]int(nil), nil),
+				expectUInt8([]uint8(nil), nil),
+				expectUint16([]uint16(nil), nil),
+				expectUint32([]uint32(nil), nil),
+				expectUint64([]uint64(nil), nil),
+				expectUint([]uint(nil), nil),
+				expectFloat32([]float32(nil), nil),
+				expectFloat64([]float64(nil), nil),
+				expectString([]string(nil), nil),
+				expectBool([]bool(nil), nil),
+				expectTime([]time.Time(nil), nil),
+				expectDuration([]time.Duration(nil), nil),
+			},
+		},
+		"tc#001": {
+			Input: []int8{1, 2, 3},
+			Asserters: []CasterTester{
+				expectByte([]byte{1, 2, 3}, nil),
+				expectInt8([]int8{1, 2, 3}, nil),
+				expectInt16([]int16{1, 2, 3}, nil),
+				expectInt32([]int32{1, 2, 3}, nil),
+				expectInt64([]int64{1, 2, 3}, nil),
+				expectInt([]int{1, 2, 3}, nil),
+				expectUInt8([]uint8{1, 2, 3}, nil),
+				expectUint16([]uint16{1, 2, 3}, nil),
+				expectUint32([]uint32{1, 2, 3}, nil),
+				expectUint64([]uint64{1, 2, 3}, nil),
+				expectUint([]uint{1, 2, 3}, nil),
+				expectFloat32([]float32{1, 2, 3}, nil),
+				expectFloat64([]float64{1, 2, 3}, nil),
+				expectString([]string{"1", "2", "3"}, nil),
+				expectBool([]bool{true, true, true}, nil),
+				expectTime([]time.Time{time.Unix(1, 0).UTC(), time.Unix(2, 0).UTC(), time.Unix(3, 0).UTC()}, nil),
+				expectDuration([]time.Duration{1, 2, 3}, nil),
+			},
+		},
 	}
 
 	for k, tc := range testCases {
