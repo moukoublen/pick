@@ -27,11 +27,11 @@ type casterTestCaseMel[T any] struct {
 	OmitCastByType        bool
 }
 
-func (c *casterTestCaseMel[Output]) SetInput(i any) {
+func (c *casterTestCaseMel[T]) SetInput(i any) {
 	c.Input = i
 }
 
-func (c *casterTestCaseMel[Output]) Test(t *testing.T) {
+func (c *casterTestCaseMel[T]) Test(t *testing.T) {
 	t.Helper()
 	tps := newDirectCastFunctionsTypes()
 
@@ -85,8 +85,8 @@ func (c *casterTestCaseMel[Output]) Test(t *testing.T) {
 
 			case tps.typeOfSliceBool:
 				got, gotErr = c.Caster.AsBoolSlice(c.Input)
-			case tps.typeOfSliceByte:
-				got, gotErr = c.Caster.AsByteSlice(c.Input)
+			// case tps.typeOfSliceByte:
+			// 	got, gotErr = c.Caster.AsByteSlice(c.Input)
 			case tps.typeOfSliceInt8:
 				got, gotErr = c.Caster.AsInt8Slice(c.Input)
 			case tps.typeOfSliceInt16:

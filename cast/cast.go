@@ -73,8 +73,8 @@ func (c Caster) ByType(input any, asType reflect.Type) (any, error) {
 
 	case c.directCastFunctionsTypes.typeOfSliceBool:
 		return c.AsBoolSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceByte:
-		return c.AsByteSlice(input)
+	// case c.directCastFunctionsTypes.typeOfSliceByte: // there is no distinguish type for byte. Its only uint8.
+	// 	return c.AsByteSlice(input)
 	case c.directCastFunctionsTypes.typeOfSliceInt8:
 		return c.AsInt8Slice(input)
 	case c.directCastFunctionsTypes.typeOfSliceInt16:

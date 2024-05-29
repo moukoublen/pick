@@ -5,28 +5,31 @@ import (
 	"time"
 )
 
+// lets use this as global for performance reasons.
+//
+//nolint:gochecknoglobals
 var castFunctionTypes = newDirectCastFunctionsTypes()
 
 type directCastFunctionsTypes struct {
-	typeOfBool          reflect.Type
-	typeOfByte          reflect.Type
-	typeOfInt8          reflect.Type
-	typeOfInt16         reflect.Type
-	typeOfInt32         reflect.Type
-	typeOfInt64         reflect.Type
-	typeOfInt           reflect.Type
-	typeOfUint8         reflect.Type
-	typeOfUint16        reflect.Type
-	typeOfUint32        reflect.Type
-	typeOfUint64        reflect.Type
-	typeOfUint          reflect.Type
-	typeOfFloat32       reflect.Type
-	typeOfFloat64       reflect.Type
-	typeOfString        reflect.Type
-	typeOfTime          reflect.Type
-	typeOfDuration      reflect.Type
-	typeOfSliceBool     reflect.Type
-	typeOfSliceByte     reflect.Type
+	typeOfBool reflect.Type
+	// typeOfByte          reflect.Type // there is no distinguish type for byte. Its only uint8.
+	typeOfInt8      reflect.Type
+	typeOfInt16     reflect.Type
+	typeOfInt32     reflect.Type
+	typeOfInt64     reflect.Type
+	typeOfInt       reflect.Type
+	typeOfUint8     reflect.Type
+	typeOfUint16    reflect.Type
+	typeOfUint32    reflect.Type
+	typeOfUint64    reflect.Type
+	typeOfUint      reflect.Type
+	typeOfFloat32   reflect.Type
+	typeOfFloat64   reflect.Type
+	typeOfString    reflect.Type
+	typeOfTime      reflect.Type
+	typeOfDuration  reflect.Type
+	typeOfSliceBool reflect.Type
+	// typeOfSliceByte     reflect.Type // there is no distinguish type for byte. Its only uint8.
 	typeOfSliceInt8     reflect.Type
 	typeOfSliceInt16    reflect.Type
 	typeOfSliceInt32    reflect.Type
@@ -49,7 +52,6 @@ type directCastFunctionsTypes struct {
 func newDirectCastFunctionsTypes() directCastFunctionsTypes {
 	return directCastFunctionsTypes{
 		typeOfBool:          reflect.TypeOf(false),
-		typeOfByte:          reflect.TypeOf(byte(0)),
 		typeOfInt8:          reflect.TypeOf(int8(0)),
 		typeOfInt16:         reflect.TypeOf(int16(0)),
 		typeOfInt32:         reflect.TypeOf(int32(0)),
@@ -66,7 +68,6 @@ func newDirectCastFunctionsTypes() directCastFunctionsTypes {
 		typeOfTime:          reflect.TypeOf(time.Time{}),
 		typeOfDuration:      reflect.TypeOf(time.Duration(0)),
 		typeOfSliceBool:     reflect.TypeOf([]bool{}),
-		typeOfSliceByte:     reflect.TypeOf([]byte{}),
 		typeOfSliceInt8:     reflect.TypeOf([]int8{}),
 		typeOfSliceInt16:    reflect.TypeOf([]int16{}),
 		typeOfSliceInt32:    reflect.TypeOf([]int32{}),

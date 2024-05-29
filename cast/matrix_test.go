@@ -42,8 +42,6 @@ func splitBasedOnArch[Output any](for32bit, for64bit *casterTestCaseMel[Output])
 
 //nolint:maintidx
 func TestCasterMatrix(t *testing.T) {
-	t.Parallel()
-
 	caster := NewCaster()
 
 	type stringAlias string
@@ -854,11 +852,7 @@ func TestCasterMatrix(t *testing.T) {
 }
 
 func TestCasterSliceMatrix(t *testing.T) {
-	t.Parallel()
-
 	caster := NewCaster()
-
-	type stringAlias string
 
 	// matrixExpectedResult constructor function aliases.
 	expectByte := func(expected []byte, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[[]byte] {
@@ -1165,6 +1159,28 @@ func TestCasterSliceMatrix(t *testing.T) {
 				expectBool([]bool{true, true, true}, nil),
 				expectTime([]time.Time{time.Unix(1, 0).UTC(), time.Unix(2, 0).UTC(), time.Unix(3, 0).UTC()}, nil),
 				expectDuration([]time.Duration{1, 2, 3}, nil),
+			},
+		},
+		"tc#011": {
+			Input: []string{"1", "2", "3"},
+			Asserters: []CasterTester{
+				expectByte([]byte(nil), expectInvalidType),
+				expectInt8([]int8{1, 2, 3}, nil),
+				expectInt16([]int16{1, 2, 3}, nil),
+				expectInt32([]int32{1, 2, 3}, nil),
+				expectInt64([]int64{1, 2, 3}, nil),
+				expectInt([]int{1, 2, 3}, nil),
+				expectUInt8([]uint8{1, 2, 3}, nil),
+				expectUint16([]uint16{1, 2, 3}, nil),
+				expectUint32([]uint32{1, 2, 3}, nil),
+				expectUint64([]uint64{1, 2, 3}, nil),
+				expectUint([]uint{1, 2, 3}, nil),
+				expectFloat32([]float32{1, 2, 3}, nil),
+				expectFloat64([]float64{1, 2, 3}, nil),
+				expectString([]string{"1", "2", "3"}, nil),
+				expectBool([]bool(nil), expectMalformedSyntax),
+				expectTime([]time.Time(nil), testingx.ExpectedErrorStringContains("error: parsing time")),
+				expectDuration([]time.Duration(nil), testingx.ExpectedErrorStringContains("time: missing unit in duration")),
 			},
 		},
 	}
