@@ -69,7 +69,7 @@ func (fc floatCaster) AsFloat64(input any) (float64, error) {
 			return fc.AsFloat64(basic)
 		}
 
-		return tryCastUsingReflect[float64](input)
+		return tryReflectConvert[float64](input)
 	}
 }
 
@@ -131,7 +131,7 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 			return fc.AsFloat32(basic)
 		}
 
-		return tryCastUsingReflect[float32](input)
+		return tryReflectConvert[float32](input)
 	}
 }
 

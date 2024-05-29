@@ -10,7 +10,7 @@ func TestStringCaster(t *testing.T) {
 	type int32Alias int32
 	type stringAlias string
 	type float32alias float32
-	testCases := []casterTestCase[string]{
+	testCases := []singleCastTestCase[string]{
 		{
 			input:       int32Alias(123456),
 			expected:    "123456",
@@ -29,13 +29,13 @@ func TestStringCaster(t *testing.T) {
 	}
 
 	caster := newStringCaster()
-	casterTest[string](t, testCases, caster.AsString)
+	runSingleCastTestCases[string](t, testCases, caster.AsString)
 }
 
 func TestStringSliceCaster(t *testing.T) {
 	t.Parallel()
 
-	testCases := []casterTestCase[[]string]{
+	testCases := []singleCastTestCase[[]string]{
 		{
 			input:       "singe string",
 			expected:    []string{"singe string"},
@@ -89,5 +89,5 @@ func TestStringSliceCaster(t *testing.T) {
 	}
 
 	caster := newStringCaster()
-	casterTest(t, testCases, caster.AsStringSlice)
+	runSingleCastTestCases(t, testCases, caster.AsStringSlice)
 }

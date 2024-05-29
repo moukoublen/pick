@@ -81,4 +81,5 @@ type Caster interface {
 	timeCaster
 	durationCaster
 	As(input any, asKind reflect.Kind) (any, error)
+	ByType(input any, asType reflect.Type) (any, error)
 }

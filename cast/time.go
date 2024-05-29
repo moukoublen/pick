@@ -105,7 +105,7 @@ func (tc timeCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Ti
 			return tc.AsTimeWithConfig(config, basic)
 		}
 
-		return tryCastUsingReflect[time.Time](input)
+		return tryReflectConvert[time.Time](input)
 	}
 }
 

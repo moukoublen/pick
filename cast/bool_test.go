@@ -7,7 +7,7 @@ import (
 func TestBoolCaster(t *testing.T) {
 	t.Parallel()
 
-	testCases := []casterTestCase[bool]{
+	testCases := []singleCastTestCase[bool]{
 		{
 			input:       "true",
 			expected:    true,
@@ -21,5 +21,5 @@ func TestBoolCaster(t *testing.T) {
 	}
 
 	caster := newBoolCaster()
-	casterTest[bool](t, testCases, caster.AsBool)
+	runSingleCastTestCases[bool](t, testCases, caster.AsBool)
 }

@@ -100,7 +100,7 @@ func (c durationCaster) AsDurationWithConfig(config DurationCastConfig, input an
 			return c.AsDurationWithConfig(config, basic)
 		}
 
-		return tryCastUsingReflect[time.Duration](input)
+		return tryReflectConvert[time.Duration](input)
 	}
 }
 

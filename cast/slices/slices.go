@@ -60,6 +60,10 @@ func ForEach(input any, operation Op) (rErr error) {
 		return each(cc, operation)
 	}
 
+	if input == nil {
+		return operation(input, OpMeta{Index: 0, Length: 1})
+	}
+
 	typeOfInput := reflect.TypeOf(input)
 	kindOfInput := typeOfInput.Kind()
 
@@ -106,6 +110,11 @@ func AsSliceFilter[T any](input any, castFilterOp CastFilterOp[T]) ([]T, error) 
 	}
 
 	var castedSlice []T
+
+	if input == nil {
+		return castedSlice, nil
+	}
+
 	err := ForEach(input, func(item any, meta OpMeta) error {
 		casted, keep, err := castFilterOp(item, meta)
 		switch {

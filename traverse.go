@@ -12,6 +12,7 @@ import (
 
 type DefaultTraverser struct {
 	caster              Caster
+	nilVal              reflect.Value
 	skipItemDereference bool
 }
 
@@ -19,6 +20,7 @@ func NewDefaultTraverser(caster Caster) DefaultTraverser {
 	return DefaultTraverser{
 		caster:              caster,
 		skipItemDereference: false,
+		nilVal:              reflect.Value{},
 	}
 }
 
@@ -86,28 +88,37 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	typeOfItem := reflect.TypeOf(item)
 	kindOfItem := typeOfItem.Kind()
 
+	var resultValue reflect.Value
+	var resultError error
 	switch kindOfItem {
 	case reflect.Map:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessMap(typeOfItem, kindOfItem, valueOfItem, key)
+		resultValue, resultError = d.getValueFromMap(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Struct:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessStruct(typeOfItem, kindOfItem, valueOfItem, key)
+		resultValue, resultError = d.getValueFromStruct(typeOfItem, kindOfItem, valueOfItem, key)
 
 	case reflect.Array, reflect.Slice:
 		valueOfItem := reflect.ValueOf(item)
-		return d.accessSlice(valueOfItem, key)
+		resultValue, resultError = d.getValueFromSlice(valueOfItem, key)
 
 	case reflect.Pointer, reflect.Interface: // if pointer/interface get target and re-call.
 		derefItem := d.deref(item)
 		return d.accessKey(derefItem, key)
+
+	default:
+		return nil, ErrFieldNotFound
 	}
 
-	return nil, ErrFieldNotFound
+	if resultValue.IsValid() {
+		return resultValue.Interface(), resultError
+	}
+
+	return nil, resultError
 }
 
-func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
+func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	kindOfMapKey := typeOfItem.Key().Kind()
@@ -123,25 +134,21 @@ func (d DefaultTraverser) accessMap(typeOfItem reflect.Type, _ reflect.Kind, val
 	case key.IsField():
 		key, err := d.caster.As(key.Name, kindOfMapKey)
 		if err != nil {
-			return nil, errors.Join(ErrKeyCast, err)
+			return d.nilVal, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	case key.IsIndex():
 		key, err := d.caster.As(key.Index, kindOfMapKey)
 		if err != nil {
-			return nil, errors.Join(ErrKeyCast, err)
+			return d.nilVal, errors.Join(ErrKeyCast, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	}
 
-	if !resultValue.IsValid() {
-		return nil, ErrFieldNotFound
-	}
-
-	return resultValue.Interface(), nil
+	return resultValue, nil
 }
 
-func (d DefaultTraverser) accessSlice(valueOfItem reflect.Value, key Key) (returnValue any, err error) {
+func (d DefaultTraverser) getValueFromSlice(valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
@@ -149,27 +156,23 @@ func (d DefaultTraverser) accessSlice(valueOfItem reflect.Value, key Key) (retur
 	if key.IsIndex() {
 		idx, err := key.calculateIndex(valueOfItem.Len())
 		if err != nil {
-			return nil, err
+			return d.nilVal, err
 		}
 		resultValue = valueOfItem.Index(idx)
 	} else if key.IsField() {
 		// try to cast to int
 		i, err := d.caster.AsInt(key.Name)
 		if err != nil {
-			return nil, errors.Join(ErrKeyCast, err)
+			return d.nilVal, errors.Join(ErrKeyCast, err)
 		}
 		k := Index(i)
-		return d.accessSlice(valueOfItem, k)
+		return d.getValueFromSlice(valueOfItem, k)
 	}
 
-	if !resultValue.IsValid() {
-		return nil, ErrIndexOutOfRange
-	}
-
-	return resultValue.Interface(), nil
+	return resultValue, nil
 }
 
-func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue any, err error) {
+func (d DefaultTraverser) getValueFromStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	var resultValue reflect.Value
@@ -181,10 +184,10 @@ func (d DefaultTraverser) accessStruct(_ reflect.Type, _ reflect.Kind, valueOfIt
 	}
 
 	if !resultValue.IsValid() {
-		return nil, ErrFieldNotFound
+		return d.nilVal, ErrFieldNotFound
 	}
 
-	return resultValue.Interface(), nil
+	return resultValue, nil
 }
 
 func (d DefaultTraverser) deref(item any) any {
