@@ -189,6 +189,156 @@ func (d DefaultTraverser) getValueFromStruct(item any, key Key) (returnValue ref
 	return resultValue, nil
 }
 
+func (d DefaultTraverser) Set(data any, path []Key, newValue any) error {
+	var (
+		valueOfDest = reflect.ValueOf(data)
+		typeOfDest  = reflect.TypeOf(data)
+		kindOfDest  = typeOfDest.Kind()
+	)
+
+	if len(path) == 0 {
+		// instant set
+		castedVal, err := d.caster.ByType(newValue, typeOfDest)
+		if err != nil {
+			return err
+		}
+		valueOfDest.Set(reflect.ValueOf(castedVal))
+		return nil
+	}
+
+	refresh := func(val reflect.Value) {
+		valueOfDest = val
+		typeOfDest = val.Type()
+		kindOfDest = val.Kind()
+	}
+
+	// traverse
+	lastKey := path[len(path)-1]
+	if len(path) > 1 {
+		excludeLast := path[:len(path)-1]
+		for _, field := range excludeLast {
+			resultValue, err := d.accessWithReflect(typeOfDest, kindOfDest, valueOfDest, field)
+			if err != nil {
+				return err
+			}
+			refresh(resultValue)
+		}
+	}
+
+	// set value using lastKey
+	return d.setWithReflect(valueOfDest, typeOfDest, kindOfDest, lastKey, newValue)
+}
+
+func (d DefaultTraverser) accessWithReflect(typeOfItem reflect.Type, kindOfItem reflect.Kind, valueOfItem reflect.Value, key Key) (reflect.Value, error) {
+	switch kindOfItem {
+	case reflect.Map:
+		return d.getValueFromMap(typeOfItem, kindOfItem, valueOfItem, key)
+	case reflect.Struct:
+		return d.getValueFromStruct(typeOfItem, kindOfItem, valueOfItem, key)
+	case reflect.Array, reflect.Slice:
+		return d.getValueFromSlice(valueOfItem, key)
+	case reflect.Pointer, reflect.Interface:
+		// deref TODO: reconsider
+		// check valueOfItem.IsNil()
+		v := valueOfItem.Elem()
+		return d.accessWithReflect(v.Type(), v.Kind(), v, key)
+	default:
+		return reflect.Value{}, ErrFieldNotFound
+	}
+}
+
+func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDestItem reflect.Type, kindOfDestItem reflect.Kind, key Key, valueToSet any) error {
+	switch kindOfDestItem {
+	case reflect.Map:
+		keyType := typeOfDestItem.Key()
+		elemType := typeOfDestItem.Elem()
+
+		keyCastedValue, err := d.keyAsReflectValue(key, keyType)
+		if err != nil {
+			return err
+		}
+
+		valCasted, err := d.caster.ByType(valueToSet, elemType)
+		if err != nil {
+			return err
+		}
+
+		valueOfDestItem.SetMapIndex(keyCastedValue, reflect.ValueOf(valCasted))
+		return nil
+
+	case reflect.Struct:
+		fieldName, err := d.caster.AsString(key.Any())
+		if err != nil {
+			return errors.Join(ErrKeyCast, err)
+		}
+		dst := valueOfDestItem.FieldByName(fieldName)
+		return d.setReflectValue(dst, valueOfDestItem)
+
+	case reflect.Array, reflect.Slice:
+		itemIndex, err := d.caster.AsInt(key.Any())
+		if err != nil {
+			return errors.Join(ErrKeyCast, err)
+		}
+
+		elemType := typeOfDestItem.Elem()
+		valCasted, err := d.caster.ByType(valueToSet, elemType)
+		if err != nil {
+			return err
+		}
+
+		if itemIndex > valueOfDestItem.Len() {
+			return ErrIndexOutOfRange
+		}
+
+		v := valueOfDestItem.Index(itemIndex)
+		if !v.IsValid() {
+			return ErrDestinationValueNotValid
+		}
+
+		v.Set(reflect.ValueOf(valCasted))
+
+		return nil
+
+	case reflect.Pointer:
+		return ErrDestinationValueNotValid
+	case reflect.Interface:
+		v := valueOfDestItem.Elem()
+		return d.setWithReflect(v, v.Type(), v.Kind(), key, valueToSet)
+
+	default:
+		return ErrFieldNotFound
+	}
+}
+
+func (d DefaultTraverser) setReflectValue(dst reflect.Value, newVal any) (err error) {
+	defer errorsx.RecoverPanicToError(&err)
+
+	if !dst.IsValid() {
+		err = ErrDestinationValueNotValid
+		return
+	}
+
+	dstType := dst.Type()
+
+	var casted any
+	casted, err = d.caster.ByType(newVal, dstType)
+	if err != nil {
+		return err
+	}
+
+	dst.Set(reflect.ValueOf(casted))
+	return
+}
+
+func (d DefaultTraverser) keyAsReflectValue(key Key, asType reflect.Type) (reflect.Value, error) {
+	v, err := d.caster.ByType(key.Any(), asType)
+	if err != nil {
+		return reflect.Value{}, err
+	}
+
+	return reflect.ValueOf(v), nil
+}
+
 func (d DefaultTraverser) deref(item any) any {
 	valueOfItem := reflect.ValueOf(item)
 	targetValue := valueOfItem.Elem()
@@ -277,8 +427,9 @@ func (t *TraverseError) Path() []Key {
 }
 
 var (
-	ErrFieldNotFound   = errors.New("field not found")
-	ErrIndexOutOfRange = fmt.Errorf("%w: index out of range", ErrFieldNotFound)
-	ErrKeyCast         = errors.New("key cast error")
-	ErrKeyUnknown      = errors.New("key type unknown")
+	ErrFieldNotFound            = errors.New("field not found")
+	ErrIndexOutOfRange          = fmt.Errorf("%w: index out of range", ErrFieldNotFound)
+	ErrKeyCast                  = errors.New("key cast error")
+	ErrKeyUnknown               = errors.New("key type unknown")
+	ErrDestinationValueNotValid = errors.New("destination value is not valid")
 )

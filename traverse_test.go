@@ -547,3 +547,72 @@ func TestTraverseError(t *testing.T) { //nolint:thelper
 	tst.ExpectedErrorIs(ErrFieldNotFound)(t, err3)
 	tst.AssertEqual(t, err3.Path(), []Key{Field("one"), Field("two")})
 }
+
+func TestSet(t *testing.T) {
+	dt := DefaultTraverser{
+		caster: cast.NewCaster(),
+	}
+
+	tests := map[string]struct {
+		Destination   any
+		Path          []Key
+		ValueToSet    any
+		ExpectedError func(*testing.T, error)
+		Expected      any
+	}{
+		"1 level map add new key": {
+			Destination: map[string]string{
+				"one": "a",
+				"two": "b",
+			},
+			Path:          []Key{Field("three")},
+			ValueToSet:    "c",
+			ExpectedError: nil,
+			Expected: map[string]string{
+				"one":   "a",
+				"two":   "b",
+				"three": "c",
+			},
+		},
+		"2 level map add new key": {
+			Destination: map[string]any{
+				"one":   "a",
+				"two":   "b",
+				"three": map[string]int{"inner": 0},
+			},
+			Path:          []Key{Field("three"), Field("inner2")},
+			ValueToSet:    12,
+			ExpectedError: nil,
+			Expected: map[string]any{
+				"one": "a",
+				"two": "b",
+				"three": map[string]int{
+					"inner":  0,
+					"inner2": 12,
+				},
+			},
+		},
+		"replace value in slice": {
+			Destination: []string{
+				"one",
+				"two",
+			},
+			Path:          []Key{Index(1)},
+			ValueToSet:    "c",
+			ExpectedError: nil,
+			Expected: []string{
+				"one",
+				"c",
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			err := dt.Set(tc.Destination, tc.Path, tc.ValueToSet)
+			testingx.AssertError(t, tc.ExpectedError, err)
+			testingx.AssertEqual(t, tc.Destination, tc.Expected)
+		})
+	}
+}
