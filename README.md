@@ -78,10 +78,10 @@ got, err := FlatMap(p2, "items", func(p *Picker) ([]int16, error) {
 ```
 
 Functions that operates on/produces multiple elements (using the default and the must API):
-  * [Each](root.go#13) / [MustEach](root.go#92)
-  * [Map](root.go#L28) / [MustMap](root.go#L141)
-  * [FlatMap](root.go#L58) / [MustFlatMap](root.go#L173)
-  * [MapFilter](root.go#43) / [MustMapFilter](root.go#149)
+  * [Each](root.go#L13) / [MustEach](root.go#L92)
+  * [Map](root.go#L28) / [MustMap](root.go#L126)
+  * [FlatMap](root.go#L58) / [MustFlatMap](root.go#L158)
+  * [MapFilter](root.go#L43) / [MustMapFilter](root.go#134)
 
 
 **Time functions**
