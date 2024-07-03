@@ -830,9 +830,9 @@ func TestReadme(t *testing.T) {
 	// Map examples
 	j2 := `{
     "items": [
-        {"id": 34, "name": "test1"},
-        {"id": 35, "name": "test2"},
-        {"id": 36, "name": "test3"}
+        {"id": 34, "name": "test1", "array": [1,2,3]},
+        {"id": 35, "name": "test2", "array": [4,5,6]},
+        {"id": 36, "name": "test3", "array": [7,8,9]}
     ]
 }`
 	p2, _ := WrapJSON([]byte(j2))
@@ -844,6 +844,12 @@ func TestReadme(t *testing.T) {
 		})
 		assert(got, []int16{34, 35, 36})
 		assert(err, nil)
+
+		got2, err2 := FlatMap(p2, "items", func(p *Picker) ([]int16, error) {
+			return p.Int16Slice("array")
+		})
+		assert(got2, []int16{1, 2, 3, 4, 5, 6, 7, 8, 9})
+		assert(err2, nil)
 	}
 
 	// Selector Must API

@@ -52,13 +52,13 @@ got := m.Int32("non-existing")
 // got == int32(0)
 ```
 
-**`Map` function**
+**`Map` functions**
 ```go
 j2 := `{
     "items": [
-        {"id": 34, "name": "test1"},
-        {"id": 35, "name": "test2"},
-        {"id": 36, "name": "test3"}
+        {"id": 34, "name": "test1", "array": [1,2,3]},
+        {"id": 35, "name": "test2", "array": [4,5,6]},
+        {"id": 36, "name": "test3", "array": [7,8,9]}
     ]
 }`
 p2, _ := WrapJSON([]byte(j2))
@@ -69,7 +69,20 @@ got, err := Map(p2, "items", func(p *Picker) (int16, error) {
 })
 // got == []int16{34, 35, 36}
 // err == nil
+
+got, err := FlatMap(p2, "items", func(p *Picker) ([]int16, error) {
+    return p.Int16Slice("array")
+})
+// got == []int16{1, 2, 3, 4, 5, 6, 7, 8, 9}
+// err == nil
 ```
+
+Functions that operates on/produces multiple elements (using the default and the must API):
+  * [Each](root.go#13) / [MustEach](root.go#92)
+  * [Map](root.go#L28) / [MustMap](root.go#L141)
+  * [FlatMap](root.go#L58) / [MustFlatMap](root.go#L173)
+  * [MapFilter](root.go#43) / [MustMapFilter](root.go#149)
+
 
 **Time functions**
 ```go
