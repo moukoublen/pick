@@ -3,11 +3,8 @@
 run:
   go: '1.21'
   timeout: 10m
-  concurrency: 4
   issues-exit-code: 1
   tests: true
-  build-tags:
-    - integration
   #skip-dirs-use-default: true
   modules-download-mode: readonly
 
@@ -22,16 +19,6 @@ output:
 linters:
   enable-all: true
   disable:
-    - deadcode # deprecated
-    - exhaustivestruct # deprecated
-    - golint # deprecated
-    - ifshort # deprecated
-    - interfacer # deprecated
-    - maligned # deprecated
-    - nosnakecase # deprecated
-    - scopelint # deprecated
-    - structcheck # deprecated
-    - varcheck # deprecated
     - nlreturn
     - wsl
     - lll
@@ -56,13 +43,13 @@ issues:
     - EXC0006
   exclude-rules:
     - path: '(.+)_test\.go'
-      linters: [gochecknoglobals, goconst, goerr113, gomnd, dupl, maintidx, gocyclo]
+      linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx, gocyclo, err113]
     # Exclude govet fieldalignment in tests.
     - path: '(.+)_test\.go'
       linters: [govet]
       text: 'fieldalignment:'
     - path: internal/tesatingx/testdata
-      linters: [gochecknoglobals, goconst, goerr113, gomnd, dupl, maintidx]
+      linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx]
 
 linters-settings:
 
@@ -120,16 +107,19 @@ linters-settings:
     #disable:
     #  - fieldalignment
 
+  # https://golangci-lint.run/usage/linters/#misspell
   misspell:
     ignore-words:
       - ""
     locale: US
 
+  # https://golangci-lint.run/usage/linters/#prealloc
   prealloc:
     simple: true
     range-loops: true
     for-loops: true
 
+  # https://golangci-lint.run/usage/linters/#gofumpt
   gofumpt:
     module-path: github.com/moukoublen/pick
     extra-rules: true

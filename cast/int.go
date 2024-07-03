@@ -254,7 +254,7 @@ func (ic intCast[T]) cast(input any) (T, error) {
 type sizeOfInteger int
 
 const (
-	//nolint:gomnd // there are not magic numbers to be fair
+	//nolint:mnd,gomnd // there are not magic numbers to be fair
 	sizeOfInt    sizeOfInteger = 32 << (^uint(0) >> 63) // 32 or 64
 	sizeOfInt8   sizeOfInteger = 8
 	sizeOfInt16  sizeOfInteger = 16

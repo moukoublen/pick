@@ -135,7 +135,7 @@ staticcheck: $(TOOLS_BIN)/staticcheck
 ## <golangci-lint>
 # https://github.com/golangci/golangci-lint/releases
 GOLANGCI-LINT_CMD:=github.com/golangci/golangci-lint/cmd/golangci-lint
-GOLANGCI-LINT_VER:=v1.57.2
+GOLANGCI-LINT_VER:=v1.59.1
 $(TOOLS_BIN)/golangci-lint: $(TOOLS_DB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_VER).ver
 	$(call go_install,golangci-lint,$(GOLANGCI-LINT_CMD),$(GOLANGCI-LINT_VER))
 
@@ -153,7 +153,7 @@ golangci-lint-github-actions: $(TOOLS_BIN)/golangci-lint
 ## <goimports>
 # https://pkg.go.dev/golang.org/x/tools?tab=versions
 GOIMPORTS_CMD := golang.org/x/tools/cmd/goimports
-GOIMPORTS_VER := v0.20.0
+GOIMPORTS_VER := v0.22.0
 $(TOOLS_BIN)/goimports: $(TOOLS_DB)/goimports.$(GOIMPORTS_VER).$(GO_VER).ver
 	$(call go_install,goimports,$(GOIMPORTS_CMD),$(GOIMPORTS_VER))
 
