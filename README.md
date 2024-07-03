@@ -105,8 +105,6 @@ As an `API` we define a set of functions like this `Bool(T) Output` for all basi
 
   * Selector API, the default one that is embedded in `Picker`. <br>E.g. `Picker.Bool(selector string) (bool, error)`
   * Selector Must API that can be accessed by calling `Picker.Must()`. <br>E.g. `Picker.Must().Bool(selector string) bool`
-  * Path API that can be accessed by calling `Picker.Path()`. <br>E.g. `Picker.Path().Bool(path []Key) (bool, error)`
-  * Path Must API that can be accessed by calling `Picker.PathMust()`. <br>E.g. `Picker.PathMust().Bool(path []Key) bool`
 
 **Supported Types in API**
   * `bool` / `[]bool`
