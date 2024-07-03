@@ -850,6 +850,13 @@ func TestReadme(t *testing.T) {
 		})
 		assert(got2, []int16{1, 2, 3, 4, 5, 6, 7, 8, 9})
 		assert(err2, nil)
+
+		got3, err3 := MapFilter(p2, "items", func(p *Picker) (int32, bool, error) {
+			i, err := p.Int32("id")
+			return i, i%2 == 0, err
+		})
+		assert(got3, []int32{34, 36})
+		assert(err3, nil)
 	}
 
 	// Selector Must API

@@ -75,9 +75,16 @@ got, err := FlatMap(p2, "items", func(p *Picker) ([]int16, error) {
 })
 // got == []int16{1, 2, 3, 4, 5, 6, 7, 8, 9}
 // err == nil
+
+got3, err3 := MapFilter(p2, "items", func(p *Picker) (int32, bool, error) {
+    i, err := p.Int32("id")
+    return i, i%2 == 0, err
+})
+// got3 == []int32{34, 36}
+// err3 == nil
 ```
 
-Functions that operates on/produces multiple elements (using the default and the must API):
+Functions that operate on/produce multiple elements (using the default and the must API):
   * [Each](root.go#L13) / [MustEach](root.go#L92)
   * [Map](root.go#L28) / [MustMap](root.go#L126)
   * [FlatMap](root.go#L58) / [MustFlatMap](root.go#L158)
