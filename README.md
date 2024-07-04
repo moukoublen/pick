@@ -50,6 +50,35 @@ got := m.Int32("item.one")
 
 got := m.Int32("non-existing")
 // got == int32(0)
+
+// Must API with errors sink
+sink := ErrorsSink{}
+sm2 := p1.Must(&sink)
+
+got = sm2.String("item.three[1]")
+// got == "2"
+
+got = sm2.Uint64("item.three[1]")
+// got == uint64(2)
+
+got == sm2.Int32("item.one")
+// got == int32(1)
+
+sm2.Float32("float")
+// got == float32(2.12)
+
+got = sm2.Int64("float")
+// got == int64(2)
+
+got = sm2.String("item.three")
+// got == ""
+
+sink.Outcome() != nil // true
+// e := sink.Outcome().(interface{ Unwrap() []error })
+// e.Unwrap() == []error{
+//  picker error with selector `float` ... missing decimals error
+//  picker error with selector `item.three` ... invalid type
+//}
 ```
 
 **`Map` functions**

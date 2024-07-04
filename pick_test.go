@@ -670,7 +670,7 @@ func TestMapMust(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		itemsSlice := MustMap(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		itemsSlice := MustMap(p.Must(errSink), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("is_sentry_object"),
@@ -701,7 +701,7 @@ func TestMapMust(t *testing.T) {
 	t.Run("gather errors", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		_ = MustMap(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		_ = MustMap(p.Must(errSink), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("wrong.path"),
@@ -754,7 +754,7 @@ func TestEach(t *testing.T) {
 	t.Run("EachM happy path", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		MustEach(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+		MustEach(p.Must(errSink), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
 			testingx.AssertEqual(t, length, 17)
 			if index == 4 {
 				s := a.String("name")
@@ -768,7 +768,7 @@ func TestEach(t *testing.T) {
 	t.Run("EachM error", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		MustEach(p.Must(errSink.GatherSelector), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+		MustEach(p.Must(errSink), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
 			testingx.AssertEqual(t, length, 17)
 			if index == 4 {
 				s := a.String("name")
@@ -866,6 +866,18 @@ func TestReadme(t *testing.T) {
 	assert(sm.Int32("item.one"), int32(1))
 	assert(sm.Float32("float"), float32(2.12))
 	assert(sm.Int64("float"), int64(2))
+
+	// Selector Must API With ErrorSink
+	sink := ErrorsSink{}
+	sm2 := p1.Must(&sink)
+	assert(sm2.String("item.three"), "")
+	assert(sm2.String("item.three[1]"), "2")
+	assert(sm2.Uint64("item.three[1]"), uint64(2))
+	assert(sm2.Int32("item.one"), int32(1))
+	assert(sm2.Float32("float"), float32(2.12))
+	assert(sm2.Int64("float"), int64(2))
+	assert(sink.Outcome() != nil, true)
+	// es.Outcome() = picker error with selector `item.three` ... invalid type | picker error with selector `float` missing decimals error
 
 	// time API
 	dateData := map[string]any{

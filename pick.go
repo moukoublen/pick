@@ -41,6 +41,10 @@ type Traverser interface {
 	Retrieve(data any, path []Key) (any, error)
 }
 
+type ErrorGatherer interface {
+	GatherSelector(selector string, err error)
+}
+
 type Picker struct {
 	data      any
 	traverser Traverser
@@ -59,8 +63,8 @@ func NewPicker(data any, t Traverser, c Caster, n Notation) *Picker {
 
 func (p *Picker) Data() any { return p.data }
 
-func (p *Picker) Must(onErr ...func(string, error)) SelectorMustAPI {
-	return SelectorMustAPI{Picker: p, errCallbacks: onErr}
+func (p *Picker) Must(onErr ...ErrorGatherer) SelectorMustAPI {
+	return SelectorMustAPI{Picker: p, errorGatherers: onErr}
 }
 
 func (p *Picker) Any(selector string) (any, error) {
@@ -251,12 +255,12 @@ func (p *Picker) Wrap(data any) *Picker {
 
 type SelectorMustAPI struct {
 	*Picker
-	errCallbacks []func(selector string, err error)
+	errorGatherers []ErrorGatherer
 }
 
 func (a SelectorMustAPI) gather(selector string, err error) {
-	for _, fn := range a.errCallbacks {
-		fn(selector, err)
+	for _, eg := range a.errorGatherers {
+		eg.GatherSelector(selector, err)
 	}
 }
 
@@ -425,7 +429,7 @@ func (a SelectorMustAPI) DurationSliceWithConfig(config cast.DurationCastConfig,
 }
 
 func (a SelectorMustAPI) Wrap(data any) SelectorMustAPI {
-	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.errCallbacks...)
+	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.errorGatherers...)
 }
 
 //nolint:ireturn
