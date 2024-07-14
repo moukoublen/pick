@@ -450,6 +450,71 @@ var lenTests = map[string]struct {
 		ExpectedErr: noLength,
 		Expected:    -1,
 	},
+	"slice any": {
+		Input:       []any{1, 2, "3"},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice map[string]any": {
+		Input:       []map[string]any{{}, {}, {}},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice int8": {
+		Input:       []int8{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice int16": {
+		Input:       []int16{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice int32": {
+		Input:       []int32{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice int64": {
+		Input:       []int64{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice uint": {
+		Input:       []uint{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice uint8": {
+		Input:       []uint8{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice uint16": {
+		Input:       []uint16{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice uint32": {
+		Input:       []uint32{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice uint64": {
+		Input:       []uint64{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice float32": {
+		Input:       []float32{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice float64": {
+		Input:       []float32{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
 	"slice bool": {
 		Input:       []bool{true, true, false},
 		ExpectedErr: nil,

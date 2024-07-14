@@ -560,6 +560,12 @@ func TestNasaDataFile(t *testing.T) {
 			ExpectedError: testingx.ExpectedErrorIs(cast.ErrCastOverFlow),
 		},
 		{
+			AccessFn:      p.Len,
+			Selector:      "near_earth_objects.2023-01-01",
+			ExpectedValue: 23,
+			ExpectedError: nil,
+		},
+		{
 			AccessFn:      p.Uint16,
 			Selector:      "near_earth_objects.2023-01-01[5].id",
 			ExpectedValue: uint16(50902),
