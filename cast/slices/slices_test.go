@@ -416,3 +416,143 @@ func BenchmarkForEach(b *testing.B) {
 		})
 	}
 }
+
+type avgInterface interface {
+	Avg() int
+}
+
+type implementsAvgInterface []int
+
+func (s implementsAvgInterface) Avg() int {
+	var sum int
+	for _, n := range s {
+		sum += n
+	}
+
+	return sum / len(s)
+}
+
+var noLength = testingx.ExpectedErrorIs(ErrNoLength)
+
+type (
+	sliceIntAlias []int
+	arrayIntAlias [5]int
+	stringAlias   string
+)
+
+var lenTests = map[string]struct {
+	Input       any
+	ExpectedErr func(*testing.T, error)
+	Expected    int
+}{
+	"nil any int nil": {
+		Input:       nil,
+		ExpectedErr: noLength,
+		Expected:    -1,
+	},
+	"slice bool": {
+		Input:       []bool{true, true, false},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice int": {
+		Input:       []int{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"slice int nil": {
+		Input:       []int(nil),
+		ExpectedErr: nil,
+		Expected:    0,
+	},
+	"array int 4": {
+		Input:       [4]int{1, 2, 3, 4},
+		ExpectedErr: nil,
+		Expected:    4,
+	},
+	"sliceIntAlias int": {
+		Input:       sliceIntAlias{1, 2},
+		ExpectedErr: nil,
+		Expected:    2,
+	},
+	"sliceIntAlias int nil": {
+		Input:       sliceIntAlias(nil),
+		ExpectedErr: nil,
+		Expected:    0,
+	},
+	"arrayIntAlias int": {
+		Input:       arrayIntAlias{1, 2, 3, 4, 5},
+		ExpectedErr: nil,
+		Expected:    5,
+	},
+	"struct slice": {
+		Input:       []struct{}{{}, {}, {}, {}, {}},
+		ExpectedErr: nil,
+		Expected:    5,
+	},
+	"string": {
+		Input:       "abcd",
+		ExpectedErr: nil,
+		Expected:    4,
+	},
+	"string slice": {
+		Input:       []string{"abcd", "abc", "ab", "a"},
+		ExpectedErr: nil,
+		Expected:    4,
+	},
+	"stringAlias": {
+		Input:       stringAlias("abcd"),
+		ExpectedErr: nil,
+		Expected:    4,
+	},
+	"string pointer": {
+		Input:       ptr("test"),
+		ExpectedErr: nil,
+		Expected:    4,
+	},
+	"string pointer nil": {
+		Input:       (*string)(nil),
+		ExpectedErr: noLength,
+		Expected:    -1,
+	},
+	"slice pointer  bool": {
+		Input:       []*bool{ptr(true), ptr(true), ptr(true)},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+}
+
+func TestLen(t *testing.T) {
+	for name, tc := range lenTests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			got, gotErr := Len(tc.Input)
+			testingx.AssertError(t, tc.ExpectedErr, gotErr)
+			testingx.AssertEqual(t, got, tc.Expected)
+		})
+	}
+
+	t.Run("avgInterface wraps implementsAvgInterface", func(t *testing.T) {
+		var a avgInterface = implementsAvgInterface{1, 2, 3, 4, 5, 6, 7}
+		func(a avgInterface) {
+			got, gotErr := Len(a)
+			testingx.AssertError(t, nil, gotErr)
+			testingx.AssertEqual(t, got, 7)
+		}(a)
+	})
+}
+
+func BenchmarkLen(b *testing.B) {
+	for name, tc := range lenTests {
+		tc := tc
+		b.Run(name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, _ = Len(tc.Input)
+			}
+		})
+	}
+}
+
+func ptr[T any](o T) *T {
+	return &o
+}

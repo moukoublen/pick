@@ -1,6 +1,7 @@
 package slices
 
 import (
+	"errors"
 	"reflect"
 
 	"github.com/moukoublen/pick/internal/errorsx"
@@ -136,3 +137,73 @@ func AsSliceFilter[T any](input any, castFilterOp CastFilterOp[T]) ([]T, error) 
 
 	return castedSlice, nil
 }
+
+// Len returns the result of built in len function if the input is of type slice, array, map, string or channel.
+// If the input is pointer and not nil, it dereferences the destination.
+func Len(input any) (l int, rErr error) {
+	defer errorsx.RecoverPanicToError(&rErr)
+
+	// attempt to quick return on slice of basic types by avoiding reflect.
+	switch cc := input.(type) {
+	case []any:
+		return len(cc), nil
+	case []map[string]any:
+		return len(cc), nil
+	case []string:
+		return len(cc), nil
+	case []int:
+		return len(cc), nil
+	case []int8:
+		return len(cc), nil
+	case []int16:
+		return len(cc), nil
+	case []int32:
+		return len(cc), nil
+	case []int64:
+		return len(cc), nil
+	case []uint:
+		return len(cc), nil
+	case []uint8:
+		return len(cc), nil
+	case []uint16:
+		return len(cc), nil
+	case []uint32:
+		return len(cc), nil
+	case []uint64:
+		return len(cc), nil
+	case []float32:
+		return len(cc), nil
+	case []float64:
+		return len(cc), nil
+	case []bool:
+		return len(cc), nil
+	case string:
+		return len(cc), nil
+	}
+
+	typeOfInput := reflect.TypeOf(input)
+
+	if typeOfInput == nil {
+		return -1, ErrNoLength
+	}
+
+	kindOfInput := typeOfInput.Kind()
+
+	switch kindOfInput {
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
+		valueOfInput := reflect.ValueOf(input)
+		return valueOfInput.Len(), nil
+	case reflect.Pointer, reflect.Interface:
+		valueOfInput := reflect.ValueOf(input)
+		if valueOfInput.IsNil() {
+			return -1, ErrNoLength
+		}
+
+		elemValue := valueOfInput.Elem()
+		return Len(elemValue.Interface())
+	}
+
+	return -1, ErrNoLength
+}
+
+var ErrNoLength = errors.New("type does not have length")

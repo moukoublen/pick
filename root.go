@@ -10,7 +10,9 @@ import (
 // Top level functions that use default API.
 //
 
-func Each(p *Picker, selector string, operation func(index int, p *Picker, length int) error) error {
+// Each iterates over all elements selected by the given selector and applies the provided operation function to each element.
+// It returns An error if any step in the selection or operation process fails, otherwise nil.
+func Each(p *Picker, selector string, operation func(index int, p *Picker, totalLength int) error) error {
 	item, err := p.Any(selector)
 	if err != nil {
 		return err

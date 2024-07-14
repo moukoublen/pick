@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/moukoublen/pick/cast"
+	"github.com/moukoublen/pick/cast/slices"
 )
 
 func WrapJSON(js []byte) (*Picker, error) {
@@ -78,6 +79,20 @@ func (p *Picker) Any(selector string) (any, error) {
 
 func (p *Picker) Path(path []Key) (any, error) {
 	return p.traverser.Retrieve(p.data, path)
+}
+
+func (p *Picker) Len(selector string) (int, error) {
+	path, err := p.notation.Parse(selector)
+	if err != nil {
+		return 0, err
+	}
+
+	a, err := p.Path(path)
+	if err != nil {
+		return 0, err
+	}
+
+	return slices.Len(a)
 }
 
 // Default Selector API (embedded into Picker)
