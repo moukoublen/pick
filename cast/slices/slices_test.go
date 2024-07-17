@@ -231,50 +231,9 @@ func TestForEach(t *testing.T) {
 		},
 
 		"[8]int8": {
-			Input:       [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr: nil,
-			ExpectedCalls: []expectedOpCall{
-				{
-					Meta:        OpMeta{Index: 0, Length: 8},
-					Item:        int8(1),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 1, Length: 8},
-					Item:        int8(2),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 2, Length: 8},
-					Item:        int8(3),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 3, Length: 8},
-					Item:        int8(4),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 4, Length: 8},
-					Item:        int8(5),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 5, Length: 8},
-					Item:        int8(6),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 6, Length: 8},
-					Item:        int8(7),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 7, Length: 8},
-					Item:        int8(8),
-					ReturnError: nil,
-				},
-			},
+			Input:         [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
+			ExpectedErr:   nil,
+			ExpectedCalls: generateExpectedCalls([]int8{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 
 		"[8]int8 error": {
