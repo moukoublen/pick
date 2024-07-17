@@ -67,7 +67,6 @@ func ForEach(input any, operation Op) (rErr error) {
 		return nil // no op
 	}
 
-	// if not slice or array => single operation call attempt
 	kindOfInput := typeOfInput.Kind()
 	switch kindOfInput {
 	case reflect.Array, reflect.Slice:
