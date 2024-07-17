@@ -3,15 +3,12 @@ package slices
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
 )
 
 func TestToSliceErrorScenarios(t *testing.T) {
-	t.Parallel()
-
 	errMock1 := errors.New("mock error")
 
 	type testCase struct {
@@ -37,7 +34,6 @@ func TestToSliceErrorScenarios(t *testing.T) {
 		tc := tc
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			_, gotErr := AsSlice(tc.input, CastOpFn(tc.inputSingleItemCastFn))
 			testingx.AssertError(t, tc.expectedErr, gotErr)
 		})
@@ -65,21 +61,22 @@ func generateExpectedCalls[T any](input []T) []expectedOpCall {
 }
 
 func TestForEach(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	mockOp := func(t *testing.T, expectedCalls []expectedOpCall) Op {
 		t.Helper()
 		idx := 0
+		t.Cleanup(func() {
+			if idx != len(expectedCalls) {
+				t.Errorf("mockOp not all expected calls were performed. Expected %d calls made %d", len(expectedCalls), idx)
+			}
+		})
 		return func(item any, meta OpMeta) error {
+			t.Helper()
 			exp := expectedCalls[idx]
 
-			if !reflect.DeepEqual(item, exp.Item) {
-				t.Errorf("expected operation argument mismatch. At %d call, expected %T(%#v) got %T(%#v)", idx, exp.Item, exp.Item, item, item)
-			}
-
-			if meta != exp.Meta {
-				t.Errorf("expected operation metadata argument mismatch. At %d call, expected %#v got %#v", idx, exp.Meta, meta)
-			}
+			testingx.AssertEqual(t, item, exp.Item)
+			testingx.AssertEqual(t, meta, exp.Meta)
 
 			idx++
 			return exp.ReturnError
@@ -88,11 +85,18 @@ func TestForEach(t *testing.T) {
 
 	mockError := errors.New("error")
 
+	ptrStr := ptr("test")
+
 	tests := map[string]struct {
 		Input         any
 		ExpectedErr   func(*testing.T, error)
 		ExpectedCalls []expectedOpCall
 	}{
+		"nil": {
+			Input:         nil,
+			ExpectedErr:   nil,
+			ExpectedCalls: []expectedOpCall{},
+		},
 		"string": {
 			Input:       "abc",
 			ExpectedErr: nil,
@@ -227,50 +231,9 @@ func TestForEach(t *testing.T) {
 		},
 
 		"[8]int8": {
-			Input:       [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr: nil,
-			ExpectedCalls: []expectedOpCall{
-				{
-					Meta:        OpMeta{Index: 0, Length: 8},
-					Item:        int8(1),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 1, Length: 8},
-					Item:        int8(2),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 2, Length: 8},
-					Item:        int8(3),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 3, Length: 8},
-					Item:        int8(4),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 4, Length: 8},
-					Item:        int8(5),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 5, Length: 8},
-					Item:        int8(6),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 6, Length: 8},
-					Item:        int8(7),
-					ReturnError: nil,
-				},
-				{
-					Meta:        OpMeta{Index: 7, Length: 8},
-					Item:        int8(8),
-					ReturnError: nil,
-				},
-			},
+			Input:         [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
+			ExpectedErr:   nil,
+			ExpectedCalls: generateExpectedCalls([]int8{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 
 		"[8]int8 error": {
@@ -289,12 +252,29 @@ func TestForEach(t *testing.T) {
 				},
 			},
 		},
+
+		"*string nil": {
+			Input:         (*string)(nil),
+			ExpectedErr:   nil,
+			ExpectedCalls: []expectedOpCall{},
+		},
+
+		"*string not nil": {
+			Input:       ptrStr,
+			ExpectedErr: nil,
+			ExpectedCalls: []expectedOpCall{
+				{
+					Meta:        OpMeta{Index: 0, Length: 1},
+					Item:        ptrStr,
+					ReturnError: nil,
+				},
+			},
+		},
 	}
 
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			gotErr := ForEach(tc.Input, mockOp(t, tc.ExpectedCalls))
 			testingx.AssertError(t, tc.ExpectedErr, gotErr)
 		})

@@ -61,29 +61,38 @@ func ForEach(input any, operation Op) (rErr error) {
 		return each(cc, operation)
 	}
 
-	if input == nil {
-		return operation(input, OpMeta{Index: 0, Length: 1})
-	}
-
 	typeOfInput := reflect.TypeOf(input)
-	kindOfInput := typeOfInput.Kind()
 
-	// if not slice or array => single operation call attempt
-	if kindOfInput != reflect.Array && kindOfInput != reflect.Slice {
+	if typeOfInput == nil {
+		return nil // no op
+	}
+
+	kindOfInput := typeOfInput.Kind()
+	switch kindOfInput {
+	case reflect.Array, reflect.Slice:
+		valueOfInput := reflect.ValueOf(input)
+		length := valueOfInput.Len()
+		for i := 0; i < length; i++ {
+			item := valueOfInput.Index(i)
+			if err := operation(item.Interface(), OpMeta{Index: i, Length: length}); err != nil {
+				return err
+			}
+		}
+
+		return rErr
+
+	case reflect.Pointer, reflect.Interface:
+		valueOfInput := reflect.ValueOf(input)
+		if valueOfInput.IsNil() {
+			return rErr
+		}
+		// single operation call attempt
+		return operation(input, OpMeta{Index: 0, Length: 1})
+
+	default:
+		// single operation call attempt
 		return operation(input, OpMeta{Index: 0, Length: 1})
 	}
-
-	// slow/costly attempt with reflect
-	valueOfInput := reflect.ValueOf(input)
-	length := valueOfInput.Len()
-	for i := 0; i < length; i++ {
-		item := valueOfInput.Index(i)
-		if err := operation(item.Interface(), OpMeta{Index: i, Length: length}); err != nil {
-			return err
-		}
-	}
-
-	return rErr
 }
 
 func each[T any](s []T, operation Op) error {
