@@ -72,5 +72,5 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 }
 
 func (bc boolCaster) AsBoolSlice(input any) ([]bool, error) {
-	return slices.AsSlice(input, slices.CastOpFn(bc.AsBool))
+	return slices.Map(input, slices.MapOpFn(bc.AsBool))
 }

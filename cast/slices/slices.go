@@ -14,16 +14,25 @@ type OpMeta struct {
 
 type Op func(item any, meta OpMeta) error
 
-type CastOp[T any] func(item any, meta OpMeta) (T, error)
+type MapOp[T any] func(item any, meta OpMeta) (T, error)
 
-type CastFilterOp[T any] func(item any, meta OpMeta) (T, bool, error)
+type MapFilterOp[T any] func(item any, meta OpMeta) (T, bool, error)
 
-func CastOpFn[T any](fn func(item any) (T, error)) CastOp[T] {
+func MapOpFn[T any](fn func(item any) (T, error)) MapOp[T] {
 	return func(item any, _ OpMeta) (T, error) {
 		return fn(item)
 	}
 }
 
+// ForEach applies the given operation to each element of the input if it is a collection
+// (slice or array), or directly if it is a single item (pointer, interface, or other type).
+//
+// The function first tries to handle slices of basic types directly by avoiding reflection for performance reasons.
+// If the input is not one of the directly handled types, it uses reflection to determine the input type and
+// iterates over elements if it is a slice or array. For pointers or interfaces, it dereferences the input and
+// applies the operation to the dereferenced value. For other types, it applies the operation directly.
+//
+// The function uses deferred recovery to capture and return any panic as an error.
 func ForEach(input any, operation Op) (rErr error) {
 	defer errorsx.RecoverPanicToError(&rErr)
 
@@ -86,8 +95,15 @@ func ForEach(input any, operation Op) (rErr error) {
 		if valueOfInput.IsNil() {
 			return rErr
 		}
+
+		// deref
+		el := valueOfInput.Elem()
+		if !el.IsValid() {
+			return rErr
+		}
+
 		// single operation call attempt
-		return operation(input, OpMeta{Index: 0, Length: 1})
+		return operation(el.Interface(), OpMeta{Index: 0, Length: 1})
 
 	default:
 		// single operation call attempt
@@ -106,19 +122,19 @@ func each[T any](s []T, operation Op) error {
 	return nil
 }
 
-func AsSlice[T any](input any, castOp CastOp[T]) ([]T, error) {
-	return AsSliceFilter(input, func(item any, meta OpMeta) (T, bool, error) {
-		casted, err := castOp(item, meta)
-		return casted, true, err
-	})
-}
-
-func AsSliceFilter[T any](input any, castFilterOp CastFilterOp[T]) ([]T, error) {
+func Map[T any](input any, castOp MapOp[T]) ([]T, error) {
 	// quick returns just in case its already slice of T.
 	if ss, is := input.([]T); is {
 		return ss, nil
 	}
 
+	return MapFilter(input, func(item any, meta OpMeta) (T, bool, error) {
+		casted, err := castOp(item, meta)
+		return casted, err == nil, err
+	})
+}
+
+func MapFilter[T any](input any, castFilterOp MapFilterOp[T]) ([]T, error) {
 	var castedSlice []T
 
 	if input == nil {
@@ -135,6 +151,8 @@ func AsSliceFilter[T any](input any, castFilterOp CastFilterOp[T]) ([]T, error) 
 		default:
 			if meta.Index == 0 && meta.Length > 0 {
 				castedSlice = make([]T, 0, meta.Length)
+			} else if meta.Length == 0 {
+				return nil
 			}
 			castedSlice = append(castedSlice, casted)
 			return nil
@@ -215,4 +233,7 @@ func Len(input any) (l int, rErr error) {
 	return -1, ErrNoLength
 }
 
-var ErrNoLength = errors.New("type does not have length")
+var (
+	ErrNoLength     = errors.New("type does not have length")
+	ErrInputNoSlice = errors.New("input is not slice/array")
+)

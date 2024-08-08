@@ -33,7 +33,7 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 		return nil, err
 	}
 
-	return slices.AsSlice(
+	return slices.Map(
 		item,
 		func(item any, _ slices.OpMeta) (Output, error) {
 			return transform(p.Wrap(item))
@@ -48,7 +48,7 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 		return nil, err
 	}
 
-	return slices.AsSliceFilter(
+	return slices.MapFilter(
 		item,
 		func(item any, _ slices.OpMeta) (Output, bool, error) {
 			return transform(p.Wrap(item))
@@ -63,7 +63,7 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 		return nil, err
 	}
 
-	doubleSlice, err := slices.AsSlice(
+	doubleSlice, err := slices.Map(
 		item,
 		func(item any, _ slices.OpMeta) ([]Output, error) {
 			return transform(p.Wrap(item))
@@ -140,7 +140,7 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 		return nil
 	}
 
-	sl, err := slices.AsSliceFilter(item, func(item any, meta slices.OpMeta) (Output, bool, error) {
+	sl, err := slices.MapFilter(item, func(item any, meta slices.OpMeta) (Output, bool, error) {
 		t, keep, opErr := transform(a.Wrap(item))
 		if opErr != nil {
 			path = append(path, Index(meta.Index))

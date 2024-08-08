@@ -34,7 +34,7 @@ func TestToSliceErrorScenarios(t *testing.T) {
 		tc := tc
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
-			_, gotErr := AsSlice(tc.input, CastOpFn(tc.inputSingleItemCastFn))
+			_, gotErr := Map(tc.input, MapOpFn(tc.inputSingleItemCastFn))
 			testingx.AssertError(t, tc.expectedErr, gotErr)
 		})
 	}
@@ -131,6 +131,11 @@ func TestForEach(t *testing.T) {
 			},
 		},
 
+		"[]any:0": {
+			Input:         []any{},
+			ExpectedErr:   nil,
+			ExpectedCalls: []expectedOpCall{},
+		},
 		"[]any:8": {
 			Input:         []any{1, 2, 3, 4, 5, 6, 7, 8},
 			ExpectedErr:   nil,
@@ -261,6 +266,18 @@ func TestForEach(t *testing.T) {
 
 		"*string not nil": {
 			Input:       ptrStr,
+			ExpectedErr: nil,
+			ExpectedCalls: []expectedOpCall{
+				{
+					Meta:        OpMeta{Index: 0, Length: 1},
+					Item:        *ptrStr,
+					ReturnError: nil,
+				},
+			},
+		},
+
+		"**string not nil": {
+			Input:       &ptrStr,
 			ExpectedErr: nil,
 			ExpectedCalls: []expectedOpCall{
 				{

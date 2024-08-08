@@ -58,5 +58,5 @@ func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return slices.AsSlice(input, slices.CastOpFn(bc.AsByte))
+	return slices.Map(input, slices.MapOpFn(bc.AsByte))
 }

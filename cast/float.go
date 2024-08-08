@@ -136,9 +136,9 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 }
 
 func (fc floatCaster) AsFloat32Slice(input any) ([]float32, error) {
-	return slices.AsSlice(input, slices.CastOpFn(fc.AsFloat32))
+	return slices.Map(input, slices.MapOpFn(fc.AsFloat32))
 }
 
 func (fc floatCaster) AsFloat64Slice(input any) ([]float64, error) {
-	return slices.AsSlice(input, slices.CastOpFn(fc.AsFloat64))
+	return slices.Map(input, slices.MapOpFn(fc.AsFloat64))
 }

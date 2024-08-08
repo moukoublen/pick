@@ -172,7 +172,7 @@ func (tc timeCaster) AsTimeSlice(input any) ([]time.Time, error) {
 }
 
 func (tc timeCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
-	return slices.AsSlice[time.Time](input, func(item any, _ slices.OpMeta) (time.Time, error) {
+	return slices.Map[time.Time](input, func(item any, _ slices.OpMeta) (time.Time, error) {
 		return tc.AsTimeWithConfig(config, item)
 	})
 }

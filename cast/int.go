@@ -80,43 +80,43 @@ func (c integerCaster) AsUint64(input any) (uint64, error) {
 }
 
 func (c integerCaster) AsIntSlice(input any) ([]int, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsInt))
+	return slices.Map(input, slices.MapOpFn(c.AsInt))
 }
 
 func (c integerCaster) AsInt8Slice(input any) ([]int8, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsInt8))
+	return slices.Map(input, slices.MapOpFn(c.AsInt8))
 }
 
 func (c integerCaster) AsInt16Slice(input any) ([]int16, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsInt16))
+	return slices.Map(input, slices.MapOpFn(c.AsInt16))
 }
 
 func (c integerCaster) AsInt32Slice(input any) ([]int32, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsInt32))
+	return slices.Map(input, slices.MapOpFn(c.AsInt32))
 }
 
 func (c integerCaster) AsInt64Slice(input any) ([]int64, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsInt64))
+	return slices.Map(input, slices.MapOpFn(c.AsInt64))
 }
 
 func (c integerCaster) AsUintSlice(input any) ([]uint, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsUint))
+	return slices.Map(input, slices.MapOpFn(c.AsUint))
 }
 
 func (c integerCaster) AsUint8Slice(input any) ([]uint8, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsUint8))
+	return slices.Map(input, slices.MapOpFn(c.AsUint8))
 }
 
 func (c integerCaster) AsUint16Slice(input any) ([]uint16, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsUint16))
+	return slices.Map(input, slices.MapOpFn(c.AsUint16))
 }
 
 func (c integerCaster) AsUint32Slice(input any) ([]uint32, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsUint32))
+	return slices.Map(input, slices.MapOpFn(c.AsUint32))
 }
 
 func (c integerCaster) AsUint64Slice(input any) ([]uint64, error) {
-	return slices.AsSlice(input, slices.CastOpFn(c.AsUint64))
+	return slices.Map(input, slices.MapOpFn(c.AsUint64))
 }
 
 type intCast[T numbers.Integer] struct {
