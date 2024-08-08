@@ -150,7 +150,7 @@ got, err := p3.TimeSlice("timeSlice")
 
 
 ### API
-As an `API` we define a set of functions like this `Bool(T) Output` for all basic types. There are 4 different APIs for a picker.
+As an `API` we define a set of functions like this `Bool(T) Output` for all basic types. There are 2 different APIs for a picker.
 
   * Selector API, the default one that is embedded in `Picker`. <br>E.g. `Picker.Bool(selector string) (bool, error)`
   * Selector Must API that can be accessed by calling `Picker.Must()`. <br>E.g. `Picker.Must().Bool(selector string) bool`
@@ -165,9 +165,7 @@ As an `API` we define a set of functions like this `Bool(T) Output` for all basi
   * `time.Time` / `[]time.Time`
   * `time.Duration` / `[]time.Duration`
 
-Examples:
-
-**Selector Must API**
+### Selector Must API
 ```go
 p1.Must().String("item.three[1]") // == "2"
 sm := p1.Must()
@@ -177,6 +175,11 @@ sm.Float32("float")        // == float32(2.12)
 sm.Int64("float")          // == int64(2)
 ```
 
+Optionally an `ErrorGatherer` could be provided to `.Mast()` initializer to receive and handle each error produced by must operations.
+
+A default implementation of `ErrorGatherer` is the `ErrorsSink`, which gathers all errors into a single one. 
+
+___
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.
 
 
