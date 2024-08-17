@@ -8,8 +8,12 @@ on:
 
 jobs:
 
-  lint:
+  lint-and-test:
+    name: Lints and Tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.21', '1.22', '1.23' ]
     steps:
 
     # https://github.com/actions/checkout
@@ -19,7 +23,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: ${{ matrix.go-version }}
         check-latest: true
         cache: false
 
@@ -31,10 +35,10 @@ jobs:
         path: |
           .tools/
           ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ci-tools-${{ runner.os }}-${{ hashFiles('**/go.sum', '**/Makefile') }}
+          ~/go/pkg
+        key: ci-tools-${{ runner.os }}-${{ runner.arch }}-${{ matrix.go-version }}-${{ hashFiles('**/go.mod', '**/go.sum', '**/Makefile', '.github/workflows/ci.yml') }}
         restore-keys: |
-          ci-tools-${{ runner.os }}
+          ci-tools-${{ runner.os }}-${{ runner.arch }}-${{ matrix.go-version }}
 
     - name: Install Tools
       # if: steps.cache-tools.outputs.cache-hit != 'true'
@@ -61,21 +65,6 @@ jobs:
     - name: golangci-lint
       run: make golangci-lint-github-actions
 
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [ '1.21', '1.22' ]
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-        check-latest: true
-        cache: true
-
     - name: Test
       run: make test
 
@@ -84,4 +73,4 @@ jobs:
       uses: codecov/codecov-action@v4
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      if: matrix.go-version == '1.22'
+      if: matrix.go-version == '1.23'
