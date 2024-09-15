@@ -188,7 +188,6 @@ type singleCastTestCase[T any] struct {
 func runSingleCastTestCases[T any](t *testing.T, testCases []singleCastTestCase[T], defaultCastFn func(any) (T, error)) {
 	t.Helper()
 	for idx, tc := range testCases {
-		tc := tc
 		name := fmt.Sprintf("index:%d %s", idx, testingx.Format(tc.input))
 		t.Run(name, func(t *testing.T) {
 			// t.Helper()
@@ -238,7 +237,6 @@ func TestTryCastUsingReflect(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			fnVal := reflect.ValueOf(tc.fn)
 			returnedVals := fnVal.Call([]reflect.Value{
@@ -387,7 +385,6 @@ func TestByType(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		fromType := reflect.TypeOf(tc.input).String()
 		toType := reflect.TypeOf(tc.expected).String()
 		t.Run(fmt.Sprintf("#%d#%s->%s", idx, fromType, toType), func(t *testing.T) {

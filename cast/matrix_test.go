@@ -840,7 +840,6 @@ func TestCasterMatrix(t *testing.T) {
 	}
 
 	for k, tc := range testCases {
-		tc := tc
 		name := fmt.Sprintf("%s__%T(%#v)", k, tc.Input, tc.Input)
 		t.Run(name, func(t *testing.T) {
 			for _, a := range tc.Asserters {
@@ -1186,7 +1185,6 @@ func TestCasterSliceMatrix(t *testing.T) {
 	}
 
 	for k, tc := range testCases {
-		tc := tc
 		name := fmt.Sprintf("%s__%T(%#v)", k, tc.Input, tc.Input)
 		t.Run(name, func(t *testing.T) {
 			for _, a := range tc.Asserters {
@@ -1230,7 +1228,6 @@ func casterSubBenchmarks[Output any](testCases []any, castFn func(any) (Output, 
 	return func(b *testing.B) {
 		b.Helper()
 		for i, tc := range testCases {
-			tc := tc
 			name := fmt.Sprintf("%d %s", i, testingx.Format(tc))
 			b.Run(name, matrixSubBenchmark(tc, castFn))
 		}

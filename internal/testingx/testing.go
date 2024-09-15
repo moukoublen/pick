@@ -169,7 +169,7 @@ func formatSlice(sl any, elementFormatFn func(any) string) string {
 	s.WriteRune('[')
 
 	value := reflect.ValueOf(sl)
-	for i := 0; i < value.Len(); i++ {
+	for i := range value.Len() {
 		item := value.Index(i)
 		ifc := item.Interface()
 		if i != 0 {
