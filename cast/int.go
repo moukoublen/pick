@@ -11,111 +11,83 @@ import (
 	"github.com/moukoublen/pick/numbers"
 )
 
-type integerCaster struct {
-	intCaster    intCast[int]
-	int8Caster   intCast[int8]
-	int16Caster  intCast[int16]
-	int32Caster  intCast[int32]
-	int64Caster  intCast[int64]
-	uintCaster   intCast[uint]
-	uint8Caster  intCast[uint8]
-	uint16Caster intCast[uint16]
-	uint32Caster intCast[uint32]
-	uint64Caster intCast[uint64]
-}
-
-func newIntegerCaster() integerCaster {
-	return integerCaster{
-		intCaster:    newIntCast[int](),
-		int8Caster:   newIntCast[int8](),
-		int16Caster:  newIntCast[int16](),
-		int32Caster:  newIntCast[int32](),
-		int64Caster:  newIntCast[int64](),
-		uintCaster:   newIntCast[uint](),
-		uint8Caster:  newIntCast[uint8](),
-		uint16Caster: newIntCast[uint16](),
-		uint32Caster: newIntCast[uint32](),
-		uint64Caster: newIntCast[uint64](),
-	}
-}
-
-func (c integerCaster) AsInt(input any) (int, error) {
+func (c Caster) AsInt(input any) (int, error) {
 	return c.intCaster.cast(input)
 }
 
-func (c integerCaster) AsInt8(input any) (int8, error) {
+func (c Caster) AsInt8(input any) (int8, error) {
 	return c.int8Caster.cast(input)
 }
 
-func (c integerCaster) AsInt16(input any) (int16, error) {
+func (c Caster) AsInt16(input any) (int16, error) {
 	return c.int16Caster.cast(input)
 }
 
-func (c integerCaster) AsInt32(input any) (int32, error) {
+func (c Caster) AsInt32(input any) (int32, error) {
 	return c.int32Caster.cast(input)
 }
 
-func (c integerCaster) AsInt64(input any) (int64, error) {
+func (c Caster) AsInt64(input any) (int64, error) {
 	return c.int64Caster.cast(input)
 }
 
-func (c integerCaster) AsUint(input any) (uint, error) {
+func (c Caster) AsUint(input any) (uint, error) {
 	return c.uintCaster.cast(input)
 }
 
-func (c integerCaster) AsUint8(input any) (uint8, error) {
+func (c Caster) AsUint8(input any) (uint8, error) {
 	return c.uint8Caster.cast(input)
 }
 
-func (c integerCaster) AsUint16(input any) (uint16, error) {
+func (c Caster) AsUint16(input any) (uint16, error) {
 	return c.uint16Caster.cast(input)
 }
 
-func (c integerCaster) AsUint32(input any) (uint32, error) {
+func (c Caster) AsUint32(input any) (uint32, error) {
 	return c.uint32Caster.cast(input)
 }
 
-func (c integerCaster) AsUint64(input any) (uint64, error) {
+func (c Caster) AsUint64(input any) (uint64, error) {
 	return c.uint64Caster.cast(input)
 }
 
-func (c integerCaster) AsIntSlice(input any) ([]int, error) {
+func (c Caster) AsIntSlice(input any) ([]int, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsInt))
 }
 
-func (c integerCaster) AsInt8Slice(input any) ([]int8, error) {
+func (c Caster) AsInt8Slice(input any) ([]int8, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsInt8))
 }
 
-func (c integerCaster) AsInt16Slice(input any) ([]int16, error) {
+func (c Caster) AsInt16Slice(input any) ([]int16, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsInt16))
 }
 
-func (c integerCaster) AsInt32Slice(input any) ([]int32, error) {
+func (c Caster) AsInt32Slice(input any) ([]int32, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsInt32))
 }
 
-func (c integerCaster) AsInt64Slice(input any) ([]int64, error) {
+func (c Caster) AsInt64Slice(input any) ([]int64, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsInt64))
 }
 
-func (c integerCaster) AsUintSlice(input any) ([]uint, error) {
+func (c Caster) AsUintSlice(input any) ([]uint, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsUint))
 }
 
-func (c integerCaster) AsUint8Slice(input any) ([]uint8, error) {
+func (c Caster) AsUint8Slice(input any) ([]uint8, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsUint8))
 }
 
-func (c integerCaster) AsUint16Slice(input any) ([]uint16, error) {
+func (c Caster) AsUint16Slice(input any) ([]uint16, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsUint16))
 }
 
-func (c integerCaster) AsUint32Slice(input any) ([]uint32, error) {
+func (c Caster) AsUint32Slice(input any) ([]uint32, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsUint32))
 }
 
-func (c integerCaster) AsUint64Slice(input any) ([]uint64, error) {
+func (c Caster) AsUint64Slice(input any) ([]uint64, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsUint64))
 }
 

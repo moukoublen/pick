@@ -7,11 +7,7 @@ import (
 	"github.com/moukoublen/pick/cast/slices"
 )
 
-type boolCaster struct{}
-
-func newBoolCaster() boolCaster { return boolCaster{} }
-
-func (bc boolCaster) AsBool(input any) (bool, error) {
+func (c Caster) AsBool(input any) (bool, error) {
 	switch origin := input.(type) {
 	case int:
 		return origin != 0, nil
@@ -51,9 +47,9 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 		if err != nil {
 			return false, newCastError(err, input)
 		}
-		return bc.AsBool(n)
+		return c.AsBool(n)
 	case []byte:
-		return bc.AsBool(string(origin))
+		return c.AsBool(string(origin))
 
 	case bool:
 		return origin, nil
@@ -64,13 +60,13 @@ func (bc boolCaster) AsBool(input any) (bool, error) {
 	default:
 		// try to cast to basic (in case input is ~basic)
 		if basic, err := tryCastToBasicType(input); err == nil {
-			return bc.AsBool(basic)
+			return c.AsBool(basic)
 		}
 
 		return tryReflectConvert[bool](input)
 	}
 }
 
-func (bc boolCaster) AsBoolSlice(input any) ([]bool, error) {
-	return slices.Map(input, slices.MapOpFn(bc.AsBool))
+func (c Caster) AsBoolSlice(input any) ([]bool, error) {
+	return slices.Map(input, slices.MapOpFn(c.AsBool))
 }
