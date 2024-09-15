@@ -89,7 +89,6 @@ func TestGather(t *testing.T) {
 	}
 
 	for i, tc := range tests {
-		tc := tc
 		t.Run(fmt.Sprintf("[%d]", i), func(t *testing.T) {
 			gather(tc.destination, tc.newError)
 			tc.expect(t, tc.destination)

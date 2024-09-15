@@ -28,7 +28,7 @@ default: checks test
 
 .PHONY: mod
 mod:
-	$(GO_EXEC) mod tidy -go=1.21
+	$(GO_EXEC) mod tidy -go=1.22
 	$(GO_EXEC) mod verify
 
 # https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies

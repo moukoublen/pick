@@ -63,7 +63,7 @@ func (tc timeCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Ti
 		return tc.fromInt64(config, origin)
 
 	case uint:
-		return tc.AsTimeWithConfig(config, int64(origin))
+		return tc.AsTimeWithConfig(config, int64(origin)) //nolint:gosec //todo: include int caster
 	case uint8:
 		return tc.AsTimeWithConfig(config, int64(origin))
 	case uint16:
@@ -126,10 +126,10 @@ func (tc timeCaster) fromInt64(config TimeCastConfig, origin int64) (time.Time, 
 
 func (tc timeCaster) fromUint64(config TimeCastConfig, origin uint64) (time.Time, error) {
 	if !uint64CastValid(origin, reflect.Int64) {
-		d, _ := tc.AsTimeWithConfig(config, int64(origin))
+		d, _ := tc.AsTimeWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
 		return d, newCastError(ErrCastOverFlow, origin)
 	}
-	return tc.AsTimeWithConfig(config, int64(origin))
+	return tc.AsTimeWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
 }
 
 func (tc timeCaster) fromString(config TimeCastConfig, origin string) (time.Time, error) {

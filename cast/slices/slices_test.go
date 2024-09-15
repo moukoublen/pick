@@ -31,7 +31,6 @@ func TestToSliceErrorScenarios(t *testing.T) {
 	}
 
 	for idx, tc := range testsCases {
-		tc := tc
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
 			_, gotErr := Map(tc.input, MapOpFn(tc.inputSingleItemCastFn))
@@ -290,7 +289,6 @@ func TestForEach(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			gotErr := ForEach(tc.Input, mockOp(t, tc.ExpectedCalls))
 			testingx.AssertError(t, tc.ExpectedErr, gotErr)
@@ -405,7 +403,6 @@ func BenchmarkForEach(b *testing.B) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		b.Run(name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_ = ForEach(tc.Input, noop)
@@ -586,7 +583,6 @@ var lenTests = map[string]struct {
 
 func TestLen(t *testing.T) {
 	for name, tc := range lenTests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			got, gotErr := Len(tc.Input)
 			testingx.AssertError(t, tc.ExpectedErr, gotErr)
@@ -606,7 +602,6 @@ func TestLen(t *testing.T) {
 
 func BenchmarkLen(b *testing.B) {
 	for name, tc := range lenTests {
-		tc := tc
 		b.Run(name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_, _ = Len(tc.Input)

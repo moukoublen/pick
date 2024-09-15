@@ -164,7 +164,6 @@ func TestWithMixedTypesMap(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -205,7 +204,6 @@ func TestWithMixedTypesMapUsingBoolAPI(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -246,7 +244,6 @@ func TestWithMixedTypesMapUsingStringAPI(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -287,7 +284,6 @@ func TestWithMixedTypesMapUsingInt64(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -328,7 +324,6 @@ func TestUsingMixedTypesMapUsingFloat64API(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -369,7 +364,6 @@ func TestWithMixedTypesMapUsingFloat32API(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -410,7 +404,6 @@ func TestWithMixedTypesMapUsingByteAPI(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -459,7 +452,6 @@ func TestWithMixedTypesMapUsingTimeAPI(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -500,7 +492,6 @@ func TestWithMixedTypesMapUsingDurationAPI(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}
@@ -654,7 +645,6 @@ func TestNasaDataFile(t *testing.T) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
 		name := fmt.Sprintf("%d_%s", idx, tc.Name())
 		t.Run(name, tc.Run)
 	}

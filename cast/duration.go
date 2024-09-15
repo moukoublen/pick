@@ -56,10 +56,10 @@ func (c durationCaster) AsDurationWithConfig(config DurationCastConfig, input an
 		return c.AsDurationWithConfig(config, uint64(origin))
 	case uint64:
 		if !uint64CastValid(origin, reflect.Int64) {
-			d, _ := c.AsDurationWithConfig(config, int64(origin))
+			d, _ := c.AsDurationWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
 			return d, newCastError(ErrCastOverFlow, origin)
 		}
-		return c.AsDurationWithConfig(config, int64(origin))
+		return c.AsDurationWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
 
 	case float32:
 		return c.AsDurationWithConfig(config, float64(origin))

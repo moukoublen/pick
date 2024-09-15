@@ -96,7 +96,6 @@ func TestDotNotation(t *testing.T) {
 	dsf := DotNotation{}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			// t.Parallel()
 			got, err := dsf.Parse(tc.input)
@@ -141,7 +140,6 @@ func BenchmarkDotNotation(b *testing.B) {
 	d := DotNotation{}
 
 	for _, tc := range tests {
-		tc := tc
 		b.Run(tc, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_, _ = d.Parse(tc)

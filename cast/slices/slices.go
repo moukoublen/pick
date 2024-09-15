@@ -81,7 +81,7 @@ func ForEach(input any, operation Op) (rErr error) {
 	case reflect.Array, reflect.Slice:
 		valueOfInput := reflect.ValueOf(input)
 		length := valueOfInput.Len()
-		for i := 0; i < length; i++ {
+		for i := range length {
 			item := valueOfInput.Index(i)
 			if err := operation(item.Interface(), OpMeta{Index: i, Length: length}); err != nil {
 				return err

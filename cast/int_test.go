@@ -119,9 +119,7 @@ func TestInt64CastValid(t *testing.T) {
 	}
 
 	for to, perKindTestCases := range testCases {
-		to := to
 		for _, tc := range perKindTestCases {
-			tc := tc
 			t.Run(
 				fmt.Sprintf("%d to %s", tc.Origin, to.String()),
 				func(t *testing.T) {
@@ -226,9 +224,7 @@ func TestUint64CastValid(t *testing.T) {
 	}
 
 	for to, perKindTestCases := range testCases {
-		to := to
 		for _, tc := range perKindTestCases {
-			tc := tc
 			t.Run(
 				fmt.Sprintf("%d to %s", tc.Origin, to.String()),
 				func(t *testing.T) {
@@ -283,8 +279,6 @@ func BenchmarkIntCaster(b *testing.B) {
 	}
 
 	for idx, tc := range tests {
-		tc := tc
-
 		input := fmt.Sprintf("%d:%s", idx, testingx.Format(tc))
 		b.Run(fmt.Sprintf("caster{int8}   %s", input), benchmarkIntegerCaster(ic.int8Caster.cast, tc))
 		b.Run(fmt.Sprintf("caster{int16}  %s", input), benchmarkIntegerCaster(ic.int16Caster.cast, tc))

@@ -190,7 +190,6 @@ func TestDefaultTraverser(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			got, err := dt.Retrieve(tc.input, tc.keys)
@@ -343,7 +342,6 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		b.Run(name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_, _ = dt.Retrieve(tc.input, tc.keys)
