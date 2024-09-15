@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"reflect"
 	"time"
 
 	"github.com/moukoublen/pick/cast/slices"
@@ -32,13 +31,13 @@ func (c Caster) AsDuration(input any) (time.Duration, error) {
 func (c Caster) AsDurationWithConfig(config DurationCastConfig, input any) (time.Duration, error) {
 	switch origin := input.(type) {
 	case int:
-		return c.AsDurationWithConfig(config, int64(origin))
+		return c.durationFromInt64(config, int64(origin))
 	case int8:
-		return c.AsDurationWithConfig(config, int64(origin))
+		return c.durationFromInt64(config, int64(origin))
 	case int16:
-		return c.AsDurationWithConfig(config, int64(origin))
+		return c.durationFromInt64(config, int64(origin))
 	case int32:
-		return c.AsDurationWithConfig(config, int64(origin))
+		return c.durationFromInt64(config, int64(origin))
 	case int64:
 		return c.durationFromInt64(config, origin)
 
@@ -51,11 +50,12 @@ func (c Caster) AsDurationWithConfig(config DurationCastConfig, input any) (time
 	case uint32:
 		return c.AsDurationWithConfig(config, uint64(origin))
 	case uint64:
-		if !uint64CastValid(origin, reflect.Int64) {
-			d, _ := c.AsDurationWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
-			return d, newCastError(ErrCastOverFlow, origin)
+		asInt64, err := c.AsInt64(origin)
+		if err != nil {
+			d, _ := c.AsDurationWithConfig(config, asInt64) // best effort
+			return d, err
 		}
-		return c.AsDurationWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
+		return c.AsDurationWithConfig(config, asInt64)
 
 	case float32:
 		return c.AsDurationWithConfig(config, float64(origin))

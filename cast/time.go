@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -48,26 +47,31 @@ func (c Caster) AsTime(input any) (time.Time, error) {
 func (c Caster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error) {
 	switch origin := input.(type) {
 	case int:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.timeFromInt64(config, int64(origin))
 	case int8:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.timeFromInt64(config, int64(origin))
 	case int16:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.timeFromInt64(config, int64(origin))
 	case int32:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.timeFromInt64(config, int64(origin))
 	case int64:
 		return c.timeFromInt64(config, origin)
 
 	case uint:
-		return c.AsTimeWithConfig(config, int64(origin)) //nolint:gosec //todo: include int caster
+		return c.AsTimeWithConfig(config, uint64(origin))
 	case uint8:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.AsTimeWithConfig(config, uint64(origin))
 	case uint16:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.AsTimeWithConfig(config, uint64(origin))
 	case uint32:
-		return c.AsTimeWithConfig(config, int64(origin))
+		return c.AsTimeWithConfig(config, uint64(origin))
 	case uint64:
-		return c.fromUint64(config, origin)
+		asInt64, err := c.AsInt64(origin)
+		if err != nil {
+			t, _ := c.timeFromInt64(config, asInt64) // best effort
+			return t, err
+		}
+		return c.timeFromInt64(config, asInt64)
 
 	case float32:
 		return c.AsTimeWithConfig(config, float64(origin))
@@ -77,7 +81,7 @@ func (c Caster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, e
 		return tm, err
 
 	case string:
-		return c.fromString(config, origin)
+		return c.timeFromString(config, origin)
 
 	case json.Number:
 		n, err := origin.Int64()
@@ -87,7 +91,7 @@ func (c Caster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, e
 		return c.AsTimeWithConfig(config, n)
 
 	case []byte:
-		return c.fromByteSlice(config, origin)
+		return c.timeFromByteSlice(config, origin)
 
 	case bool:
 		return time.Time{}, newCastError(ErrInvalidType, input)
@@ -120,15 +124,7 @@ func (c Caster) timeFromInt64(config TimeCastConfig, origin int64) (time.Time, e
 	return tm, nil
 }
 
-func (c Caster) fromUint64(config TimeCastConfig, origin uint64) (time.Time, error) {
-	if !uint64CastValid(origin, reflect.Int64) {
-		d, _ := c.AsTimeWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
-		return d, newCastError(ErrCastOverFlow, origin)
-	}
-	return c.AsTimeWithConfig(config, int64(origin)) //nolint:gosec // its safe to cast
-}
-
-func (c Caster) fromString(config TimeCastConfig, origin string) (time.Time, error) {
+func (c Caster) timeFromString(config TimeCastConfig, origin string) (time.Time, error) {
 	if config.PraseStringAsNumber {
 		n, err := strconv.ParseInt(origin, 10, 64)
 		if err != nil {
@@ -149,7 +145,7 @@ func (c Caster) fromString(config TimeCastConfig, origin string) (time.Time, err
 	return tm, nil
 }
 
-func (c Caster) fromByteSlice(config TimeCastConfig, origin []byte) (time.Time, error) {
+func (c Caster) timeFromByteSlice(config TimeCastConfig, origin []byte) (time.Time, error) {
 	switch config.ByteSliceFormat {
 	case TimeCastByteSliceFormatBinary:
 		tm := time.Time{}
