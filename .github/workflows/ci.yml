@@ -44,20 +44,17 @@ jobs:
       # if: steps.cache-tools.outputs.cache-hit != 'true'
       run: make tools
 
-    - name: make mod
-      run: make mod && ./scripts/dirty-check
-
-    - name: version of make
-      run: make --version
-
     - name: env
-      run: make env
+      run: |
+        make --version
+        echo ""
+        make env
 
-    - name: gofumpt
-      run: make gofumpt
+    - name: make mod
+      run: make ci-mod
 
-    - name: goimports
-      run: make goimports
+    - name: format and check
+      run: make ci-format
 
     - name: staticcheck
       run: make staticcheck

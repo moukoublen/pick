@@ -74,3 +74,11 @@ bench:
 checks: vet staticcheck gofumpt goimports golangci-lint
 
 include $(CURDIR)/scripts/tools.mk
+
+.PHONY: ci-format
+ci-format: goimports gofumpt
+	./scripts/git-check-dirty
+
+.PHONY: ci-mod
+ci-mod: mod
+	./scripts/git-check-dirty

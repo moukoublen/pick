@@ -82,27 +82,11 @@ $(TOOLS_BIN)/goimports: $(TOOLS_DB)/goimports.$(GOIMPORTS_VER).$(GO_VER).ver
 
 .PHONY: goimports
 goimports: $(TOOLS_BIN)/goimports
-	@echo '$(TOOLS_BIN)/goimports -l `$(GO_FILES)`'
-	@if [[ -n "$$($(TOOLS_BIN)/goimports -l `$(GO_FILES)` | tee /dev/stderr)" ]]; then \
-		echo 'goimports errors'; \
-		echo ''; \
-		echo -e "\e[0;34m→\e[0m To display the needed changes run:"; \
-		echo '    make goimports.display'; \
-		echo ''; \
-		echo -e "\e[0;34m→\e[0m To fix them run:"; \
-		echo '    make goimports.fix'; \
-		echo ''; \
-		exit 1; \
-	fi
-	@echo ''
+	goimports -w `$(GO_FILES)`
 
 .PHONY: goimports.display
 goimports.display: $(TOOLS_BIN)/goimports
-	$(TOOLS_BIN)/goimports -d `$(GO_FOLDERS)`
-
-.PHONY: goimports.fix
-goimports.fix: $(TOOLS_BIN)/goimports
-	$(TOOLS_BIN)/goimports -w `$(GO_FOLDERS)`
+	goimports -d `$(GO_FILES)`
 ## </goimports>
 
 ## <gofumpt>
@@ -114,53 +98,21 @@ $(TOOLS_BIN)/gofumpt: $(TOOLS_DB)/gofumpt.$(GOFUMPT_VER).$(GO_VER).ver
 
 .PHONY: gofumpt
 gofumpt: $(TOOLS_BIN)/gofumpt
-	@echo '$(TOOLS_BIN)/gofumpt -l `$(GO_FOLDERS)`'
-	@if [[ -n "$$($(TOOLS_BIN)/gofumpt -l `$(GO_FOLDERS)` | tee /dev/stderr)" ]]; then \
-		echo 'gofumpt errors'; \
-		echo ''; \
-		echo -e "\e[0;34m→\e[0m To display the needed changes run:"; \
-		echo '    make gofumpt.display'; \
-		echo ''; \
-		echo -e "\e[0;34m→\e[0m To fix them run:"; \
-		echo '    make gofumpt.fix'; \
-		echo ''; \
-		exit 1; \
-	fi
-	@echo ''
+	gofumpt -w `$(GO_FILES)`
 
 .PHONY: gofumpt.display
 gofumpt.display:
-	$(TOOLS_BIN)/gofumpt -d `$(GO_FOLDERS)`
-
-.PHONY: gofumpt.fix
-gofumpt.fix:
-	$(TOOLS_BIN)/gofumpt -w `$(GO_FOLDERS)`
+	gofumpt -d `$(GO_FILES)`
 ## </gofumpt>
 
 ## <gofmt>
 .PHONY: gofmt
 gofmt:
-	@echo 'gofmt -l `$(GO_FOLDERS)`'
-	@if [[ -n "$$(gofmt -l `$(GO_FOLDERS)` | tee /dev/stderr)" ]]; then \
-		echo 'gofmt errors'; \
-		echo ''; \
-		echo -e "\e[0;34m→\e[0m To display the needed changes run:"; \
-		echo '    make gofmt.display'; \
-		echo ''; \
-		echo -e "\e[0;34m→\e[0m To fix them run:"; \
-		echo '    make gofmt.fix'; \
-		echo ''; \
-		exit 1; \
-	fi
-	@echo ''
+	gofmt -w `$(GO_FILES)`
 
 .PHONY: gofmt.display
 gofmt.display:
-	gofmt -d `$(GO_FOLDERS)`
-
-.PHONY: gofmt.fix
-gofmt.fix:
-	gofmt -w `$(GO_FOLDERS)`
+	gofmt -d `$(GO_FILES)`
 ## </gofmt>
 
 ## <gojq>
