@@ -28,7 +28,7 @@ func TestStringCaster(t *testing.T) {
 		},
 	}
 
-	caster := newStringCaster()
+	caster := NewCaster()
 	runSingleCastTestCases[string](t, testCases, caster.AsString)
 }
 
@@ -88,6 +88,6 @@ func TestStringSliceCaster(t *testing.T) {
 		},
 	}
 
-	caster := newStringCaster()
+	caster := NewCaster()
 	runSingleCastTestCases(t, testCases, caster.AsStringSlice)
 }

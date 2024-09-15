@@ -7,13 +7,7 @@ import (
 	"github.com/moukoublen/pick/cast/slices"
 )
 
-type stringCaster struct{}
-
-func newStringCaster() stringCaster {
-	return stringCaster{}
-}
-
-func (sc stringCaster) AsString(input any) (string, error) {
+func (c Caster) AsString(input any) (string, error) {
 	switch origin := input.(type) {
 	case int:
 		return strconv.FormatInt(int64(origin), 10), nil
@@ -60,13 +54,13 @@ func (sc stringCaster) AsString(input any) (string, error) {
 	default:
 		// try to cast to basic (in case input is ~basic)
 		if basic, err := tryCastToBasicType(input); err == nil {
-			return sc.AsString(basic)
+			return c.AsString(basic)
 		}
 
 		return tryReflectConvert[string](input)
 	}
 }
 
-func (sc stringCaster) AsStringSlice(input any) ([]string, error) {
-	return slices.Map(input, slices.MapOpFn(sc.AsString))
+func (c Caster) AsStringSlice(input any) ([]string, error) {
+	return slices.Map(input, slices.MapOpFn(c.AsString))
 }

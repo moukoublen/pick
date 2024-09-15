@@ -8,7 +8,7 @@ import (
 func TestDurationCaster(t *testing.T) {
 	t.Parallel()
 
-	caster := newDurationCaster()
+	caster := NewCaster()
 
 	testCases := []singleCastTestCase[time.Duration]{
 		{

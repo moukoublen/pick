@@ -10,25 +10,31 @@ import (
 
 type Caster struct {
 	directCastFunctionsTypes directCastFunctionsTypes
-	floatCaster
-	stringCaster
-	boolCaster
-	timeCaster
-	durationCaster
-	integerCaster
-	byteCaster
+	intCaster                intCast[int]
+	int8Caster               intCast[int8]
+	int16Caster              intCast[int16]
+	int32Caster              intCast[int32]
+	int64Caster              intCast[int64]
+	uintCaster               intCast[uint]
+	uint8Caster              intCast[uint8]
+	uint16Caster             intCast[uint16]
+	uint32Caster             intCast[uint32]
+	uint64Caster             intCast[uint64]
 }
 
 func NewCaster() Caster {
 	return Caster{
-		floatCaster:              newFloatCaster(),
-		stringCaster:             newStringCaster(),
-		boolCaster:               newBoolCaster(),
-		timeCaster:               newTimeCaster(),
-		durationCaster:           newDurationCaster(),
-		integerCaster:            newIntegerCaster(),
-		byteCaster:               newByteCaster(),
 		directCastFunctionsTypes: castFunctionTypes,
+		intCaster:                newIntCast[int](),
+		int8Caster:               newIntCast[int8](),
+		int16Caster:              newIntCast[int16](),
+		int32Caster:              newIntCast[int32](),
+		int64Caster:              newIntCast[int64](),
+		uintCaster:               newIntCast[uint](),
+		uint8Caster:              newIntCast[uint8](),
+		uint16Caster:             newIntCast[uint16](),
+		uint32Caster:             newIntCast[uint32](),
+		uint64Caster:             newIntCast[uint64](),
 	}
 }
 

@@ -20,6 +20,6 @@ func TestBoolCaster(t *testing.T) {
 		},
 	}
 
-	caster := newBoolCaster()
+	caster := NewCaster()
 	runSingleCastTestCases[bool](t, testCases, caster.AsBool)
 }

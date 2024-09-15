@@ -8,13 +8,7 @@ import (
 	"github.com/moukoublen/pick/cast/slices"
 )
 
-type floatCaster struct{}
-
-func newFloatCaster() floatCaster {
-	return floatCaster{}
-}
-
-func (fc floatCaster) AsFloat64(input any) (float64, error) {
+func (c Caster) AsFloat64(input any) (float64, error) {
 	switch origin := input.(type) {
 	case int:
 		return float64(origin), nil
@@ -50,9 +44,9 @@ func (fc floatCaster) AsFloat64(input any) (float64, error) {
 		}
 		return v, nil
 	case json.Number:
-		return fc.AsFloat64(string(origin))
+		return c.AsFloat64(string(origin))
 	case []byte:
-		return fc.AsFloat64(string(origin))
+		return c.AsFloat64(string(origin))
 
 	case bool:
 		if origin {
@@ -66,14 +60,14 @@ func (fc floatCaster) AsFloat64(input any) (float64, error) {
 	default:
 		// try to cast to basic (in case is ~basic)
 		if basic, err := tryCastToBasicType(input); err == nil {
-			return fc.AsFloat64(basic)
+			return c.AsFloat64(basic)
 		}
 
 		return tryReflectConvert[float64](input)
 	}
 }
 
-func (fc floatCaster) AsFloat32(input any) (float32, error) {
+func (c Caster) AsFloat32(input any) (float32, error) {
 	switch origin := input.(type) {
 	case int:
 		return float32(origin), nil
@@ -112,9 +106,9 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 		}
 		return float32(v), nil
 	case json.Number:
-		return fc.AsFloat32(string(origin))
+		return c.AsFloat32(string(origin))
 	case []byte:
-		return fc.AsFloat32(string(origin))
+		return c.AsFloat32(string(origin))
 
 	case bool:
 		if origin {
@@ -128,17 +122,17 @@ func (fc floatCaster) AsFloat32(input any) (float32, error) {
 	default:
 		// try to cast to basic (in case input is ~basic)
 		if basic, err := tryCastToBasicType(input); err == nil {
-			return fc.AsFloat32(basic)
+			return c.AsFloat32(basic)
 		}
 
 		return tryReflectConvert[float32](input)
 	}
 }
 
-func (fc floatCaster) AsFloat32Slice(input any) ([]float32, error) {
-	return slices.Map(input, slices.MapOpFn(fc.AsFloat32))
+func (c Caster) AsFloat32Slice(input any) ([]float32, error) {
+	return slices.Map(input, slices.MapOpFn(c.AsFloat32))
 }
 
-func (fc floatCaster) AsFloat64Slice(input any) ([]float64, error) {
-	return slices.Map(input, slices.MapOpFn(fc.AsFloat64))
+func (c Caster) AsFloat64Slice(input any) ([]float64, error) {
+	return slices.Map(input, slices.MapOpFn(c.AsFloat64))
 }

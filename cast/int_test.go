@@ -240,7 +240,7 @@ func TestUint64CastValid(t *testing.T) {
 }
 
 func BenchmarkIntCaster(b *testing.B) {
-	ic := newIntegerCaster()
+	ic := NewCaster()
 
 	tests := []any{
 		int8(123),

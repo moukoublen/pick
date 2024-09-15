@@ -6,23 +6,13 @@ import (
 	"github.com/moukoublen/pick/cast/slices"
 )
 
-type byteCaster struct {
-	uint8Caster intCast[uint8]
-}
-
-func newByteCaster() byteCaster {
-	return byteCaster{
-		uint8Caster: newIntCast[uint8](),
-	}
-}
-
-func (bc byteCaster) AsByte(input any) (byte, error) {
+func (c Caster) AsByte(input any) (byte, error) {
 	switch origin := input.(type) {
 	case byte:
 		return origin, nil
 
 	case int, int8, int16, int32, int64, uint, uint16, uint32, uint64, float32, float64, bool:
-		return bc.uint8Caster.cast(input)
+		return c.uint8Caster.cast(input)
 
 	case string:
 		return byte(0), newCastError(ErrInvalidType, input)
@@ -31,9 +21,9 @@ func (bc byteCaster) AsByte(input any) (byte, error) {
 		if err != nil {
 			return 0, newCastError(err, input)
 		}
-		return bc.AsByte(n)
+		return c.AsByte(n)
 	case []byte:
-		return bc.AsByte(string(origin))
+		return c.AsByte(string(origin))
 
 	case nil:
 		return 0, nil
@@ -41,14 +31,14 @@ func (bc byteCaster) AsByte(input any) (byte, error) {
 	default:
 		// try to cast to basic (in case input is ~basic)
 		if basic, err := tryCastToBasicType(input); err == nil {
-			return bc.AsByte(basic)
+			return c.AsByte(basic)
 		}
 
 		return tryReflectConvert[byte](input)
 	}
 }
 
-func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {
+func (c Caster) AsByteSlice(input any) ([]byte, error) {
 	switch cc := input.(type) {
 	case []byte:
 		return cc, nil
@@ -58,5 +48,5 @@ func (bc byteCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return slices.Map(input, slices.MapOpFn(bc.AsByte))
+	return slices.Map(input, slices.MapOpFn(c.AsByte))
 }
