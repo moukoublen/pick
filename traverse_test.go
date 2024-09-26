@@ -150,17 +150,23 @@ func TestDefaultTraverser(t *testing.T) {
 		},
 
 		"mixed access level 3 with struct using wrong index": {
-			input:       map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:        []Key{Field("one"), Field("two"), Index(12)},
-			expected:    nil,
-			expectedErr: testingx.ExpectedErrorStringContains("reflect: Field index out of range"),
+			input:    map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:     []Key{Field("one"), Field("two"), Index(12)},
+			expected: nil,
+			expectedErr: testingx.ExpectedErrorChecks(
+				testingx.ExpectedErrorIsOfType(&TraverseError{}),
+				testingx.ExpectedErrorStringContains("reflect: Field index out of range"),
+			),
 		},
 
 		"mixed access level 3 with struct using wrong field": {
-			input:       map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
-			keys:        []Key{Field("one"), Field("two"), Field("Wrong")},
-			expected:    nil,
-			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
+			input:    map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
+			keys:     []Key{Field("one"), Field("two"), Field("Wrong")},
+			expected: nil,
+			expectedErr: testingx.ExpectedErrorChecks(
+				testingx.ExpectedErrorIsOfType(&TraverseError{}),
+				testingx.ExpectedErrorIs(ErrFieldNotFound),
+			),
 		},
 
 		"mixed access level 3 with pointer struct": {

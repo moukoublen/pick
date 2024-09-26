@@ -57,8 +57,7 @@ linters-settings:
   unused:
     field-writes-are-uses: false
     post-statements-are-reads: false
-    exported-is-used: true
-    exported-fields-are-used: false
+    exported-fields-are-used: true
     parameters-are-used: true
     local-variables-are-used: false
     generated-is-used: true

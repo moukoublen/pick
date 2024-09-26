@@ -23,6 +23,15 @@ func AssertError(t *testing.T, assertErrFn func(*testing.T, error), err error) {
 	}
 }
 
+func ExpectedErrorChecks(expected ...func(*testing.T, error)) func(*testing.T, error) {
+	return func(t *testing.T, err error) {
+		t.Helper()
+		for _, fn := range expected {
+			fn(t, err)
+		}
+	}
+}
+
 func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
