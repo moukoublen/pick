@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-
 set -e
 
 # https://git-scm.com/docs/git-status

@@ -1,11 +1,14 @@
+# yaml-language-server: $schema=https://golangci-lint.run/jsonschema/golangci.jsonschema.json
+
 # https://golangci-lint.run/usage/configuration/
+# https://golangci-lint.run/usage/linters/
 
 run:
+  concurrency: 0
   go: '1.22'
   timeout: 10m
   issues-exit-code: 1
   tests: true
-  #skip-dirs-use-default: true
   modules-download-mode: readonly
 
 output:
@@ -19,6 +22,9 @@ output:
 linters:
   enable-all: true
   disable:
+    - exportloopref # deprecated
+    - execinquery   # deprecated
+    - gomnd         # deprecated
     - nlreturn
     - wsl
     - lll
@@ -37,6 +43,7 @@ linters:
 issues:
   # https://golangci-lint.run/usage/false-positives/#default-exclusions
   exclude-use-default: true
+  exclude-dirs-use-default: true
   include:
     - EXC0004
     - EXC0005

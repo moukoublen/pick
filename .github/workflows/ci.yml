@@ -50,6 +50,9 @@ jobs:
         echo ""
         make env
 
+    - name: Check shell files
+      run: make ci-sh
+
     - name: make mod
       run: make ci-mod
 
@@ -60,7 +63,7 @@ jobs:
       run: make staticcheck
 
     - name: golangci-lint
-      run: make golangci-lint-github-actions
+      run: make golangci-lint
 
     - name: Test
       run: make test

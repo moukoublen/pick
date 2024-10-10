@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e
+#set -u
+set -o pipefail
+
+# should be called from root dir.
+
+_for_each_script() {
+  find ./ \
+    -type f \
+    -not -path './.git/*' \
+    -not -path './vendor/*' \
+    -executable \
+    -print0 | while IFS= read -r -d '' file; do
+    if file "${file}" | grep -qE 'shell script|POSIX shell script|Bourne-Again shell script|bash script|a sh script'; then
+      echo "${*} ${file}"
+      "${@}" "${file}"
+    fi
+  done
+}
+
+_for_each_script shfmt --simplify --language-dialect auto --case-indent --indent 2 --write
+_for_each_script shellcheck --external-sources --format=tty --severity=info

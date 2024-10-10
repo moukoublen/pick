@@ -55,7 +55,7 @@ func TestTimeCaster(t *testing.T) {
 		{
 			input:       stringAlias("abcd"),
 			expected:    time.Time{},
-			expectedErr: testingx.ExpectedErrorIsOfType(&time.ParseError{}),
+			expectedErr: testingx.ExpectedErrorIsOfType[*time.ParseError](),
 		},
 		{
 			input:       stringAlias("2023-11-14T15:04:05+04:00"),

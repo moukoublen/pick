@@ -13,7 +13,8 @@ tools: \
 	$(TOOLS_BIN)/staticcheck \
 	$(TOOLS_BIN)/golangci-lint \
 	$(TOOLS_BIN)/gofumpt \
-	$(TOOLS_BIN)/gojq
+	$(TOOLS_BIN)/gojq \
+	$(TOOLS_BIN)/shfmt
 
 .PHONY: clean-tools
 clean-tools:
@@ -64,19 +65,14 @@ $(TOOLS_BIN)/golangci-lint: $(TOOLS_DB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_
 
 .PHONY: golangci-lint
 golangci-lint: $(TOOLS_BIN)/golangci-lint
-	$(TOOLS_BIN)/golangci-lint run
-	@echo ''
-
-.PHONY: golangci-lint-github-actions
-golangci-lint-github-actions: $(TOOLS_BIN)/golangci-lint
-	golangci-lint run --out-format github-actions
+	golangci-lint run --out-format colored-line-number
 	@echo ''
 ## </golangci-lint>
 
 ## <goimports>
 # https://pkg.go.dev/golang.org/x/tools?tab=versions
 GOIMPORTS_CMD := golang.org/x/tools/cmd/goimports
-GOIMPORTS_VER := v0.25.0
+GOIMPORTS_VER := v0.26.0
 $(TOOLS_BIN)/goimports: $(TOOLS_DB)/goimports.$(GOIMPORTS_VER).$(GO_VER).ver
 	$(call go_install,goimports,$(GOIMPORTS_CMD),$(GOIMPORTS_VER))
 
@@ -125,3 +121,14 @@ $(TOOLS_BIN)/gojq: $(TOOLS_DB)/gojq.$(GOJQ_VER).$(GO_VER).ver
 .PHONY: gojq
 gojq: $(TOOLS_BIN)/gojq
 ## </gojq>
+
+## <shfmt>
+# https://github.com/mvdan/sh/releases
+SHFMT_CMD := mvdan.cc/sh/v3/cmd/shfmt
+SHFMT_VER := v3.9.0
+$(TOOLS_BIN)/shfmt: $(TOOLS_DB)/shfmt.$(SHFMT_VER).$(GO_VER).ver
+	$(call go_install,shfmt,$(SHFMT_CMD),$(SHFMT_VER))
+
+.PHONY: shfmt
+shfmt: $(TOOLS_BIN)/shfmt
+## <shfmt>

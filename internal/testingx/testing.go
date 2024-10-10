@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/moukoublen/pick/internal/errorsx"
 )
 
 func AssertError(t *testing.T, assertErrFn func(*testing.T, error), err error) {
@@ -43,45 +45,14 @@ func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 	}
 }
 
-func ExpectedErrorIsOfType(expected error) func(*testing.T, error) {
+func ExpectedErrorIsOfType[T error]() func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		if !errorIsOfType(err, expected) {
-			t.Errorf("Error type check failed.\nExpected error type: %T\nGot                : %T(%s)", expected, err, err)
+		if !errorsx.OfType[T](err) {
+			var tErr T
+			t.Errorf("Error type check failed.\nExpected error type: %T\nGot                : %T(%s)", tErr, err, err)
 		}
 	}
-}
-
-func errorIsOfType(err, expected error) bool {
-	expectedType := reflect.TypeOf(expected)
-	return atLeastOneError(err, func(e error) bool {
-		tp := reflect.TypeOf(e)
-		return tp == expectedType
-	})
-}
-
-func atLeastOneError(err error, check func(error) bool) bool {
-	if err == nil {
-		return false
-	}
-
-	if check(err) {
-		return true
-	}
-
-	switch x := err.(type) { //nolint:errorlint
-	case interface{ Unwrap() error }:
-		return atLeastOneError(x.Unwrap(), check)
-	case interface{ Unwrap() []error }:
-		for _, err := range x.Unwrap() {
-			if atLeastOneError(err, check) {
-				return true
-			}
-		}
-		return false
-	}
-
-	return false
 }
 
 func ExpectedErrorStringContains(s string) func(*testing.T, error) {

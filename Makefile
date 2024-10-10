@@ -82,3 +82,8 @@ ci-format: goimports gofumpt
 .PHONY: ci-mod
 ci-mod: mod
 	./scripts/git-check-dirty
+
+.PHONY: ci-sh
+ci-sh: shfmt
+	@./scripts/sh-checks
+	@./scripts/git-check-dirty
