@@ -49,6 +49,8 @@ issues:
     - EXC0005
     - EXC0006
   exclude-rules:
+    - path: 'error_test.go'
+      linters: [thelper, errorlint]
     - path: '(.+)_test\.go'
       linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx, gocyclo, err113]
     # Exclude govet fieldalignment in tests.

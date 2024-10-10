@@ -9,8 +9,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/moukoublen/pick/internal/errorsx"
 )
 
 func AssertError(t *testing.T, assertErrFn func(*testing.T, error), err error) {
@@ -45,12 +43,18 @@ func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 	}
 }
 
-func ExpectedErrorIsOfType[T error]() func(*testing.T, error) {
+func ExpectedErrorOfType[T error](extraAsserts ...func(*testing.T, T)) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
-		if !errorsx.OfType[T](err) {
+
+		var wantErr T
+		if !errors.As(err, &wantErr) {
 			var tErr T
 			t.Errorf("Error type check failed.\nExpected error type: %T\nGot                : %T(%s)", tErr, err, err)
+		} else {
+			for _, e := range extraAsserts {
+				e(t, wantErr)
+			}
 		}
 	}
 }

@@ -36,8 +36,3 @@ func (r *recoveredPanicError) Unwrap() error {
 	err, _ := r.recovered.(error)
 	return err
 }
-
-func OfType[E error](err error) bool {
-	var e E
-	return errors.As(err, &e)
-}

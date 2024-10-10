@@ -154,7 +154,7 @@ func TestDefaultTraverser(t *testing.T) {
 			keys:     []Key{Field("one"), Field("two"), Index(12)},
 			expected: nil,
 			expectedErr: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorIsOfType[*TraverseError](),
+				testingx.ExpectedErrorOfType[*TraverseError](),
 				testingx.ExpectedErrorStringContains("reflect: Field index out of range"),
 			),
 		},
@@ -164,7 +164,7 @@ func TestDefaultTraverser(t *testing.T) {
 			keys:     []Key{Field("one"), Field("two"), Field("Wrong")},
 			expected: nil,
 			expectedErr: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorIsOfType[*TraverseError](),
+				testingx.ExpectedErrorOfType[*TraverseError](),
 				testingx.ExpectedErrorIs(ErrFieldNotFound),
 			),
 		},
