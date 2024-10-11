@@ -22,7 +22,7 @@ type recoveredPanicError struct {
 
 func (r *recoveredPanicError) Error() string {
 	if err, is := r.recovered.(error); is {
-		return fmt.Sprintf("recovered panic: %s", err.Error())
+		return "recovered panic: " + err.Error()
 	}
 
 	return fmt.Sprintf("recovered panic: %#v", r.recovered)
