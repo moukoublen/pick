@@ -36,7 +36,7 @@ func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
 		for _, expected := range allExpectedErrors {
-			if is := errors.Is(err, expected); !is {
+			if !errors.Is(err, expected) {
 				t.Errorf("error unexpected.\nExpected error: %T(%s) \nGot           : %T(%s)", expected, expected.Error(), err, err.Error())
 			}
 		}
@@ -102,17 +102,17 @@ func AssertEqual(t *testing.T, subject, expected any) {
 func compareFn(expected any) func(any, any) bool {
 	switch expected.(type) {
 	case float32:
-		return CompareFloat32
+		return compareFloat32
 	case float64:
-		return CompareFloat64
+		return compareFloat64
 	case time.Time:
-		return CompareTime
+		return compareTime
 	case []float32:
-		return CompareSlicesFn[float32](CompareFloat32)
+		return compareSlicesFn[float32](compareFloat32)
 	case []float64:
-		return CompareSlicesFn[float64](CompareFloat64)
+		return compareSlicesFn[float64](compareFloat64)
 	case []time.Time:
-		return CompareSlicesFn[time.Time](CompareTime)
+		return compareSlicesFn[time.Time](compareTime)
 	default:
 		return reflect.DeepEqual
 	}
@@ -166,7 +166,7 @@ func formatSlice(sl any, elementFormatFn func(any) string) string {
 	return s.String()
 }
 
-func CompareFloat64(a, b any) bool {
+func compareFloat64(a, b any) bool {
 	var (
 		fx      float64
 		fy      float64
@@ -193,7 +193,7 @@ func CompareFloat64(a, b any) bool {
 	return math.Abs(fx-fy) <= thr
 }
 
-func CompareFloat32(a, b any) bool {
+func compareFloat32(a, b any) bool {
 	var (
 		fx      float32
 		fy      float32
@@ -208,10 +208,10 @@ func CompareFloat32(a, b any) bool {
 		return false
 	}
 
-	return CompareFloat64(float64(fx), float64(fy))
+	return compareFloat64(float64(fx), float64(fy))
 }
 
-func CompareTime(x, y any) bool {
+func compareTime(x, y any) bool {
 	var t1, t2 time.Time
 	var isTime bool
 	t1, isTime = x.(time.Time)
@@ -228,7 +228,7 @@ func CompareTime(x, y any) bool {
 	return s1 == s2 // t1.Equal(t2)
 }
 
-func CompareSlicesFn[T any](compareFn func(any, any) bool) func(x, y any) bool {
+func compareSlicesFn[T any](compareFn func(any, any) bool) func(x, y any) bool {
 	return func(x, y any) bool {
 		var (
 			sx, sy  []T
