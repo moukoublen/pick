@@ -553,6 +553,15 @@ func TestSet(t *testing.T) {
 		caster: cast.NewCaster(),
 	}
 
+	type Foo struct {
+		F1 int32
+		F2 string
+		F3 struct {
+			I1 int32
+			I2 string
+		}
+	}
+
 	tests := map[string]struct {
 		Destination   any
 		Path          []Key
@@ -605,10 +614,35 @@ func TestSet(t *testing.T) {
 				"c",
 			},
 		},
+		"1 level struct set field pointer struct": {
+			Destination: &Foo{
+				F1: 10,
+				F2: "test",
+			},
+			Path:          []Key{Field("F1")},
+			ValueToSet:    12,
+			ExpectedError: nil,
+			Expected: &Foo{
+				F1: 12,
+				F2: "test",
+			},
+		},
+		"1 level struct set field": {
+			Destination: Foo{
+				F1: 10,
+				F2: "test",
+			},
+			Path:          []Key{Field("F1")},
+			ValueToSet:    12,
+			ExpectedError: nil,
+			Expected: Foo{
+				F1: 12,
+				F2: "test",
+			},
+		},
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			err := dt.Set(tc.Destination, tc.Path, tc.ValueToSet)
 			testingx.AssertError(t, tc.ExpectedError, err)

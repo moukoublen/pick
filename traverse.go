@@ -189,7 +189,22 @@ func (d DefaultTraverser) getValueFromStruct(item any, key Key) (returnValue ref
 	return resultValue, nil
 }
 
-func (d DefaultTraverser) Set(data any, path []Key, newValue any) error {
+func (d DefaultTraverser) Set(data any, path []Key, newValue any) (rErr error) {
+	defer errorsx.RecoverPanicToError(&rErr)
+
+	// optimized for map[string]any
+	if ma, is := data.(map[string]any); is {
+		return d.setToMapStringAny(ma, path, newValue)
+	}
+
+	// optimized for *map[string]any
+	if ma, is := data.(*map[string]any); is {
+		if ma == nil {
+			ma = &map[string]any{}
+		}
+		return d.setToMapStringAny(*ma, path, newValue)
+	}
+
 	var (
 		valueOfDest = reflect.ValueOf(data)
 		typeOfDest  = reflect.TypeOf(data)
@@ -227,6 +242,16 @@ func (d DefaultTraverser) Set(data any, path []Key, newValue any) error {
 
 	// set value using lastKey
 	return d.setWithReflect(valueOfDest, typeOfDest, kindOfDest, lastKey, newValue)
+}
+
+// setToMapStringAny is the optimistic flow that assumes only map[string]any
+func (d DefaultTraverser) setToMapStringAny(ma map[string]any, path []Key, newValue any) error {
+	if len(path) == 0 {
+		// tbd
+	}
+
+	for _, p := range path {
+	}
 }
 
 func (d DefaultTraverser) accessWithReflect(typeOfItem reflect.Type, kindOfItem reflect.Kind, valueOfItem reflect.Value, key Key) (reflect.Value, error) {
@@ -272,7 +297,7 @@ func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDe
 			return errors.Join(ErrKeyCast, err)
 		}
 		dst := valueOfDestItem.FieldByName(fieldName)
-		return d.setReflectValue(dst, valueOfDestItem)
+		return d.setReflectValue(dst, valueToSet)
 
 	case reflect.Array, reflect.Slice:
 		itemIndex, err := d.caster.AsInt(key.Any())
@@ -300,7 +325,9 @@ func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDe
 		return nil
 
 	case reflect.Pointer:
-		return ErrDestinationValueNotValid
+		// return ErrDestinationValueNotValid
+		v := valueOfDestItem.Elem()
+		return d.setWithReflect(v, v.Type(), v.Kind(), key, valueToSet)
 	case reflect.Interface:
 		v := valueOfDestItem.Elem()
 		return d.setWithReflect(v, v.Type(), v.Kind(), key, valueToSet)
