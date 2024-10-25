@@ -9,32 +9,32 @@ import (
 )
 
 type DefaultCaster struct {
-	directCastFunctionsTypes directCastFunctionsTypes
-	intCaster                intCast[int]
-	int8Caster               intCast[int8]
-	int16Caster              intCast[int16]
-	int32Caster              intCast[int32]
-	int64Caster              intCast[int64]
-	uintCaster               intCast[uint]
-	uint8Caster              intCast[uint8]
-	uint16Caster             intCast[uint16]
-	uint32Caster             intCast[uint32]
-	uint64Caster             intCast[uint64]
+	basicTypes   basicTypes
+	intCaster    intCast[int]
+	int8Caster   intCast[int8]
+	int16Caster  intCast[int16]
+	int32Caster  intCast[int32]
+	int64Caster  intCast[int64]
+	uintCaster   intCast[uint]
+	uint8Caster  intCast[uint8]
+	uint16Caster intCast[uint16]
+	uint32Caster intCast[uint32]
+	uint64Caster intCast[uint64]
 }
 
 func NewDefaultCaster() DefaultCaster {
 	return DefaultCaster{
-		directCastFunctionsTypes: castFunctionTypes,
-		intCaster:                newIntCast[int](),
-		int8Caster:               newIntCast[int8](),
-		int16Caster:              newIntCast[int16](),
-		int32Caster:              newIntCast[int32](),
-		int64Caster:              newIntCast[int64](),
-		uintCaster:               newIntCast[uint](),
-		uint8Caster:              newIntCast[uint8](),
-		uint16Caster:             newIntCast[uint16](),
-		uint32Caster:             newIntCast[uint32](),
-		uint64Caster:             newIntCast[uint64](),
+		basicTypes:   castFunctionTypes,
+		intCaster:    newIntCast[int](),
+		int8Caster:   newIntCast[int8](),
+		int16Caster:  newIntCast[int16](),
+		int32Caster:  newIntCast[int32](),
+		int64Caster:  newIntCast[int64](),
+		uintCaster:   newIntCast[uint](),
+		uint8Caster:  newIntCast[uint8](),
+		uint16Caster: newIntCast[uint16](),
+		uint32Caster: newIntCast[uint32](),
+		uint64Caster: newIntCast[uint64](),
 	}
 }
 
@@ -50,81 +50,81 @@ func NewDefaultCaster() DefaultCaster {
 func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
 	// if target type is a basic type.
 	switch asType {
-	case c.directCastFunctionsTypes.typeOfBool:
+	case c.basicTypes.typeOfBool:
 		return c.AsBool(input)
 	// case c.directCastFunctionsTypes.typeOfByte: // there is no distinguish type for byte. Its only uint8.
 	// 	return c.AsByte(input)
-	case c.directCastFunctionsTypes.typeOfInt8:
+	case c.basicTypes.typeOfInt8:
 		return c.AsInt8(input)
-	case c.directCastFunctionsTypes.typeOfInt16:
+	case c.basicTypes.typeOfInt16:
 		return c.AsInt16(input)
-	case c.directCastFunctionsTypes.typeOfInt32:
+	case c.basicTypes.typeOfInt32:
 		return c.AsInt32(input)
-	case c.directCastFunctionsTypes.typeOfInt64:
+	case c.basicTypes.typeOfInt64:
 		return c.AsInt64(input)
-	case c.directCastFunctionsTypes.typeOfInt:
+	case c.basicTypes.typeOfInt:
 		return c.AsInt(input)
-	case c.directCastFunctionsTypes.typeOfUint8:
+	case c.basicTypes.typeOfUint8:
 		return c.AsUint8(input)
-	case c.directCastFunctionsTypes.typeOfUint16:
+	case c.basicTypes.typeOfUint16:
 		return c.AsUint16(input)
-	case c.directCastFunctionsTypes.typeOfUint32:
+	case c.basicTypes.typeOfUint32:
 		return c.AsUint32(input)
-	case c.directCastFunctionsTypes.typeOfUint64:
+	case c.basicTypes.typeOfUint64:
 		return c.AsUint64(input)
-	case c.directCastFunctionsTypes.typeOfUint:
+	case c.basicTypes.typeOfUint:
 		return c.AsUint(input)
-	case c.directCastFunctionsTypes.typeOfFloat32:
+	case c.basicTypes.typeOfFloat32:
 		return c.AsFloat32(input)
-	case c.directCastFunctionsTypes.typeOfFloat64:
+	case c.basicTypes.typeOfFloat64:
 		return c.AsFloat64(input)
-	case c.directCastFunctionsTypes.typeOfString:
+	case c.basicTypes.typeOfString:
 		return c.AsString(input)
-	case c.directCastFunctionsTypes.typeOfTime:
+	case c.basicTypes.typeOfTime:
 		return c.AsTime(input)
-	case c.directCastFunctionsTypes.typeOfDuration:
+	case c.basicTypes.typeOfDuration:
 		return c.AsDuration(input)
 
-	case c.directCastFunctionsTypes.typeOfSliceBool:
+	case c.basicTypes.typeOfSliceBool:
 		return c.AsBoolSlice(input)
 	// case c.directCastFunctionsTypes.typeOfSliceByte: // there is no distinguish type for byte. Its only uint8.
 	// 	return c.AsByteSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt8:
+	case c.basicTypes.typeOfSliceInt8:
 		return c.AsInt8Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt16:
+	case c.basicTypes.typeOfSliceInt16:
 		return c.AsInt16Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt32:
+	case c.basicTypes.typeOfSliceInt32:
 		return c.AsInt32Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt64:
+	case c.basicTypes.typeOfSliceInt64:
 		return c.AsInt64Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt:
+	case c.basicTypes.typeOfSliceInt:
 		return c.AsIntSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint8:
+	case c.basicTypes.typeOfSliceUint8:
 		return c.AsUint8Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint16:
+	case c.basicTypes.typeOfSliceUint16:
 		return c.AsUint16Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint32:
+	case c.basicTypes.typeOfSliceUint32:
 		return c.AsUint32Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint64:
+	case c.basicTypes.typeOfSliceUint64:
 		return c.AsUint64Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint:
+	case c.basicTypes.typeOfSliceUint:
 		return c.AsUintSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceFloat32:
+	case c.basicTypes.typeOfSliceFloat32:
 		return c.AsFloat32Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceFloat64:
+	case c.basicTypes.typeOfSliceFloat64:
 		return c.AsFloat64Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceString:
+	case c.basicTypes.typeOfSliceString:
 		return c.AsStringSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceTime:
+	case c.basicTypes.typeOfSliceTime:
 		return c.AsTimeSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceDuration:
+	case c.basicTypes.typeOfSliceDuration:
 		return c.AsDurationSlice(input)
 	}
 
 	asKind := asType.Kind()
 
 	// if target type is a basic type alias (e.g. type myString string).
-	if _, isBasicKind := c.directCastFunctionsTypes.basicKindTypeMap[asKind]; isBasicKind {
+	if _, isBasicKind := c.basicTypes.basicKindTypeMap[asKind]; isBasicKind {
 		v, err := c.As(input, asKind)
 		if err != nil {
 			return nil, err

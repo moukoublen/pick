@@ -12,6 +12,7 @@ import (
 type KeyCaster interface {
 	ByType(input any, asType reflect.Type) (any, error)
 	AsInt(item any) (int, error)
+	AsString(item any) (string, error)
 }
 
 type DefaultTraverser struct {
@@ -189,7 +190,22 @@ func (d DefaultTraverser) getValueFromStruct(item any, key Key) (returnValue ref
 	return resultValue, nil
 }
 
-func (d DefaultTraverser) Set(data any, path []Key, newValue any) error {
+func (d DefaultTraverser) Set(data any, path []Key, newValue any) (rErr error) {
+	defer errorsx.RecoverPanicToError(&rErr)
+
+	// optimized for map[string]any
+	if ma, is := data.(map[string]any); is {
+		return d.setToMapStringAny(ma, path, newValue)
+	}
+
+	// optimized for *map[string]any
+	if ma, is := data.(*map[string]any); is {
+		if ma == nil {
+			ma = &map[string]any{}
+		}
+		return d.setToMapStringAny(*ma, path, newValue)
+	}
+
 	var (
 		valueOfDest = reflect.ValueOf(data)
 		typeOfDest  = reflect.TypeOf(data)
@@ -198,7 +214,7 @@ func (d DefaultTraverser) Set(data any, path []Key, newValue any) error {
 
 	if len(path) == 0 {
 		// instant set
-		castedVal, err := d.caster.ByType(newValue, typeOfDest)
+		castedVal, err := d.keyCaster.ByType(newValue, typeOfDest)
 		if err != nil {
 			return err
 		}
@@ -229,12 +245,24 @@ func (d DefaultTraverser) Set(data any, path []Key, newValue any) error {
 	return d.setWithReflect(valueOfDest, typeOfDest, kindOfDest, lastKey, newValue)
 }
 
+// setToMapStringAny is the optimistic flow that assumes only map[string]any
+func (d DefaultTraverser) setToMapStringAny(ma map[string]any, path []Key, newValue any) error {
+	if len(path) == 0 {
+		// tbd
+	}
+
+	// for _, p := range path {
+	// }
+
+	return nil
+}
+
 func (d DefaultTraverser) accessWithReflect(typeOfItem reflect.Type, kindOfItem reflect.Kind, valueOfItem reflect.Value, key Key) (reflect.Value, error) {
 	switch kindOfItem {
 	case reflect.Map:
 		return d.getValueFromMap(typeOfItem, kindOfItem, valueOfItem, key)
 	case reflect.Struct:
-		return d.getValueFromStruct(typeOfItem, kindOfItem, valueOfItem, key)
+		// return d.getValueFromStruct(typeOfItem, kindOfItem, valueOfItem, key)
 	case reflect.Array, reflect.Slice:
 		return d.getValueFromSlice(valueOfItem, key)
 	case reflect.Pointer, reflect.Interface:
@@ -245,6 +273,8 @@ func (d DefaultTraverser) accessWithReflect(typeOfItem reflect.Type, kindOfItem 
 	default:
 		return reflect.Value{}, ErrFieldNotFound
 	}
+
+	return reflect.Value{}, ErrFieldNotFound
 }
 
 func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDestItem reflect.Type, kindOfDestItem reflect.Kind, key Key, valueToSet any) error {
@@ -258,7 +288,7 @@ func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDe
 			return err
 		}
 
-		valCasted, err := d.caster.ByType(valueToSet, elemType)
+		valCasted, err := d.keyCaster.ByType(valueToSet, elemType)
 		if err != nil {
 			return err
 		}
@@ -267,21 +297,21 @@ func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDe
 		return nil
 
 	case reflect.Struct:
-		fieldName, err := d.caster.AsString(key.Any())
+		fieldName, err := d.keyCaster.AsString(key.Any())
 		if err != nil {
 			return errors.Join(ErrKeyCast, err)
 		}
 		dst := valueOfDestItem.FieldByName(fieldName)
-		return d.setReflectValue(dst, valueOfDestItem)
+		return d.setReflectValue(dst, valueToSet)
 
 	case reflect.Array, reflect.Slice:
-		itemIndex, err := d.caster.AsInt(key.Any())
+		itemIndex, err := d.keyCaster.AsInt(key.Any())
 		if err != nil {
 			return errors.Join(ErrKeyCast, err)
 		}
 
 		elemType := typeOfDestItem.Elem()
-		valCasted, err := d.caster.ByType(valueToSet, elemType)
+		valCasted, err := d.keyCaster.ByType(valueToSet, elemType)
 		if err != nil {
 			return err
 		}
@@ -300,7 +330,9 @@ func (d DefaultTraverser) setWithReflect(valueOfDestItem reflect.Value, typeOfDe
 		return nil
 
 	case reflect.Pointer:
-		return ErrDestinationValueNotValid
+		// return ErrDestinationValueNotValid
+		v := valueOfDestItem.Elem()
+		return d.setWithReflect(v, v.Type(), v.Kind(), key, valueToSet)
 	case reflect.Interface:
 		v := valueOfDestItem.Elem()
 		return d.setWithReflect(v, v.Type(), v.Kind(), key, valueToSet)
@@ -321,7 +353,7 @@ func (d DefaultTraverser) setReflectValue(dst reflect.Value, newVal any) (err er
 	dstType := dst.Type()
 
 	var casted any
-	casted, err = d.caster.ByType(newVal, dstType)
+	casted, err = d.keyCaster.ByType(newVal, dstType)
 	if err != nil {
 		return err
 	}
@@ -331,7 +363,7 @@ func (d DefaultTraverser) setReflectValue(dst reflect.Value, newVal any) (err er
 }
 
 func (d DefaultTraverser) keyAsReflectValue(key Key, asType reflect.Type) (reflect.Value, error) {
-	v, err := d.caster.ByType(key.Any(), asType)
+	v, err := d.keyCaster.ByType(key.Any(), asType)
 	if err != nil {
 		return reflect.Value{}, err
 	}
