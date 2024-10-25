@@ -2,7 +2,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/moukoublen/pick)](https://goreportcard.com/report/github.com/moukoublen/pick)
 [![CI Status](https://github.com/moukoublen/pick/actions/workflows/ci.yml/badge.svg)](https://github.com/moukoublen/pick/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/moukoublen/pick/graph/badge.svg?token=6X9MMYZJZ8)](https://codecov.io/gh/moukoublen/pick)
-
+[![CI](https://github.com/moukoublen/pick/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/moukoublen/pick/actions/workflows/ci.yml)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/moukoublen/pick)](https://pkg.go.dev/github.com/moukoublen/pick)
 
 **Pick** is a go package to access (using dot and array notation) and cast any kind of data, using best effort performance and best effort cast. It is an alternative to [stretchr/objx](https://github.com/stretchr/objx) aiming to provide three main things:
 
@@ -177,7 +178,7 @@ sm.Int64("float")          // == int64(2)
 
 Optionally an `ErrorGatherer` could be provided to `.Mast()` initializer to receive and handle each error produced by must operations.
 
-A default implementation of `ErrorGatherer` is the `ErrorsSink`, which gathers all errors into a single one. 
+A default implementation of `ErrorGatherer` is the `ErrorsSink`, which gathers all errors into a single one.
 
 ___
 **Pick** is currently in a pre-alpha stage, a lot of changes going to happen both to api and structure.
