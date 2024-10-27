@@ -343,3 +343,9 @@ var (
 	ErrInvalidSelectorFormatForIndex = errors.New("invalid format for index key")
 	ErrInvalidSelectorFormat         = errors.New("invalid selector format")
 )
+
+// formatPath uses default dot notation formatter to format a path to string.
+func formatPath(path []Key) string {
+	f := dotNotationFormatter{}
+	return f.Format(path...)
+}

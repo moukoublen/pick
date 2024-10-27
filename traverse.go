@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"github.com/moukoublen/pick/internal/errorsx"
 )
@@ -38,7 +37,7 @@ func (d DefaultTraverser) Retrieve(data any, path []Key) (any, error) {
 	for i, field := range path {
 		currentItem, err = d.accessKey(currentItem, field)
 		if err != nil {
-			return currentItem, newTraverseError("error trying to traverse", path, i, err)
+			return currentItem, NewTraverseError("error trying to traverse", path, i, err)
 		}
 	}
 
@@ -203,7 +202,7 @@ type TraverseError struct {
 	fieldIndex int
 }
 
-func newTraverseError(msg string, path []Key, fieldIndex int, inner error) *TraverseError {
+func NewTraverseError(msg string, path []Key, fieldIndex int, inner error) *TraverseError {
 	return &TraverseError{
 		msg:        msg,
 		path:       path,
@@ -218,9 +217,13 @@ func (t *TraverseError) Unwrap() error {
 
 func (t *TraverseError) Error() string {
 	if t.inner != nil {
-		return fmt.Sprintf("selector: %s - %s: %s", formatErrorAt(t.path, t.fieldIndex), t.msg, t.inner.Error())
+		return fmt.Sprintf("selector: %s : %s: %s", formatPath(t.path[:t.fieldIndex+1]), t.msg, t.inner.Error())
 	}
-	return fmt.Sprintf("selector: %s - %s", formatErrorAt(t.path, t.fieldIndex), t.msg)
+	return fmt.Sprintf("selector: %s : %s", formatPath(t.path[:t.fieldIndex+1]), t.msg)
+}
+
+func (t *TraverseError) Path() []Key {
+	return t.path[:t.fieldIndex+1]
 }
 
 var (
@@ -228,28 +231,3 @@ var (
 	ErrIndexOutOfRange = fmt.Errorf("%w: index out of range", ErrFieldNotFound)
 	ErrKeyCast         = errors.New("key cast error")
 )
-
-func formatErrorAt(path []Key, idx int) string {
-	sb := strings.Builder{}
-	for i, c := range path {
-		if c.IsIndex() {
-			if i == idx {
-				sb.WriteString(">")
-			}
-			sb.WriteString(fmt.Sprintf("[%d]", c.Index))
-		} else {
-			if i > 0 {
-				sb.WriteRune(fieldSeparator)
-			}
-			if i == idx {
-				sb.WriteString(">")
-			}
-			sb.WriteString(c.Name)
-		}
-		if i == idx {
-			sb.WriteString("<")
-		}
-	}
-
-	return sb.String()
-}

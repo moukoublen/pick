@@ -59,10 +59,18 @@ func TestDefaultTraverser(t *testing.T) {
 		},
 
 		"index access level 1 out of range": {
-			input:       []any{"one", "two"},
-			keys:        []Key{Index(6)},
-			expected:    nil,
-			expectedErr: testingx.ExpectedErrorIs(ErrIndexOutOfRange),
+			input:    []any{"one", "two"},
+			keys:     []Key{Index(6)},
+			expected: nil,
+			expectedErr: testingx.ExpectedErrorChecks(
+				testingx.ExpectedErrorIs(ErrIndexOutOfRange),
+				testingx.ExpectedErrorOfType[*TraverseError](
+					func(t *testing.T, te *TraverseError) { //nolint:thelper
+						testingx.AssertEqual(t, "selector: [6] : error trying to traverse: field not found: index out of range", te.Error())
+						testingx.AssertEqual(t, te.Path(), []Key{Index(6)})
+					},
+				),
+			),
 		},
 
 		"index access slice of string level 1": {
@@ -101,10 +109,33 @@ func TestDefaultTraverser(t *testing.T) {
 		},
 
 		"name access level 2 but nil": {
-			input:       map[string]any{"one": nil},
-			keys:        []Key{Field("one"), Field("two")},
-			expected:    nil,
-			expectedErr: testingx.ExpectedErrorIs(ErrFieldNotFound),
+			input:    map[string]any{"one": nil},
+			keys:     []Key{Field("one"), Field("two")},
+			expected: nil,
+			expectedErr: testingx.ExpectedErrorChecks(
+				testingx.ExpectedErrorIs(ErrFieldNotFound),
+				testingx.ExpectedErrorOfType[*TraverseError](
+					func(t *testing.T, te *TraverseError) { //nolint:thelper
+						testingx.AssertEqual(t, te.Error(), "selector: one.two : error trying to traverse: field not found")
+						testingx.AssertEqual(t, te.Path(), []Key{Field("one"), Field("two")})
+					},
+				),
+			),
+		},
+
+		"name access level 3 but not exists": {
+			input:    map[string]any{"one": 12},
+			keys:     []Key{Field("one"), Field("two"), Field("tree")},
+			expected: nil,
+			expectedErr: testingx.ExpectedErrorChecks(
+				testingx.ExpectedErrorIs(ErrFieldNotFound),
+				testingx.ExpectedErrorOfType[*TraverseError](
+					func(t *testing.T, te *TraverseError) { //nolint:thelper
+						testingx.AssertEqual(t, te.Error(), "selector: one.two : error trying to traverse: field not found")
+						testingx.AssertEqual(t, te.Path(), []Key{Field("one"), Field("two")})
+					},
+				),
+			),
 		},
 
 		"name access level 2 renamed happy path": {
@@ -354,4 +385,21 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 			}
 		})
 	}
+}
+
+func TestTraverseError(t *testing.T) { //nolint:thelper
+	err1 := NewTraverseError("not good", []Key{Field("one")}, 0, nil)
+	testingx.AssertEqual(t, err1.Error(), "selector: one : not good")
+	testingx.AssertEqual(t, err1.Unwrap(), error(nil))
+	testingx.AssertEqual(t, err1.Path(), []Key{Field("one")})
+
+	err2 := NewTraverseError("not good", []Key{Field("one"), Field("two")}, 0, nil)
+	testingx.AssertEqual(t, err2.Error(), "selector: one : not good")
+	testingx.AssertEqual(t, err2.Unwrap(), error(nil))
+	testingx.AssertEqual(t, err2.Path(), []Key{Field("one")})
+
+	err3 := NewTraverseError("not good", []Key{Field("one"), Field("two"), Index(2)}, 1, ErrFieldNotFound)
+	testingx.AssertEqual(t, err3.Error(), "selector: one.two : not good: field not found")
+	testingx.ExpectedErrorIs(ErrFieldNotFound)(t, err3)
+	testingx.AssertEqual(t, err3.Path(), []Key{Field("one"), Field("two")})
 }
