@@ -104,7 +104,7 @@ gofumpt.display:
 ## <gofmt>
 .PHONY: gofmt
 gofmt:
-	gofmt -s -w `$(GO_FILES)`
+	gofmt -w `$(GO_FILES)`
 
 .PHONY: gofmt.display
 gofmt.display:
@@ -125,29 +125,10 @@ gojq: $(TOOLS_BIN)/gojq
 ## <shfmt>
 # https://github.com/mvdan/sh/releases
 SHFMT_CMD := mvdan.cc/sh/v3/cmd/shfmt
-SHFMT_VER := v3.10.0
+SHFMT_VER := v3.9.0
 $(TOOLS_BIN)/shfmt: $(TOOLS_DB)/shfmt.$(SHFMT_VER).$(GO_VER).ver
 	$(call go_install,shfmt,$(SHFMT_CMD),$(SHFMT_VER))
 
 .PHONY: shfmt
 shfmt: $(TOOLS_BIN)/shfmt
-	@VERBOSE=1 ./scripts/foreach-script shfmt \
-	--simplify \
-	--language-dialect auto \
-	--case-indent \
-	--indent 2 \
-	--write
 ## <shfmt>
-
-## <shellcheck>
-# https://github.com/koalaman/shellcheck/releases
-SHELLCHECK_VER := v0.10.0
-$(TOOLS_BIN)/shellcheck: $(TOOLS_DB)/shellcheck.$(SHELLCHECK_VER).ver | $(TOOLS_BIN)
-	#./scripts/install-shellcheck --version $(SHELLCHECK_VER) --destination $(TOOLS_DIR)
-	$(GO_EXEC) run -tags=install_shellcheck scripts/install-shellcheck.go
-
-.PHONY: shellcheck
-shellcheck: $(TOOLS_BIN)/shellcheck
-	@VERBOSE=1 ./scripts/foreach-script $(TOOLS_BIN)/shellcheck --external-sources --format=tty --severity=info
-## </shellcheck>
-

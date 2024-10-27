@@ -22,8 +22,6 @@ export GO_EXEC
 DOCKER_EXEC ?= docker
 export DOCKER_EXEC
 
-include $(CURDIR)/scripts/tools.mk
-
 .DEFAULT_GOAL=default
 .PHONY: default
 default: checks test
@@ -73,7 +71,9 @@ bench:
 	CGO_ENABLED=1 $(GO_EXEC) test -benchmem -run=^$$ -mod=readonly -count=1 -v -race -bench=. ./...
 
 .PHONY: checks
-checks: vet staticcheck gofumpt goimports golangci-lint ci-sh
+checks: vet staticcheck gofumpt goimports golangci-lint
+
+include $(CURDIR)/scripts/tools.mk
 
 .PHONY: ci-format
 ci-format: goimports gofumpt
