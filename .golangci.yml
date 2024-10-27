@@ -99,7 +99,7 @@ linters-settings:
 
   # https://golangci-lint.run/usage/linters/#gocyclo
   gocyclo:
-    min-complexity: 40
+    min-complexity: 25
 
   # https://golangci-lint.run/usage/linters/#maintidx
   maintidx:
