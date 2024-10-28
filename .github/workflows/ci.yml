@@ -10,11 +10,12 @@ on:
 jobs:
 
   lint-and-test:
-    name: Lints and Tests
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
         go-version: [ '1.22', '1.23' ]
+    name: Lints and Tests
+    runs-on: ${{ matrix.os }}
     steps:
 
     # https://github.com/actions/checkout
@@ -74,4 +75,4 @@ jobs:
       uses: codecov/codecov-action@v4
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      if: matrix.go-version == '1.23' && github.event_name == 'push'
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23' && github.event_name == 'push'
