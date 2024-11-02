@@ -1,6 +1,11 @@
 package pick
 
 import (
+	"errors"
+	"fmt"
+	"reflect"
+
+	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/cast/slices"
 )
 
@@ -74,14 +79,41 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 }
 
 //nolint:ireturn
-func Path[Output any](p *Picker, path []Key, castFn func(any) (Output, error)) (Output, error) {
+func Path[Output any](p *Picker, path []Key) (Output, error) {
 	item, err := p.Path(path)
 	if err != nil {
 		var o Output
 		return o, err
 	}
 
-	return castFn(item)
+	var defaultValue Output
+	return castAs(p.Caster, item, defaultValue)
+}
+
+// OrDefault will return the default value if any error occurs. If the error is ErrFieldNotFound the error will not be returned.
+func OrDefault[Output any](p *Picker, selector string, defaultValue Output) (Output, error) { //nolint:ireturn
+	item, err := p.Any(selector)
+	if err != nil {
+		if errors.Is(err, ErrFieldNotFound) {
+			return defaultValue, nil
+		}
+
+		return defaultValue, err
+	}
+
+	return castAs(p.Caster, item, defaultValue)
+}
+
+// Get resolves the cast type from the generic type.
+func Get[Output any](p *Picker, selector string) (Output, error) { //nolint:ireturn
+	var defaultValue Output
+
+	item, err := p.Any(selector)
+	if err != nil {
+		return defaultValue, err
+	}
+
+	return castAs(p.Caster, item, defaultValue)
 }
 
 //
@@ -162,14 +194,34 @@ func MustFlatMap[Output any](a SelectorMustAPI, selector string, transform func(
 	return flatten[Output](item)
 }
 
-//nolint:ireturn
-func MustPath[Output any](a SelectorMustAPI, path []Key, castFn func(any) (Output, error)) Output {
-	casted, err := Path(a.Picker, path, castFn)
+// MustPath is the version of [Path] that uses SelectorMustAPI.
+func MustPath[Output any](a SelectorMustAPI, path []Key) Output { //nolint:ireturn
+	casted, err := Path[Output](a.Picker, path)
 	if err != nil {
 		selector := DotNotation{}.Format(path...)
 		a.gather(selector, err)
 	}
 	return casted
+}
+
+// MustOrDefault will return the default value if any error occurs. Version of [OrDefault] that uses SelectorMustAPI.
+func MustOrDefault[Output any](a SelectorMustAPI, selector string, defaultValue Output) Output { //nolint:ireturn
+	item, err := OrDefault(a.Picker, selector, defaultValue)
+	if err != nil {
+		a.gather(selector, err)
+	}
+
+	return item
+}
+
+// MustGet resolves the cast type from the generic type. Version of [Get] that uses SelectorMustAPI.
+func MustGet[Output any](a SelectorMustAPI, selector string) Output { //nolint:ireturn
+	item, err := Get[Output](a.Picker, selector)
+	if err != nil {
+		a.gather(selector, err)
+	}
+
+	return item
 }
 
 func flatten[Output any](doubleSlice [][]Output) []Output {
@@ -196,4 +248,18 @@ func parseSelectorAndTraverse(p *Picker, selector string) (any, []Key, error) {
 
 	item, err := p.Path(path)
 	return item, path, err
+}
+
+func castAs[Output any](caster Caster, data any, defaultValue Output) (Output, error) { //nolint:ireturn
+	c, err := caster.ByType(data, reflect.TypeOf(defaultValue))
+	if err != nil {
+		return defaultValue, err
+	}
+
+	asOutput, is := c.(Output)
+	if !is {
+		return defaultValue, fmt.Errorf("casted value cannot be asserted to type: %w", cast.ErrInvalidType) // this is not possible
+	}
+
+	return asOutput, nil
 }
