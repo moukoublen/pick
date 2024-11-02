@@ -353,6 +353,11 @@ func TestByType(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			input:         123,
+			expected:      []int{123},
+			expectedError: nil,
+		},
+		{
 			input:         aliasString("123"),
 			expected:      uint(123),
 			expectedError: nil,

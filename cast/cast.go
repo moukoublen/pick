@@ -131,7 +131,7 @@ func (c Caster) ByType(input any, asType reflect.Type) (any, error) {
 
 	// slice / array
 	if asKind == reflect.Array || asKind == reflect.Slice {
-		return c.sliceByType(input, asType, asType.Elem())
+		return c.sliceByType(input, asType.Elem())
 	}
 
 	// TODO: reflect.Map
@@ -147,18 +147,18 @@ func (c Caster) ByType(input any, asType reflect.Type) (any, error) {
 	return val.Convert(asType).Interface(), nil
 }
 
-func (c Caster) sliceByType(input any, inputType, sliceElemType reflect.Type) (any, error) {
+func (c Caster) sliceByType(input any, asSliceElemType reflect.Type) (any, error) {
 	inputValue := reflect.ValueOf(input)
 
 	sc := 1
-	switch inputType.Kind() {
+	switch inputValue.Kind() {
 	case reflect.Array, reflect.Slice:
 		sc = inputValue.Len()
 	}
-	sliceValue := reflect.MakeSlice(reflect.SliceOf(sliceElemType), sc, sc)
+	sliceValue := reflect.MakeSlice(reflect.SliceOf(asSliceElemType), sc, sc)
 
 	err := slices.ForEach(input, func(item any, meta slices.OpMeta) error {
-		casted, cerr := c.ByType(item, sliceElemType)
+		casted, cerr := c.ByType(item, asSliceElemType)
 		if cerr != nil {
 			return cerr
 		}
