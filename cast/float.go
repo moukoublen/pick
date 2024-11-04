@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/moukoublen/pick/cast/slices"
+	"github.com/moukoublen/pick/slices"
 )
 
 func (c Caster) AsFloat64(input any) (float64, error) {

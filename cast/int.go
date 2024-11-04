@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/moukoublen/pick/cast/slices"
 	"github.com/moukoublen/pick/numbers"
+	"github.com/moukoublen/pick/slices"
 )
 
 func (c Caster) AsInt(input any) (int, error) {

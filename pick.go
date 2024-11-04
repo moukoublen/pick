@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/moukoublen/pick/cast"
-	"github.com/moukoublen/pick/cast/slices"
+	"github.com/moukoublen/pick/slices"
 )
 
 func WrapJSON(js []byte) (*Picker, error) {

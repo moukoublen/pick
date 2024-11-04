@@ -3,7 +3,7 @@ package cast
 import (
 	"encoding/json"
 
-	"github.com/moukoublen/pick/cast/slices"
+	"github.com/moukoublen/pick/slices"
 )
 
 func (c Caster) AsByte(input any) (byte, error) {

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/moukoublen/pick/cast/slices"
 	"github.com/moukoublen/pick/internal/errorsx"
+	"github.com/moukoublen/pick/slices"
 )
 
 type Caster struct {

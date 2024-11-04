@@ -6,7 +6,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/moukoublen/pick/cast/slices"
+	"github.com/moukoublen/pick/slices"
 )
 
 type DurationCastNumberFormat int

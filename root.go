@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	"github.com/moukoublen/pick/cast"
-	"github.com/moukoublen/pick/cast/slices"
+	"github.com/moukoublen/pick/slices"
 )
 
 // This file contains the top-level functions that operates to `Picker` and `SelectorMustAPI`

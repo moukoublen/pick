@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/moukoublen/pick/cast/slices"
+	"github.com/moukoublen/pick/slices"
 )
 
 type TimeCastNumberFormat int
