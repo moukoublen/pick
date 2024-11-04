@@ -9,15 +9,20 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
+type KeyCaster interface {
+	As(input any, asKind reflect.Kind) (any, error)
+	AsInt(item any) (int, error)
+}
+
 type DefaultTraverser struct {
-	caster              Caster
+	keyCaster           KeyCaster
 	nilVal              reflect.Value
 	skipItemDereference bool
 }
 
-func NewDefaultTraverser(caster Caster) DefaultTraverser {
+func NewDefaultTraverser(keyCaster KeyCaster) DefaultTraverser {
 	return DefaultTraverser{
-		caster:              caster,
+		keyCaster:           keyCaster,
 		skipItemDereference: false,
 		nilVal:              reflect.Value{},
 	}
@@ -130,14 +135,8 @@ func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kin
 	case kindOfMapKey == reflect.String && key.IsIndex():
 		k := strconv.Itoa(key.Index)
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(k))
-	case key.IsField():
-		key, err := d.caster.As(key.Name, kindOfMapKey)
-		if err != nil {
-			return d.nilVal, errors.Join(ErrKeyCast, err)
-		}
-		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
-	case key.IsIndex():
-		key, err := d.caster.As(key.Index, kindOfMapKey)
+	default:
+		key, err := d.keyCaster.As(key.Any(), kindOfMapKey)
 		if err != nil {
 			return d.nilVal, errors.Join(ErrKeyCast, err)
 		}
@@ -160,7 +159,7 @@ func (d DefaultTraverser) getValueFromSlice(valueOfItem reflect.Value, key Key) 
 		resultValue = valueOfItem.Index(idx)
 	} else if key.IsField() {
 		// try to cast to int
-		i, err := d.caster.AsInt(key.Name)
+		i, err := d.keyCaster.AsInt(key.Name)
 		if err != nil {
 			return d.nilVal, errors.Join(ErrKeyCast, err)
 		}

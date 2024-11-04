@@ -223,7 +223,7 @@ func TestDefaultTraverser(t *testing.T) {
 	}
 
 	dt := DefaultTraverser{
-		caster: cast.NewCaster(),
+		keyCaster: cast.NewCaster(),
 	}
 
 	for name, tc := range tests {
@@ -375,7 +375,7 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 	}
 
 	dt := DefaultTraverser{
-		caster: cast.NewCaster(),
+		keyCaster: cast.NewCaster(),
 	}
 
 	for name, tc := range tests {
