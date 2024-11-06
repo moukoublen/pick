@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://json.schemastore.org/codecov
+# yaml-language-server: $schema=https://json.schemastore.org/codecov.json
 # curl --data-binary @codecov.yml https://codecov.io/validate
 
 codecov:

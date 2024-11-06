@@ -80,11 +80,8 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	case KeyTypeIndex:
 		// fast return if item is a slice of basic type.
 		handled, val, err := attemptAccessSliceOfBasicType(item, key.Index)
-		if err != nil {
-			return nil, err
-		}
-		if handled {
-			return val, nil
+		if handled || err != nil {
+			return val, err
 		}
 	}
 
@@ -96,16 +93,13 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	var resultError error
 	switch kindOfItem {
 	case reflect.Map:
-		valueOfItem := reflect.ValueOf(item)
-		resultValue, resultError = d.getValueFromMap(typeOfItem, kindOfItem, valueOfItem, key)
+		resultValue, resultError = d.getValueFromMap(typeOfItem, kindOfItem, item, key)
 
 	case reflect.Struct:
-		valueOfItem := reflect.ValueOf(item)
-		resultValue, resultError = d.getValueFromStruct(valueOfItem, key)
+		resultValue, resultError = d.getValueFromStruct(item, key)
 
 	case reflect.Array, reflect.Slice:
-		valueOfItem := reflect.ValueOf(item)
-		resultValue, resultError = d.getValueFromSlice(valueOfItem, key)
+		resultValue, resultError = d.getValueFromSlice(item, key)
 
 	case reflect.Pointer, reflect.Interface: // if pointer/interface get target and re-call.
 		derefItem := d.deref(item)
@@ -122,8 +116,10 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	return nil, resultError
 }
 
-func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
+func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kind, item any, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
+
+	valueOfItem := reflect.ValueOf(item)
 
 	kindOfMapKey := typeOfItem.Key().Kind()
 
@@ -146,8 +142,10 @@ func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kin
 	return resultValue, nil
 }
 
-func (d DefaultTraverser) getValueFromSlice(valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
+func (d DefaultTraverser) getValueFromSlice(item any, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
+
+	valueOfItem := reflect.ValueOf(item)
 
 	var index int
 	switch key.Type {
@@ -171,8 +169,10 @@ func (d DefaultTraverser) getValueFromSlice(valueOfItem reflect.Value, key Key) 
 	return valueOfItem.Index(idx), nil
 }
 
-func (d DefaultTraverser) getValueFromStruct(valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
+func (d DefaultTraverser) getValueFromStruct(item any, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
+
+	valueOfItem := reflect.ValueOf(item)
 
 	var resultValue reflect.Value
 
