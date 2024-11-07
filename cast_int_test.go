@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
-	"github.com/moukoublen/pick/numbers"
 )
 
 func TestInt64CastValid(t *testing.T) {
@@ -293,7 +292,7 @@ func BenchmarkIntCaster(b *testing.B) {
 	}
 }
 
-func benchmarkIntegerCaster[T numbers.Integer](caster func(any) (T, error), input any) func(*testing.B) {
+func benchmarkIntegerCaster[T Integer](caster func(any) (T, error), input any) func(*testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
 		for i := 0; i < b.N; i++ {

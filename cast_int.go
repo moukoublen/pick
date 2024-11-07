@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/moukoublen/pick/numbers"
 	"github.com/moukoublen/pick/slices"
 )
 
@@ -91,12 +90,12 @@ func (c DefaultCaster) AsUint64Slice(input any) ([]uint64, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsUint64))
 }
 
-type intCast[T numbers.Integer] struct {
+type intCast[T Integer] struct {
 	signed bool
 	kind   reflect.Kind
 }
 
-func newIntCast[T numbers.Integer]() intCast[T] {
+func newIntCast[T Integer]() intCast[T] {
 	ic := intCast[T]{}
 	var t T
 	ic.kind = reflect.TypeOf(t).Kind()
