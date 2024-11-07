@@ -9,15 +9,20 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
+type KeyCaster interface {
+	ByType(input any, asType reflect.Type) (any, error)
+	AsInt(item any) (int, error)
+}
+
 type DefaultTraverser struct {
-	caster              Caster
+	keyCaster           KeyCaster
 	nilVal              reflect.Value
 	skipItemDereference bool
 }
 
-func NewDefaultTraverser(caster Caster) DefaultTraverser {
+func NewDefaultTraverser(keyCaster KeyCaster) DefaultTraverser {
 	return DefaultTraverser{
-		caster:              caster,
+		keyCaster:           keyCaster,
 		skipItemDereference: false,
 		nilVal:              reflect.Value{},
 	}
@@ -73,13 +78,10 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 		}
 
 	case KeyTypeIndex:
-		// fast return if item is []any.
-		if s, isSlice := item.([]any); isSlice {
-			i, err := key.calculateIndex(len(s))
-			if err != nil {
-				return nil, err
-			}
-			return s[i], nil
+		// fast return if item is a slice of basic type.
+		handled, val, err := attemptAccessSliceOfBasicType(item, key.Index)
+		if handled || err != nil {
+			return val, err
 		}
 	}
 
@@ -91,16 +93,13 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	var resultError error
 	switch kindOfItem {
 	case reflect.Map:
-		valueOfItem := reflect.ValueOf(item)
-		resultValue, resultError = d.getValueFromMap(typeOfItem, kindOfItem, valueOfItem, key)
+		resultValue, resultError = d.getValueFromMap(typeOfItem, kindOfItem, item, key)
 
 	case reflect.Struct:
-		valueOfItem := reflect.ValueOf(item)
-		resultValue, resultError = d.getValueFromStruct(typeOfItem, kindOfItem, valueOfItem, key)
+		resultValue, resultError = d.getValueFromStruct(item, key)
 
 	case reflect.Array, reflect.Slice:
-		valueOfItem := reflect.ValueOf(item)
-		resultValue, resultError = d.getValueFromSlice(valueOfItem, key)
+		resultValue, resultError = d.getValueFromSlice(item, key)
 
 	case reflect.Pointer, reflect.Interface: // if pointer/interface get target and re-call.
 		derefItem := d.deref(item)
@@ -117,8 +116,10 @@ func (d DefaultTraverser) accessKey(item any, key Key) (any, error) {
 	return nil, resultError
 }
 
-func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
+func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kind, item any, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
+
+	valueOfItem := reflect.ValueOf(item)
 
 	kindOfMapKey := typeOfItem.Key().Kind()
 
@@ -130,14 +131,8 @@ func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kin
 	case kindOfMapKey == reflect.String && key.IsIndex():
 		k := strconv.Itoa(key.Index)
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(k))
-	case key.IsField():
-		key, err := d.caster.As(key.Name, kindOfMapKey)
-		if err != nil {
-			return d.nilVal, errors.Join(ErrKeyCast, err)
-		}
-		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
-	case key.IsIndex():
-		key, err := d.caster.As(key.Index, kindOfMapKey)
+	default:
+		key, err := d.keyCaster.ByType(key.Any(), typeOfItem.Key())
 		if err != nil {
 			return d.nilVal, errors.Join(ErrKeyCast, err)
 		}
@@ -147,32 +142,37 @@ func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kin
 	return resultValue, nil
 }
 
-func (d DefaultTraverser) getValueFromSlice(valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
+func (d DefaultTraverser) getValueFromSlice(item any, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
-	var resultValue reflect.Value
+	valueOfItem := reflect.ValueOf(item)
 
-	if key.IsIndex() {
-		idx, err := key.calculateIndex(valueOfItem.Len())
-		if err != nil {
-			return d.nilVal, err
+	var index int
+	switch key.Type {
+	case KeyTypeIndex:
+		index = key.Index
+	case KeyTypeField:
+		i, er := d.keyCaster.AsInt(key.Name)
+		if er != nil {
+			return d.nilVal, errors.Join(ErrKeyCast, er)
 		}
-		resultValue = valueOfItem.Index(idx)
-	} else if key.IsField() {
-		// try to cast to int
-		i, err := d.caster.AsInt(key.Name)
-		if err != nil {
-			return d.nilVal, errors.Join(ErrKeyCast, err)
-		}
-		k := Index(i)
-		return d.getValueFromSlice(valueOfItem, k)
+		index = i
+	default:
+		return d.nilVal, ErrKeyUnknown
 	}
 
-	return resultValue, nil
+	idx, err := Index(index).calculateIndex(valueOfItem.Len())
+	if err != nil {
+		return d.nilVal, err
+	}
+
+	return valueOfItem.Index(idx), nil
 }
 
-func (d DefaultTraverser) getValueFromStruct(_ reflect.Type, _ reflect.Kind, valueOfItem reflect.Value, key Key) (returnValue reflect.Value, err error) {
+func (d DefaultTraverser) getValueFromStruct(item any, key Key) (returnValue reflect.Value, err error) {
 	defer errorsx.RecoverPanicToError(&err)
+
+	valueOfItem := reflect.ValueOf(item)
 
 	var resultValue reflect.Value
 
@@ -193,6 +193,56 @@ func (d DefaultTraverser) deref(item any) any {
 	valueOfItem := reflect.ValueOf(item)
 	targetValue := valueOfItem.Elem()
 	return targetValue.Interface()
+}
+
+func attemptAccessSliceOfBasicType(sl any, index int) (handled bool, val any, err error) {
+	key := Index(index)
+
+	switch sl := sl.(type) {
+	case []any:
+		val, err = accessSlice(sl, key)
+	case []int:
+		val, err = accessSlice(sl, key)
+	case []int8:
+		val, err = accessSlice(sl, key)
+	case []int16:
+		val, err = accessSlice(sl, key)
+	case []int32:
+		val, err = accessSlice(sl, key)
+	case []int64:
+		val, err = accessSlice(sl, key)
+	case []uint:
+		val, err = accessSlice(sl, key)
+	case []uint8:
+		val, err = accessSlice(sl, key)
+	case []uint16:
+		val, err = accessSlice(sl, key)
+	case []uint32:
+		val, err = accessSlice(sl, key)
+	case []uint64:
+		val, err = accessSlice(sl, key)
+	case []float32:
+		val, err = accessSlice(sl, key)
+	case []float64:
+		val, err = accessSlice(sl, key)
+	case []bool:
+		val, err = accessSlice(sl, key)
+	case []string:
+		val, err = accessSlice(sl, key)
+	default:
+		return false, nil, nil
+	}
+
+	return true, val, err
+}
+
+func accessSlice[T any](sl []T, key Key) (any, error) {
+	i, err := key.calculateIndex(len(sl))
+	if err != nil {
+		return nil, err
+	}
+
+	return sl[i], nil
 }
 
 type TraverseError struct {
@@ -230,4 +280,5 @@ var (
 	ErrFieldNotFound   = errors.New("field not found")
 	ErrIndexOutOfRange = fmt.Errorf("%w: index out of range", ErrFieldNotFound)
 	ErrKeyCast         = errors.New("key cast error")
+	ErrKeyUnknown      = errors.New("key type unknown")
 )

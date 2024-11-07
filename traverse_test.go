@@ -9,7 +9,7 @@ import (
 )
 
 func TestDefaultTraverser(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	type renamed map[string]any
 	type itemOne struct {
@@ -220,15 +220,100 @@ func TestDefaultTraverser(t *testing.T) {
 			expected:    "test",
 			expectedErr: nil,
 		},
+
+		"index access slice of int level 1": {
+			input:       []int{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    2,
+			expectedErr: nil,
+		},
+		"index access slice of int8 level 1": {
+			input:       []int8{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    int8(2),
+			expectedErr: nil,
+		},
+		"index access slice of int16 level 1": {
+			input:       []int16{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    int16(2),
+			expectedErr: nil,
+		},
+		"index access slice of int32 level 1": {
+			input:       []int32{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    int32(2),
+			expectedErr: nil,
+		},
+		"index access slice of int64 level 1": {
+			input:       []int64{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    int64(2),
+			expectedErr: nil,
+		},
+		"index access slice of uint level 1": {
+			input:       []uint{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    uint(2),
+			expectedErr: nil,
+		},
+		"index access slice of uint8 level 1": {
+			input:       []uint8{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    uint8(2),
+			expectedErr: nil,
+		},
+		"index access slice of uint16 level 1": {
+			input:       []uint16{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    uint16(2),
+			expectedErr: nil,
+		},
+		"index access slice of uint32 level 1": {
+			input:       []uint32{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    uint32(2),
+			expectedErr: nil,
+		},
+		"index access slice of uint64 level 1": {
+			input:       []uint64{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    uint64(2),
+			expectedErr: nil,
+		},
+		"index access slice of float32 level 1": {
+			input:       []float32{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    float32(2),
+			expectedErr: nil,
+		},
+		"index access slice of float64 level 1": {
+			input:       []float64{1, 2, 3},
+			keys:        []Key{Index(1)},
+			expected:    float64(2),
+			expectedErr: nil,
+		},
+		"index access slice of bool level 1": {
+			input:       []bool{false, true, true},
+			keys:        []Key{Index(1)},
+			expected:    true,
+			expectedErr: nil,
+		},
+		"index access slice of foo level 1": {
+			input:       []foo{{A: 1}, {A: 2}, {A: 3}},
+			keys:        []Key{Index(1)},
+			expected:    foo{A: 2},
+			expectedErr: nil,
+		},
 	}
 
 	dt := DefaultTraverser{
-		caster: cast.NewCaster(),
+		keyCaster: cast.NewCaster(),
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			got, err := dt.Retrieve(tc.input, tc.keys)
 
 			// check error
@@ -241,6 +326,8 @@ func TestDefaultTraverser(t *testing.T) {
 		})
 	}
 }
+
+type foo struct{ A int }
 
 func BenchmarkDefaultTraverser(b *testing.B) {
 	type renamed map[string]any
@@ -265,6 +352,67 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 
 		"[]string": {
 			input: []string{"one", "two"},
+			keys:  []Key{Index(1)},
+		},
+		"[]int": {
+			input: []int{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]int8": {
+			input: []int8{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]int16": {
+			input: []int16{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]int32": {
+			input: []int32{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]int64": {
+			input: []int64{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]uint": {
+			input: []uint{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]uint8": {
+			input: []uint8{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]uint16": {
+			input: []uint16{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]uint32": {
+			input: []uint32{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]uint64": {
+			input: []uint64{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]float32": {
+			input: []float32{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]float64": {
+			input: []float64{1, 2, 3},
+			keys:  []Key{Index(1)},
+		},
+		"[]bool": {
+			input: []bool{false, true, false},
+			keys:  []Key{Index(1)},
+		},
+
+		"[]map[string]string": {
+			input: []map[string]string{{}, {}, {}},
+			keys:  []Key{Index(1)},
+		},
+		"[]foo": {
+			input: []foo{{A: 1}, {A: 2}, {A: 3}},
 			keys:  []Key{Index(1)},
 		},
 
@@ -375,7 +523,7 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 	}
 
 	dt := DefaultTraverser{
-		caster: cast.NewCaster(),
+		keyCaster: cast.NewCaster(),
 	}
 
 	for name, tc := range tests {

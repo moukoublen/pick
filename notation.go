@@ -51,6 +51,17 @@ func (s Key) calculateIndex(length int) (int, error) {
 func (s Key) IsIndex() bool { return s.Type == KeyTypeIndex }
 func (s Key) IsField() bool { return s.Type == KeyTypeField }
 
+func (s Key) Any() any {
+	switch s.Type {
+	case KeyTypeIndex:
+		return s.Index
+	case KeyTypeField:
+		return s.Name
+	}
+
+	return nil
+}
+
 func Field(name string) Key {
 	return Key{
 		Name:  name,
