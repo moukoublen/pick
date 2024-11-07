@@ -12,7 +12,6 @@ import (
 	"time"
 	_ "time/tzdata"
 
-	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/internal/testingx"
 	"github.com/moukoublen/pick/internal/testingx/testdata"
 )
@@ -548,7 +547,7 @@ func TestNasaDataFile(t *testing.T) {
 			AccessFn:      p.Uint8,
 			Selector:      "near_earth_objects.2023-01-01[5].id",
 			ExpectedValue: uint8(214),
-			ExpectedError: testingx.ExpectedErrorIs(cast.ErrCastOverFlow),
+			ExpectedError: testingx.ExpectedErrorIs(ErrCastOverFlow),
 		},
 		{
 			AccessFn:      p.Len,
@@ -560,7 +559,7 @@ func TestNasaDataFile(t *testing.T) {
 			AccessFn:      p.Uint16,
 			Selector:      "near_earth_objects.2023-01-01[5].id",
 			ExpectedValue: uint16(50902),
-			ExpectedError: testingx.ExpectedErrorIs(cast.ErrCastOverFlow),
+			ExpectedError: testingx.ExpectedErrorIs(ErrCastOverFlow),
 		},
 		{
 			AccessFn:      p.Uint32,
@@ -588,7 +587,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) (time.Time, error) {
-				return p.TimeWithConfig(cast.TimeCastConfig{StringFormat: timeFormat1}, selector)
+				return p.TimeWithConfig(TimeCastConfig{StringFormat: timeFormat1}, selector)
 			},
 			Selector:      "near_earth_objects.2023-01-01[1].close_approach_data[0].close_approach_date",
 			ExpectedValue: time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -596,7 +595,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) (time.Time, error) {
-				return p.TimeWithConfig(cast.TimeCastConfig{StringFormat: timeFormat2}, selector)
+				return p.TimeWithConfig(TimeCastConfig{StringFormat: timeFormat2}, selector)
 			},
 			Selector:      "near_earth_objects.2023-01-01[1].close_approach_data[0].close_approach_date_full",
 			ExpectedValue: time.Date(2023, time.January, 1, 19, 45, 0, 0, time.UTC),
@@ -811,7 +810,7 @@ func TestReadme(t *testing.T) {
 	{
 		got, err := p1.Int64("float")
 		assert(got, int64(2))
-		assert(err, cast.ErrCastLostDecimals)
+		assert(err, ErrCastLostDecimals)
 	}
 	m := p1.Must()
 	{
@@ -889,7 +888,7 @@ func TestReadme(t *testing.T) {
 	}
 	{
 		loc, _ := time.LoadLocation("America/New_York")
-		got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
+		got, err := p3.TimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
 		assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
 		assert(err, nil)
 	}

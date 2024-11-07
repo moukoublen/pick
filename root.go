@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/slices"
 )
 
@@ -258,7 +257,7 @@ func castAs[Output any](caster Caster, data any, defaultValue Output) (Output, e
 
 	asOutput, is := c.(Output)
 	if !is {
-		return defaultValue, fmt.Errorf("casted value cannot be asserted to type: %w", cast.ErrInvalidType) // this is not possible
+		return defaultValue, fmt.Errorf("casted value cannot be asserted to type: %w", ErrCastInvalidType) // this is not possible
 	}
 
 	return asOutput, nil

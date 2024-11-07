@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ type CasterTester interface {
 	SetInput(i any)
 }
 
-func matrixTestConstructorFn[Output any](c Caster) func(expected Output, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[Output] {
+func matrixTestConstructorFn[Output any](c DefaultCaster) func(expected Output, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[Output] {
 	return func(expected Output, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[Output] {
 		return &casterTestCaseMel[Output]{
 			Caster:                c,
@@ -42,7 +42,7 @@ func splitBasedOnArch[Output any](for32bit, for64bit *casterTestCaseMel[Output])
 
 //nolint:maintidx
 func TestCasterMatrix(t *testing.T) {
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 
 	type stringAlias string
 
@@ -851,7 +851,7 @@ func TestCasterMatrix(t *testing.T) {
 }
 
 func TestCasterSliceMatrix(t *testing.T) {
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 
 	// matrixExpectedResult constructor function aliases.
 	expectByte := func(expected []byte, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[[]byte] {
@@ -1205,7 +1205,7 @@ func BenchmarkCasterSlice(b *testing.B) {
 		[]string{"1", "2", "3", "4"},
 	}
 
-	c := NewCaster()
+	c := NewDefaultCaster()
 
 	b.Run("AsBoolSlice", casterSubBenchmarks(testCases, c.AsBoolSlice))
 	b.Run("AsByteSlice", casterSubBenchmarks(testCases, c.AsByteSlice))

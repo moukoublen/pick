@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/slices"
 )
 
@@ -29,21 +28,8 @@ func WrapDecoder(decoder interface{ Decode(destination any) error }) (*Picker, e
 }
 
 func Wrap(data any) *Picker {
-	caster := cast.NewCaster()
+	caster := NewDefaultCaster()
 	return NewPicker(data, NewDefaultTraverser(caster), caster, DotNotation{})
-}
-
-type Notation interface {
-	Parse(selector string) ([]Key, error)
-	Format(path ...Key) string
-}
-
-type Traverser interface {
-	Retrieve(data any, path []Key) (any, error)
-}
-
-type ErrorGatherer interface {
-	GatherSelector(selector string, err error)
 }
 
 type Picker struct {
@@ -225,7 +211,7 @@ func (p *Picker) Time(selector string) (time.Time, error) {
 	return pickSelector(p, selector, p.Caster.AsTime)
 }
 
-func (p *Picker) TimeWithConfig(config cast.TimeCastConfig, selector string) (time.Time, error) {
+func (p *Picker) TimeWithConfig(config TimeCastConfig, selector string) (time.Time, error) {
 	return pickSelector(p, selector, func(input any) (time.Time, error) {
 		return p.Caster.AsTimeWithConfig(config, input)
 	})
@@ -235,7 +221,7 @@ func (p *Picker) TimeSlice(selector string) ([]time.Time, error) {
 	return pickSelector(p, selector, p.Caster.AsTimeSlice)
 }
 
-func (p *Picker) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) ([]time.Time, error) {
+func (p *Picker) TimeSliceWithConfig(config TimeCastConfig, selector string) ([]time.Time, error) {
 	return pickSelector(p, selector, func(input any) ([]time.Time, error) {
 		return p.Caster.AsTimeSliceWithConfig(config, input)
 	})
@@ -245,7 +231,7 @@ func (p *Picker) Duration(selector string) (time.Duration, error) {
 	return pickSelector(p, selector, p.Caster.AsDuration)
 }
 
-func (p *Picker) DurationWithConfig(config cast.DurationCastConfig, selector string) (time.Duration, error) {
+func (p *Picker) DurationWithConfig(config DurationCastConfig, selector string) (time.Duration, error) {
 	return pickSelector(p, selector, func(input any) (time.Duration, error) {
 		return p.Caster.AsDurationWithConfig(config, input)
 	})
@@ -255,7 +241,7 @@ func (p *Picker) DurationSlice(selector string) ([]time.Duration, error) {
 	return pickSelector(p, selector, p.Caster.AsDurationSlice)
 }
 
-func (p *Picker) DurationSliceWithConfig(config cast.DurationCastConfig, selector string) ([]time.Duration, error) {
+func (p *Picker) DurationSliceWithConfig(config DurationCastConfig, selector string) ([]time.Duration, error) {
 	return pickSelector(p, selector, func(input any) ([]time.Duration, error) {
 		return p.Caster.AsDurationSliceWithConfig(config, input)
 	})
@@ -407,7 +393,7 @@ func (a SelectorMustAPI) Time(selector string) time.Time {
 	return pickSelectorMust(a, selector, a.Caster.AsTime)
 }
 
-func (a SelectorMustAPI) TimeWithConfig(config cast.TimeCastConfig, selector string) time.Time {
+func (a SelectorMustAPI) TimeWithConfig(config TimeCastConfig, selector string) time.Time {
 	return pickSelectorMust(a, selector, func(input any) (time.Time, error) {
 		return a.Caster.AsTimeWithConfig(config, input)
 	})
@@ -417,7 +403,7 @@ func (a SelectorMustAPI) TimeSlice(selector string) []time.Time {
 	return pickSelectorMust(a, selector, a.Caster.AsTimeSlice)
 }
 
-func (a SelectorMustAPI) TimeSliceWithConfig(config cast.TimeCastConfig, selector string) []time.Time {
+func (a SelectorMustAPI) TimeSliceWithConfig(config TimeCastConfig, selector string) []time.Time {
 	return pickSelectorMust(a, selector, func(input any) ([]time.Time, error) {
 		return a.Caster.AsTimeSliceWithConfig(config, input)
 	})
@@ -427,7 +413,7 @@ func (a SelectorMustAPI) Duration(selector string) time.Duration {
 	return pickSelectorMust(a, selector, a.Caster.AsDuration)
 }
 
-func (a SelectorMustAPI) DurationWithConfig(config cast.DurationCastConfig, selector string) time.Duration {
+func (a SelectorMustAPI) DurationWithConfig(config DurationCastConfig, selector string) time.Duration {
 	return pickSelectorMust(a, selector, func(input any) (time.Duration, error) {
 		return a.Caster.AsDurationWithConfig(config, input)
 	})
@@ -437,7 +423,7 @@ func (a SelectorMustAPI) DurationSlice(selector string) []time.Duration {
 	return pickSelectorMust(a, selector, a.Caster.AsDurationSlice)
 }
 
-func (a SelectorMustAPI) DurationSliceWithConfig(config cast.DurationCastConfig, selector string) []time.Duration {
+func (a SelectorMustAPI) DurationSliceWithConfig(config DurationCastConfig, selector string) []time.Duration {
 	return pickSelectorMust(a, selector, func(input any) ([]time.Duration, error) {
 		return a.Caster.AsDurationSliceWithConfig(config, input)
 	})

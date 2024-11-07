@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"github.com/moukoublen/pick/slices"
 )
 
-func (c Caster) AsByte(input any) (byte, error) {
+func (c DefaultCaster) AsByte(input any) (byte, error) {
 	switch origin := input.(type) {
 	case byte:
 		return origin, nil
@@ -15,7 +15,7 @@ func (c Caster) AsByte(input any) (byte, error) {
 		return c.uint8Caster.cast(input)
 
 	case string:
-		return byte(0), newCastError(ErrInvalidType, input)
+		return byte(0), newCastError(ErrCastInvalidType, input)
 	case json.Number:
 		n, err := origin.Float64()
 		if err != nil {
@@ -38,7 +38,7 @@ func (c Caster) AsByte(input any) (byte, error) {
 	}
 }
 
-func (c Caster) AsByteSlice(input any) ([]byte, error) {
+func (c DefaultCaster) AsByteSlice(input any) ([]byte, error) {
 	switch cc := input.(type) {
 	case []byte:
 		return cc, nil

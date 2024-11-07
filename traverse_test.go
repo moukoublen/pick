@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/moukoublen/pick/cast"
 	"github.com/moukoublen/pick/internal/testingx"
 )
 
@@ -308,7 +307,7 @@ func TestDefaultTraverser(t *testing.T) {
 	}
 
 	dt := DefaultTraverser{
-		keyCaster: cast.NewCaster(),
+		keyCaster: NewDefaultCaster(),
 	}
 
 	for name, tc := range tests {
@@ -523,7 +522,7 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 	}
 
 	dt := DefaultTraverser{
-		keyCaster: cast.NewCaster(),
+		keyCaster: NewDefaultCaster(),
 	}
 
 	for name, tc := range tests {

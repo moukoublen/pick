@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/moukoublen/pick/slices"
 )
 
-func (c Caster) AsFloat64(input any) (float64, error) {
+func (c DefaultCaster) AsFloat64(input any) (float64, error) {
 	switch origin := input.(type) {
 	case int:
 		return float64(origin), nil
@@ -67,7 +67,7 @@ func (c Caster) AsFloat64(input any) (float64, error) {
 	}
 }
 
-func (c Caster) AsFloat32(input any) (float32, error) {
+func (c DefaultCaster) AsFloat32(input any) (float32, error) {
 	switch origin := input.(type) {
 	case int:
 		return float32(origin), nil
@@ -129,10 +129,10 @@ func (c Caster) AsFloat32(input any) (float32, error) {
 	}
 }
 
-func (c Caster) AsFloat32Slice(input any) ([]float32, error) {
+func (c DefaultCaster) AsFloat32Slice(input any) ([]float32, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsFloat32))
 }
 
-func (c Caster) AsFloat64Slice(input any) ([]float64, error) {
+func (c DefaultCaster) AsFloat64Slice(input any) ([]float64, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsFloat64))
 }

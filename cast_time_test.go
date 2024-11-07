@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 func TestTimeCaster(t *testing.T) {
 	t.Parallel()
 
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 
 	tzPlus4, _ := time.LoadLocation("Etc/GMT-4")
 	tzMinus7, _ := time.LoadLocation("Etc/GMT+7")
@@ -108,7 +108,7 @@ func TestTimeCaster(t *testing.T) {
 
 func TestTimeSliceCaster(t *testing.T) {
 	t.Parallel()
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 
 	tzPlus4, _ := time.LoadLocation("Etc/GMT-4")
 	tzPlus8, _ := time.LoadLocation("Etc/GMT-8")

@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"github.com/moukoublen/pick/slices"
 )
 
-func (c Caster) AsBool(input any) (bool, error) {
+func (c DefaultCaster) AsBool(input any) (bool, error) {
 	switch origin := input.(type) {
 	case int:
 		return origin != 0, nil
@@ -67,6 +67,6 @@ func (c Caster) AsBool(input any) (bool, error) {
 	}
 }
 
-func (c Caster) AsBoolSlice(input any) ([]bool, error) {
+func (c DefaultCaster) AsBoolSlice(input any) ([]bool, error) {
 	return slices.Map(input, slices.MapOpFn(c.AsBool))
 }

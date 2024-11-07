@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -240,7 +240,7 @@ func TestUint64CastValid(t *testing.T) {
 }
 
 func BenchmarkIntCaster(b *testing.B) {
-	ic := NewCaster()
+	ic := NewDefaultCaster()
 
 	tests := []any{
 		int8(123),
