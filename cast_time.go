@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/moukoublen/pick/slices"
 )
 
 type TimeCastNumberFormat int
@@ -164,7 +162,7 @@ func (c DefaultCaster) AsTimeSlice(input any) ([]time.Time, error) {
 }
 
 func (c DefaultCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
-	return slices.Map[time.Time](input, func(item any, _ slices.OpMeta) (time.Time, error) {
+	return iterMap[time.Time](input, func(item any, _ iterOpMeta) (time.Time, error) {
 		return c.AsTimeWithConfig(config, item)
 	})
 }

@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"time"
-
-	"github.com/moukoublen/pick/slices"
 )
 
 func WrapJSON(js []byte) (*Picker, error) {
@@ -78,7 +76,7 @@ func (p *Picker) Len(selector string) (int, error) {
 		return 0, err
 	}
 
-	return slices.Len(a)
+	return iterLen(a)
 }
 
 // Default Selector API (embedded into Picker)

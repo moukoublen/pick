@@ -3,8 +3,6 @@ package pick
 import (
 	"encoding/json"
 	"strconv"
-
-	"github.com/moukoublen/pick/slices"
 )
 
 func (c DefaultCaster) AsString(input any) (string, error) {
@@ -62,5 +60,5 @@ func (c DefaultCaster) AsString(input any) (string, error) {
 }
 
 func (c DefaultCaster) AsStringSlice(input any) ([]string, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsString))
+	return iterMap(input, iterMapOpFn(c.AsString))
 }

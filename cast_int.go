@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/moukoublen/pick/slices"
 )
 
 func (c DefaultCaster) AsInt(input any) (int, error) {
@@ -51,43 +49,43 @@ func (c DefaultCaster) AsUint64(input any) (uint64, error) {
 }
 
 func (c DefaultCaster) AsIntSlice(input any) ([]int, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsInt))
+	return iterMap(input, iterMapOpFn(c.AsInt))
 }
 
 func (c DefaultCaster) AsInt8Slice(input any) ([]int8, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsInt8))
+	return iterMap(input, iterMapOpFn(c.AsInt8))
 }
 
 func (c DefaultCaster) AsInt16Slice(input any) ([]int16, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsInt16))
+	return iterMap(input, iterMapOpFn(c.AsInt16))
 }
 
 func (c DefaultCaster) AsInt32Slice(input any) ([]int32, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsInt32))
+	return iterMap(input, iterMapOpFn(c.AsInt32))
 }
 
 func (c DefaultCaster) AsInt64Slice(input any) ([]int64, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsInt64))
+	return iterMap(input, iterMapOpFn(c.AsInt64))
 }
 
 func (c DefaultCaster) AsUintSlice(input any) ([]uint, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsUint))
+	return iterMap(input, iterMapOpFn(c.AsUint))
 }
 
 func (c DefaultCaster) AsUint8Slice(input any) ([]uint8, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsUint8))
+	return iterMap(input, iterMapOpFn(c.AsUint8))
 }
 
 func (c DefaultCaster) AsUint16Slice(input any) ([]uint16, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsUint16))
+	return iterMap(input, iterMapOpFn(c.AsUint16))
 }
 
 func (c DefaultCaster) AsUint32Slice(input any) ([]uint32, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsUint32))
+	return iterMap(input, iterMapOpFn(c.AsUint32))
 }
 
 func (c DefaultCaster) AsUint64Slice(input any) ([]uint64, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsUint64))
+	return iterMap(input, iterMapOpFn(c.AsUint64))
 }
 
 type intCast[T Integer] struct {

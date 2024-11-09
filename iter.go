@@ -1,4 +1,4 @@
-package slices
+package pick
 
 import (
 	"errors"
@@ -7,24 +7,12 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
-type OpMeta struct {
+type iterOpMeta struct {
 	Index  int
 	Length int
 }
 
-type Op func(item any, meta OpMeta) error
-
-type MapOp[T any] func(item any, meta OpMeta) (T, error)
-
-type MapFilterOp[T any] func(item any, meta OpMeta) (T, bool, error)
-
-func MapOpFn[T any](fn func(item any) (T, error)) MapOp[T] {
-	return func(item any, _ OpMeta) (T, error) {
-		return fn(item)
-	}
-}
-
-// ForEach applies the given operation to each element of the input if it is a collection
+// iterForEach applies the given operation to each element of the input if it is a collection
 // (slice or array), or directly if it is a single item (pointer, interface, or other type).
 //
 // The function first tries to handle slices of basic types directly by avoiding reflection for performance reasons.
@@ -33,41 +21,41 @@ func MapOpFn[T any](fn func(item any) (T, error)) MapOp[T] {
 // applies the operation to the dereferenced value. For other types, it applies the operation directly.
 //
 // The function uses deferred recovery to capture and return any panic as an error.
-func ForEach(input any, operation Op) (rErr error) {
+func iterForEach(input any, operation func(item any, meta iterOpMeta) error) (rErr error) {
 	defer errorsx.RecoverPanicToError(&rErr)
 
 	// attempt to quick return on slice of basic types by avoiding reflect.
 	switch cc := input.(type) {
 	case []any:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []string:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []int:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []int8:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []int16:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []int32:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []int64:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []uint:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []uint8:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []uint16:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []uint32:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []uint64:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []float32:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []float64:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	case []bool:
-		return each(cc, operation)
+		return sliceEach(cc, operation)
 	}
 
 	typeOfInput := reflect.TypeOf(input)
@@ -83,7 +71,7 @@ func ForEach(input any, operation Op) (rErr error) {
 		length := valueOfInput.Len()
 		for i := range length {
 			item := valueOfInput.Index(i)
-			if err := operation(item.Interface(), OpMeta{Index: i, Length: length}); err != nil {
+			if err := operation(item.Interface(), iterOpMeta{Index: i, Length: length}); err != nil {
 				return err
 			}
 		}
@@ -103,18 +91,18 @@ func ForEach(input any, operation Op) (rErr error) {
 		}
 
 		// single operation call attempt
-		return operation(el.Interface(), OpMeta{Index: 0, Length: 1})
+		return operation(el.Interface(), iterOpMeta{Index: 0, Length: 1})
 
 	default:
 		// single operation call attempt
-		return operation(input, OpMeta{Index: 0, Length: 1})
+		return operation(input, iterOpMeta{Index: 0, Length: 1})
 	}
 }
 
-func each[T any](s []T, operation Op) error {
+func sliceEach[T any](s []T, operation func(item any, meta iterOpMeta) error) error {
 	l := len(s)
 	for i := range s {
-		if err := operation(s[i], OpMeta{Index: i, Length: l}); err != nil {
+		if err := operation(s[i], iterOpMeta{Index: i, Length: l}); err != nil {
 			return err
 		}
 	}
@@ -122,26 +110,26 @@ func each[T any](s []T, operation Op) error {
 	return nil
 }
 
-func Map[T any](input any, castOp MapOp[T]) ([]T, error) {
+func iterMap[T any](input any, castOp func(item any, meta iterOpMeta) (T, error)) ([]T, error) {
 	// quick returns just in case its already slice of T.
 	if ss, is := input.([]T); is {
 		return ss, nil
 	}
 
-	return MapFilter(input, func(item any, meta OpMeta) (T, bool, error) {
+	return iterMapFilter(input, func(item any, meta iterOpMeta) (T, bool, error) {
 		casted, err := castOp(item, meta)
 		return casted, err == nil, err
 	})
 }
 
-func MapFilter[T any](input any, castFilterOp MapFilterOp[T]) ([]T, error) {
+func iterMapFilter[T any](input any, castFilterOp func(item any, meta iterOpMeta) (T, bool, error)) ([]T, error) {
 	var castedSlice []T
 
 	if input == nil {
 		return castedSlice, nil
 	}
 
-	err := ForEach(input, func(item any, meta OpMeta) error {
+	err := iterForEach(input, func(item any, meta iterOpMeta) error {
 		casted, keep, err := castFilterOp(item, meta)
 		switch {
 		case err != nil:
@@ -165,9 +153,15 @@ func MapFilter[T any](input any, castFilterOp MapFilterOp[T]) ([]T, error) {
 	return castedSlice, nil
 }
 
-// Len returns the result of built in len function if the input is of type slice, array, map, string or channel.
+func iterMapOpFn[T any](fn func(item any) (T, error)) func(item any, meta iterOpMeta) (T, error) {
+	return func(item any, _ iterOpMeta) (T, error) {
+		return fn(item)
+	}
+}
+
+// iterLen returns the result of built in len function if the input is of type slice, array, map, string or channel.
 // If the input is pointer and not nil, it dereferences the destination.
-func Len(input any) (l int, rErr error) {
+func iterLen(input any) (l int, rErr error) {
 	defer errorsx.RecoverPanicToError(&rErr)
 
 	// attempt to quick return on slice of basic types by avoiding reflect.
@@ -227,7 +221,7 @@ func Len(input any) (l int, rErr error) {
 		}
 
 		elemValue := valueOfInput.Elem()
-		return Len(elemValue.Interface())
+		return iterLen(elemValue.Interface())
 	}
 
 	return -1, ErrNoLength

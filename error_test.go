@@ -28,7 +28,9 @@ func TestMultiError(t *testing.T) {
 	testingx.AssertEqual(t, errors.Is(m, errThree), true)
 }
 
-func ptr(e error) *error { return &e }
+func ptr[T any](o T) *T {
+	return &o
+}
 
 func TestGather(t *testing.T) {
 	tests := []struct {
@@ -69,7 +71,7 @@ func TestGather(t *testing.T) {
 			},
 		},
 		{
-			destination: ptr(&multiError{}),
+			destination: ptr[error](&multiError{}),
 			newError:    errors.New("error"),
 			expect: func(t *testing.T, dst *error) {
 				m, is := (*dst).(*multiError)
@@ -78,7 +80,7 @@ func TestGather(t *testing.T) {
 			},
 		},
 		{
-			destination: ptr(errors.New("one")),
+			destination: ptr[error](errors.New("one")),
 			newError:    errors.New("two"),
 			expect: func(t *testing.T, dst *error) {
 				m, is := (*dst).(*multiError)

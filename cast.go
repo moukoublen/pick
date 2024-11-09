@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/moukoublen/pick/internal/errorsx"
-	"github.com/moukoublen/pick/slices"
 )
 
 type DefaultCaster struct {
@@ -157,7 +156,7 @@ func (c DefaultCaster) sliceByType(input any, asSliceElemType reflect.Type) (any
 	}
 	sliceValue := reflect.MakeSlice(reflect.SliceOf(asSliceElemType), sc, sc)
 
-	err := slices.ForEach(input, func(item any, meta slices.OpMeta) error {
+	err := iterForEach(input, func(item any, meta iterOpMeta) error {
 		casted, cerr := c.ByType(item, asSliceElemType)
 		if cerr != nil {
 			return cerr
