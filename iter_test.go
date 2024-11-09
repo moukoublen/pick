@@ -40,9 +40,9 @@ func TestIterMapErrorScenarios(t *testing.T) {
 }
 
 type expectedOpCall struct {
-	Meta        iterOpMeta
 	Item        any
 	ReturnError error
+	Meta        iterOpMeta
 }
 
 func generateExpectedCalls[T any](input []T) []expectedOpCall {
@@ -529,6 +529,11 @@ var lenTests = map[string]struct {
 		ExpectedErr: nil,
 		Expected:    4,
 	},
+	"array int32 3": {
+		Input:       [3]int32{1, 2, 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
 	"sliceIntAlias int": {
 		Input:       sliceIntAlias{1, 2},
 		ExpectedErr: nil,
@@ -576,6 +581,16 @@ var lenTests = map[string]struct {
 	},
 	"slice pointer  bool": {
 		Input:       []*bool{ptr(true), ptr(true), ptr(true)},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"map[string]any 3": {
+		Input:       map[string]any{"one": 1, "two": 2, "three": 3},
+		ExpectedErr: nil,
+		Expected:    3,
+	},
+	"map[string]int 3": {
+		Input:       map[string]int{"one": 1, "two": 2, "three": 3},
 		ExpectedErr: nil,
 		Expected:    3,
 	},

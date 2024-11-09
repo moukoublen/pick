@@ -200,6 +200,8 @@ func iterLen(input any) (l int, rErr error) {
 		return len(cc), nil
 	case string:
 		return len(cc), nil
+	case map[string]any:
+		return len(cc), nil
 	}
 
 	typeOfInput := reflect.TypeOf(input)
