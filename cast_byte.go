@@ -46,5 +46,5 @@ func (c DefaultCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return iterMap(input, iterMapOpFn(c.AsByte))
+	return mapTo(input, mapOpFn(c.AsByte))
 }

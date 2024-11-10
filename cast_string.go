@@ -60,5 +60,5 @@ func (c DefaultCaster) AsString(input any) (string, error) {
 }
 
 func (c DefaultCaster) AsStringSlice(input any) ([]string, error) {
-	return iterMap(input, iterMapOpFn(c.AsString))
+	return mapTo(input, mapOpFn(c.AsString))
 }

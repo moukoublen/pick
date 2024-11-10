@@ -66,5 +66,5 @@ func (c DefaultCaster) AsBool(input any) (bool, error) {
 }
 
 func (c DefaultCaster) AsBoolSlice(input any) ([]bool, error) {
-	return iterMap(input, iterMapOpFn(c.AsBool))
+	return mapTo(input, mapOpFn(c.AsBool))
 }

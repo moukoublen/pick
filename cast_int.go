@@ -49,43 +49,43 @@ func (c DefaultCaster) AsUint64(input any) (uint64, error) {
 }
 
 func (c DefaultCaster) AsIntSlice(input any) ([]int, error) {
-	return iterMap(input, iterMapOpFn(c.AsInt))
+	return mapTo(input, mapOpFn(c.AsInt))
 }
 
 func (c DefaultCaster) AsInt8Slice(input any) ([]int8, error) {
-	return iterMap(input, iterMapOpFn(c.AsInt8))
+	return mapTo(input, mapOpFn(c.AsInt8))
 }
 
 func (c DefaultCaster) AsInt16Slice(input any) ([]int16, error) {
-	return iterMap(input, iterMapOpFn(c.AsInt16))
+	return mapTo(input, mapOpFn(c.AsInt16))
 }
 
 func (c DefaultCaster) AsInt32Slice(input any) ([]int32, error) {
-	return iterMap(input, iterMapOpFn(c.AsInt32))
+	return mapTo(input, mapOpFn(c.AsInt32))
 }
 
 func (c DefaultCaster) AsInt64Slice(input any) ([]int64, error) {
-	return iterMap(input, iterMapOpFn(c.AsInt64))
+	return mapTo(input, mapOpFn(c.AsInt64))
 }
 
 func (c DefaultCaster) AsUintSlice(input any) ([]uint, error) {
-	return iterMap(input, iterMapOpFn(c.AsUint))
+	return mapTo(input, mapOpFn(c.AsUint))
 }
 
 func (c DefaultCaster) AsUint8Slice(input any) ([]uint8, error) {
-	return iterMap(input, iterMapOpFn(c.AsUint8))
+	return mapTo(input, mapOpFn(c.AsUint8))
 }
 
 func (c DefaultCaster) AsUint16Slice(input any) ([]uint16, error) {
-	return iterMap(input, iterMapOpFn(c.AsUint16))
+	return mapTo(input, mapOpFn(c.AsUint16))
 }
 
 func (c DefaultCaster) AsUint32Slice(input any) ([]uint32, error) {
-	return iterMap(input, iterMapOpFn(c.AsUint32))
+	return mapTo(input, mapOpFn(c.AsUint32))
 }
 
 func (c DefaultCaster) AsUint64Slice(input any) ([]uint64, error) {
-	return iterMap(input, iterMapOpFn(c.AsUint64))
+	return mapTo(input, mapOpFn(c.AsUint64))
 }
 
 type intCast[T Integer] struct {

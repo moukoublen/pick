@@ -128,9 +128,9 @@ func (c DefaultCaster) AsFloat32(input any) (float32, error) {
 }
 
 func (c DefaultCaster) AsFloat32Slice(input any) ([]float32, error) {
-	return iterMap(input, iterMapOpFn(c.AsFloat32))
+	return mapTo(input, mapOpFn(c.AsFloat32))
 }
 
 func (c DefaultCaster) AsFloat64Slice(input any) ([]float64, error) {
-	return iterMap(input, iterMapOpFn(c.AsFloat64))
+	return mapTo(input, mapOpFn(c.AsFloat64))
 }

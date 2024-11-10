@@ -76,7 +76,7 @@ func (p *Picker) Len(selector string) (int, error) {
 		return 0, err
 	}
 
-	return iterLen(a)
+	return itemLen(a)
 }
 
 // Default Selector API (embedded into Picker)

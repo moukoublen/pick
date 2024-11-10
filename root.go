@@ -20,9 +20,9 @@ func Each(p *Picker, selector string, operation func(index int, p *Picker, total
 		return err
 	}
 
-	return iterForEach(
+	return forEach(
 		item,
-		func(item any, meta iterOpMeta) error {
+		func(item any, meta iterationOpMeta) error {
 			return operation(meta.Index, p.Wrap(item), meta.Length)
 		},
 	)
@@ -35,9 +35,9 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 		return nil, err
 	}
 
-	return iterMap(
+	return mapTo(
 		item,
-		func(item any, _ iterOpMeta) (Output, error) {
+		func(item any, _ iterationOpMeta) (Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -50,9 +50,9 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 		return nil, err
 	}
 
-	return iterMapFilter(
+	return mapFilterTo(
 		item,
-		func(item any, _ iterOpMeta) (Output, bool, error) {
+		func(item any, _ iterationOpMeta) (Output, bool, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -65,9 +65,9 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 		return nil, err
 	}
 
-	doubleSlice, err := iterMap(
+	doubleSlice, err := mapTo(
 		item,
-		func(item any, _ iterOpMeta) ([]Output, error) {
+		func(item any, _ iterationOpMeta) ([]Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -127,7 +127,7 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 		return
 	}
 
-	err = iterForEach(item, func(item any, meta iterOpMeta) error {
+	err = forEach(item, func(item any, meta iterationOpMeta) error {
 		opErr := operation(meta.Index, a.Wrap(item), meta.Length)
 		if opErr != nil {
 			path = append(path, Index(meta.Index))
@@ -169,7 +169,7 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 		return nil
 	}
 
-	sl, err := iterMapFilter(item, func(item any, meta iterOpMeta) (Output, bool, error) {
+	sl, err := mapFilterTo(item, func(item any, meta iterationOpMeta) (Output, bool, error) {
 		t, keep, opErr := transform(a.Wrap(item))
 		if opErr != nil {
 			path = append(path, Index(meta.Index))

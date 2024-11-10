@@ -139,7 +139,7 @@ func (c DefaultCaster) AsDurationSlice(input any) ([]time.Duration, error) {
 }
 
 func (c DefaultCaster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
-	return iterMap(input, func(item any, _ iterOpMeta) (time.Duration, error) {
+	return mapTo(input, func(item any, _ iterationOpMeta) (time.Duration, error) {
 		return c.AsDurationWithConfig(config, item)
 	})
 }
