@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if ! command -v shellcheck &>/dev/null; then
+  echo 'shellcheck not found' >&2
+  exit 1
+fi
+
+./scripts/foreach-script shellcheck \
+  --norc \
+  --external-sources \
+  --format=tty \
+  --enable=require-variable-braces,add-default-case

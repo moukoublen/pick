@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# https://man7.org/linux/man-pages/man1/find.1.html
+# https://linux.die.net/man/1/find
+# https://ss64.com/mac/find.html
+
+# set -e
+# set -u
+# set -o pipefail
+
+VERBOSE=${VERBOSE:="0"}
+
+__is_file_bash_or_sh() {
+  [[ ${1} == *.bash || ${1} == *.sh ]] ||
+    file "${1}" | grep -qE 'POSIX shell script|Bourne-Again shell script|bash script|sh script'
+}
+
+mapfile -d '' -t files < <(
+  find ./ \
+    -type f \
+    -and \( -not -path './.git/*' \) \
+    -and \( -not -path './.tools/*' \) \
+    -and \( -name '*.bash' -or -name '*.sh' -or -perm /111 \) \
+    -print0
+)
+
+status=0
+
+for file in "${files[@]}"; do
+  if __is_file_bash_or_sh "${file}"; then
+    [[ ${VERBOSE} == "1" ]] && echo "${*} ${file}"
+    "${@}" "${file}" || status=1
+  fi
+done
+
+exit ${status}
