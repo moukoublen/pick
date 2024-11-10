@@ -23,8 +23,6 @@ linters:
   enable-all: true
   disable:
     - exportloopref # deprecated
-    - execinquery   # deprecated
-    - gomnd         # deprecated
     - nlreturn
     - wsl
     - lll
