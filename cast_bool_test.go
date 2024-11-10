@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"testing"
@@ -20,6 +20,6 @@ func TestBoolCaster(t *testing.T) {
 		},
 	}
 
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 	runSingleCastTestCases[bool](t, testCases, caster.AsBool)
 }

@@ -1,13 +1,11 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
 	"strconv"
-
-	"github.com/moukoublen/pick/slices"
 )
 
-func (c Caster) AsString(input any) (string, error) {
+func (c DefaultCaster) AsString(input any) (string, error) {
 	switch origin := input.(type) {
 	case int:
 		return strconv.FormatInt(int64(origin), 10), nil
@@ -61,6 +59,6 @@ func (c Caster) AsString(input any) (string, error) {
 	}
 }
 
-func (c Caster) AsStringSlice(input any) ([]string, error) {
-	return slices.Map(input, slices.MapOpFn(c.AsString))
+func (c DefaultCaster) AsStringSlice(input any) ([]string, error) {
+	return mapTo(input, mapOpFn(c.AsString))
 }

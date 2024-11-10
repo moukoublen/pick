@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"testing"
@@ -28,7 +28,7 @@ func TestStringCaster(t *testing.T) {
 		},
 	}
 
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 	runSingleCastTestCases[string](t, testCases, caster.AsString)
 }
 
@@ -88,6 +88,6 @@ func TestStringSliceCaster(t *testing.T) {
 		},
 	}
 
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 	runSingleCastTestCases(t, testCases, caster.AsStringSlice)
 }

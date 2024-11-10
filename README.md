@@ -38,7 +38,7 @@ got, err := p1.Float32("float")
 
 got, err := p1.Int64("float")
 // got == int64(2)
-// err is cast.ErrCastLostDecimals
+// err is ErrCastLostDecimals
 
 got, err := p1.Int32("non-existing")
 // got == int32(0)
@@ -136,7 +136,7 @@ got, err := p3.Time("time1")
 // err == nil
 
 loc, _ := time.LoadLocation("America/New_York")
-got, err := p3.TimeWithConfig(cast.TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
+got, err := p3.TimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
 // got == time.Date(1977, time.May, 25, 18, 30, 0, 0, loc)
 // err == nil
 

@@ -1,12 +1,10 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
 	"fmt"
 	"math"
 	"time"
-
-	"github.com/moukoublen/pick/slices"
 )
 
 type DurationCastNumberFormat int
@@ -24,11 +22,11 @@ type DurationCastConfig struct {
 	DurationCastNumberFormat DurationCastNumberFormat
 }
 
-func (c Caster) AsDuration(input any) (time.Duration, error) {
+func (c DefaultCaster) AsDuration(input any) (time.Duration, error) {
 	return c.AsDurationWithConfig(DurationCastConfig{}, input)
 }
 
-func (c Caster) AsDurationWithConfig(config DurationCastConfig, input any) (time.Duration, error) {
+func (c DefaultCaster) AsDurationWithConfig(config DurationCastConfig, input any) (time.Duration, error) {
 	switch origin := input.(type) {
 	case int:
 		return c.durationFromInt64(config, int64(origin))
@@ -82,7 +80,7 @@ func (c Caster) AsDurationWithConfig(config DurationCastConfig, input any) (time
 		return c.AsDurationWithConfig(config, string(origin))
 
 	case bool:
-		return time.Duration(0), newCastError(ErrInvalidType, input)
+		return time.Duration(0), newCastError(ErrCastInvalidType, input)
 
 	case nil:
 		return time.Duration(0), nil
@@ -100,7 +98,7 @@ func (c Caster) AsDurationWithConfig(config DurationCastConfig, input any) (time
 	}
 }
 
-func (c Caster) durationFromInt64(config DurationCastConfig, origin int64) (time.Duration, error) {
+func (c DefaultCaster) durationFromInt64(config DurationCastConfig, origin int64) (time.Duration, error) {
 	limitCheck := func(d time.Duration) error {
 		if origin >= (math.MinInt64/int64(d)) && origin <= (math.MaxInt64/int64(d)) {
 			return nil
@@ -131,17 +129,17 @@ func (c Caster) durationFromInt64(config DurationCastConfig, origin int64) (time
 		dr = time.Duration(origin) * time.Hour
 		err = limitCheck(time.Hour)
 	default:
-		return dr, newCastError(ErrInvalidType, origin)
+		return dr, newCastError(ErrCastInvalidType, origin)
 	}
 	return dr, err
 }
 
-func (c Caster) AsDurationSlice(input any) ([]time.Duration, error) {
+func (c DefaultCaster) AsDurationSlice(input any) ([]time.Duration, error) {
 	return c.AsDurationSliceWithConfig(DurationCastConfig{}, input)
 }
 
-func (c Caster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
-	return slices.Map(input, func(item any, _ slices.OpMeta) (time.Duration, error) {
+func (c DefaultCaster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
+	return mapTo(input, func(item any, _ iterationOpMeta) (time.Duration, error) {
 		return c.AsDurationWithConfig(config, item)
 	})
 }

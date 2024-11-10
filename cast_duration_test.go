@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 func TestDurationCaster(t *testing.T) {
 	t.Parallel()
 
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 
 	testCases := []singleCastTestCase[time.Duration]{
 		{

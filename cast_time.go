@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/moukoublen/pick/slices"
 )
 
 type TimeCastNumberFormat int
@@ -40,11 +38,11 @@ func (cnf TimeCastConfig) getStringFormat() string {
 	return cnf.StringFormat
 }
 
-func (c Caster) AsTime(input any) (time.Time, error) {
+func (c DefaultCaster) AsTime(input any) (time.Time, error) {
 	return c.AsTimeWithConfig(TimeCastConfig{}, input)
 }
 
-func (c Caster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error) {
+func (c DefaultCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error) {
 	switch origin := input.(type) {
 	case int:
 		return c.timeFromInt64(config, int64(origin))
@@ -94,7 +92,7 @@ func (c Caster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, e
 		return c.timeFromByteSlice(config, origin)
 
 	case bool:
-		return time.Time{}, newCastError(ErrInvalidType, input)
+		return time.Time{}, newCastError(ErrCastInvalidType, input)
 
 	case nil:
 		return time.Time{}, nil
@@ -109,7 +107,7 @@ func (c Caster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, e
 	}
 }
 
-func (c Caster) timeFromInt64(config TimeCastConfig, origin int64) (time.Time, error) {
+func (c DefaultCaster) timeFromInt64(config TimeCastConfig, origin int64) (time.Time, error) {
 	var tm time.Time
 	switch config.NumberFormat {
 	case TimeCastNumberFormatUnix:
@@ -119,12 +117,12 @@ func (c Caster) timeFromInt64(config TimeCastConfig, origin int64) (time.Time, e
 	case TimeCastNumberFormatUnixMicro:
 		tm = time.UnixMicro(origin).UTC()
 	default:
-		return tm, newCastError(ErrInvalidType, origin)
+		return tm, newCastError(ErrCastInvalidType, origin)
 	}
 	return tm, nil
 }
 
-func (c Caster) timeFromString(config TimeCastConfig, origin string) (time.Time, error) {
+func (c DefaultCaster) timeFromString(config TimeCastConfig, origin string) (time.Time, error) {
 	if config.PraseStringAsNumber {
 		n, err := strconv.ParseInt(origin, 10, 64)
 		if err != nil {
@@ -145,7 +143,7 @@ func (c Caster) timeFromString(config TimeCastConfig, origin string) (time.Time,
 	return tm, nil
 }
 
-func (c Caster) timeFromByteSlice(config TimeCastConfig, origin []byte) (time.Time, error) {
+func (c DefaultCaster) timeFromByteSlice(config TimeCastConfig, origin []byte) (time.Time, error) {
 	switch config.ByteSliceFormat {
 	case TimeCastByteSliceFormatBinary:
 		tm := time.Time{}
@@ -156,15 +154,15 @@ func (c Caster) timeFromByteSlice(config TimeCastConfig, origin []byte) (time.Ti
 	case TimeCastByteSliceFormatString:
 		return c.AsTimeWithConfig(config, string(origin))
 	}
-	return time.Time{}, newCastError(ErrInvalidType, origin)
+	return time.Time{}, newCastError(ErrCastInvalidType, origin)
 }
 
-func (c Caster) AsTimeSlice(input any) ([]time.Time, error) {
+func (c DefaultCaster) AsTimeSlice(input any) ([]time.Time, error) {
 	return c.AsTimeSliceWithConfig(TimeCastConfig{}, input)
 }
 
-func (c Caster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
-	return slices.Map[time.Time](input, func(item any, _ slices.OpMeta) (time.Time, error) {
+func (c DefaultCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
+	return mapTo[time.Time](input, func(item any, _ iterationOpMeta) (time.Time, error) {
 		return c.AsTimeWithConfig(config, item)
 	})
 }

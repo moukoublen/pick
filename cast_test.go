@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"errors"
@@ -12,8 +12,8 @@ import (
 var (
 	expectOverFlowError   = testingx.ExpectedErrorIs(&Error{}, ErrCastOverFlow)
 	expectLostDecimals    = testingx.ExpectedErrorIs(&Error{}, ErrCastLostDecimals)
-	expectMalformedSyntax = testingx.ExpectedErrorIs(&Error{}, ErrInvalidSyntax)
-	expectInvalidType     = testingx.ExpectedErrorIs(&Error{}, ErrInvalidType)
+	expectMalformedSyntax = testingx.ExpectedErrorIs(&Error{}, ErrCastInvalidSyntax)
+	expectInvalidType     = testingx.ExpectedErrorIs(&Error{}, ErrCastInvalidType)
 )
 
 type casterTestCaseMel[T any] struct {
@@ -21,7 +21,7 @@ type casterTestCaseMel[T any] struct {
 	Expected              T
 	ExpectedErr           func(*testing.T, error)
 	OverwriteDirectCastFn func(any) (T, error)
-	Caster                Caster
+	Caster                DefaultCaster
 	OmitCastByDirectFn    bool
 	OmitCastByKind        bool
 	OmitCastByType        bool
@@ -226,7 +226,7 @@ func TestTryCastUsingReflect(t *testing.T) {
 			fn:          tryReflectConvert[int16],
 			input:       struct{}{},
 			expected:    int16(0),
-			expectedErr: testingx.ExpectedErrorIs(ErrInvalidType),
+			expectedErr: testingx.ExpectedErrorIs(ErrCastInvalidType),
 		},
 		"string to []byte": {
 			fn:          tryReflectConvert[[]byte],
@@ -274,10 +274,10 @@ func TestTryCastUsingReflect(t *testing.T) {
 	}
 }
 
-func TestReadme(t *testing.T) {
+func TestReadmeCast(t *testing.T) {
 	eq := testingx.AssertEqualFn(t)
 
-	c := NewCaster()
+	c := NewDefaultCaster()
 
 	{
 		got, err := c.AsInt8(int32(10))
@@ -313,7 +313,7 @@ func TestReadme(t *testing.T) {
 func TestByType(t *testing.T) {
 	t.Parallel()
 
-	c := NewCaster()
+	c := NewDefaultCaster()
 
 	type aliasInt int
 	type aliasString string

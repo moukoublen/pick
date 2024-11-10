@@ -48,7 +48,7 @@ data := map[string]any{
     },
 }
 
-tr := NewDefaultTraverser(cast.NewCaster())
+tr := NewDefaultTraverser(NewCaster())
 v, err := tr.Retrieve(data, []Key{ Field("one"), Field("two"), Field("three") })
 // v == any("value")
 // err == nil

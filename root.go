@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-
-	"github.com/moukoublen/pick/cast"
-	"github.com/moukoublen/pick/slices"
 )
 
 // This file contains the top-level functions that operates to `Picker` and `SelectorMustAPI`
@@ -23,9 +20,9 @@ func Each(p *Picker, selector string, operation func(index int, p *Picker, total
 		return err
 	}
 
-	return slices.ForEach(
+	return forEach(
 		item,
-		func(item any, meta slices.OpMeta) error {
+		func(item any, meta iterationOpMeta) error {
 			return operation(meta.Index, p.Wrap(item), meta.Length)
 		},
 	)
@@ -38,9 +35,9 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 		return nil, err
 	}
 
-	return slices.Map(
+	return mapTo(
 		item,
-		func(item any, _ slices.OpMeta) (Output, error) {
+		func(item any, _ iterationOpMeta) (Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -53,9 +50,9 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 		return nil, err
 	}
 
-	return slices.MapFilter(
+	return mapFilterTo(
 		item,
-		func(item any, _ slices.OpMeta) (Output, bool, error) {
+		func(item any, _ iterationOpMeta) (Output, bool, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -68,9 +65,9 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 		return nil, err
 	}
 
-	doubleSlice, err := slices.Map(
+	doubleSlice, err := mapTo(
 		item,
-		func(item any, _ slices.OpMeta) ([]Output, error) {
+		func(item any, _ iterationOpMeta) ([]Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -130,7 +127,7 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 		return
 	}
 
-	err = slices.ForEach(item, func(item any, meta slices.OpMeta) error {
+	err = forEach(item, func(item any, meta iterationOpMeta) error {
 		opErr := operation(meta.Index, a.Wrap(item), meta.Length)
 		if opErr != nil {
 			path = append(path, Index(meta.Index))
@@ -172,7 +169,7 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 		return nil
 	}
 
-	sl, err := slices.MapFilter(item, func(item any, meta slices.OpMeta) (Output, bool, error) {
+	sl, err := mapFilterTo(item, func(item any, meta iterationOpMeta) (Output, bool, error) {
 		t, keep, opErr := transform(a.Wrap(item))
 		if opErr != nil {
 			path = append(path, Index(meta.Index))
@@ -258,7 +255,7 @@ func castAs[Output any](caster Caster, data any, defaultValue Output) (Output, e
 
 	asOutput, is := c.(Output)
 	if !is {
-		return defaultValue, fmt.Errorf("casted value cannot be asserted to type: %w", cast.ErrInvalidType) // this is not possible
+		return defaultValue, fmt.Errorf("casted value cannot be asserted to type: %w", ErrCastInvalidType) // this is not possible
 	}
 
 	return asOutput, nil

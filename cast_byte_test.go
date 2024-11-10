@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"encoding/json"
@@ -31,6 +31,6 @@ func TestByteCasterSlice(t *testing.T) {
 		},
 	}
 
-	caster := NewCaster()
+	caster := NewDefaultCaster()
 	runSingleCastTestCases[[]byte](t, testCases, caster.AsByteSlice)
 }

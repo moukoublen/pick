@@ -1,4 +1,4 @@
-package cast
+package pick
 
 import (
 	"errors"
@@ -7,10 +7,10 @@ import (
 )
 
 var (
-	ErrCastOverFlow     = errors.New("overflow error")
-	ErrCastLostDecimals = errors.New("missing decimals error")
-	ErrInvalidType      = errors.New("invalid type")
-	ErrInvalidSyntax    = errors.New("invalid syntax")
+	ErrCastOverFlow      = errors.New("overflow error")
+	ErrCastLostDecimals  = errors.New("missing decimals error")
+	ErrCastInvalidType   = errors.New("invalid type")
+	ErrCastInvalidSyntax = errors.New("invalid syntax")
 )
 
 type Error struct {
@@ -42,7 +42,7 @@ func newCastError(inner error, originalValue any) *Error {
 	if errors.Is(inner, strconv.ErrRange) {
 		inner = ErrCastOverFlow
 	} else if errors.Is(inner, strconv.ErrSyntax) {
-		inner = ErrInvalidSyntax
+		inner = ErrCastInvalidSyntax
 	}
 
 	return &Error{

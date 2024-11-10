@@ -2,6 +2,7 @@ package pick
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/testingx"
@@ -123,24 +124,26 @@ func TestDotNotation(t *testing.T) {
 
 func BenchmarkDotNotation(b *testing.B) {
 	tests := []string{
-		"one.two",
-		"one[1]",
-		"[154][34][376]",
-		"[1][-1].field",
-		"[154].a[2].three",
-		"ελληνικά[154].a[2].three",
-		"start[3].ελληνικά.a[2].three",
-		"near_earth_objects.2023-01-01[1].is_potentially_hazardous_asteroid",
-		"near_earth_objects.2023-01-01[5].estimated_diameter.meters.estimated_diameter_max",
-		"near_earth_objects_estimated_diameter_meters_estimated_diameter_max",
-		"one",
-		"[123]",
+		0:  "",
+		1:  "one[1]",
+		2:  "one.two",
+		3:  "[154][34][376]",
+		4:  "[1][-1].field",
+		5:  "[154].a[2].three",
+		6:  "ελληνικά[154].a[2].three",
+		7:  "start[3].ελληνικά.a[2].three",
+		8:  "near_earth_objects.2023-01-01[1].is_potentially_hazardous_asteroid",
+		9:  "near_earth_objects.2023-01-01[5].estimated_diameter.meters.estimated_diameter_max",
+		10: "near_earth_objects_estimated_diameter_meters_estimated_diameter_max",
+		11: "one",
+		12: "[123]",
 	}
 
 	d := DotNotation{}
 
-	for _, tc := range tests {
-		b.Run(tc, func(b *testing.B) {
+	for i, tc := range tests {
+		name := "0000" + strconv.Itoa(i)
+		b.Run(name[(len(name)-4):], func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				_, _ = d.Parse(tc)
 			}
