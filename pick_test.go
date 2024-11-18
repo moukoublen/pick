@@ -826,6 +826,16 @@ func TestReadme(t *testing.T) {
 		assert(got, int64(2))
 		assert(err, nil)
 	}
+	{
+		got, err := Get[string](p1, "item.three[1]")
+		assert(got, "2")
+		assert(err, nil)
+	}
+	{
+		got, err := Path[string](p1, Field("item"), Field("three"), Index(1))
+		assert(got, "2")
+		assert(err, nil)
+	}
 
 	// Map examples
 	j2 := `{

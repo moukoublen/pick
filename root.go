@@ -75,8 +75,9 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 	return flatten[Output](doubleSlice), err
 }
 
-//nolint:ireturn
-func Path[Output any](p *Picker, path []Key) (Output, error) {
+// Path traverses with the provided path and if found,
+// it resolves the cast type from the generic type.
+func Path[Output any](p *Picker, path ...Key) (Output, error) { //nolint:ireturn
 	item, err := p.Path(path)
 	if err != nil {
 		var o Output
@@ -101,7 +102,8 @@ func OrDefault[Output any](p *Picker, selector string, defaultValue Output) (Out
 	return castAs(p.Caster, item, defaultValue)
 }
 
-// Get resolves the cast type from the generic type.
+// Get parses the selector, traverses with the provided path and if found,
+// it resolves the cast type from the generic type.
 func Get[Output any](p *Picker, selector string) (Output, error) { //nolint:ireturn
 	var defaultValue Output
 
@@ -192,8 +194,8 @@ func MustFlatMap[Output any](a SelectorMustAPI, selector string, transform func(
 }
 
 // MustPath is the version of [Path] that uses SelectorMustAPI.
-func MustPath[Output any](a SelectorMustAPI, path []Key) Output { //nolint:ireturn
-	casted, err := Path[Output](a.Picker, path)
+func MustPath[Output any](a SelectorMustAPI, path ...Key) Output { //nolint:ireturn
+	casted, err := Path[Output](a.Picker, path...)
 	if err != nil {
 		selector := DotNotation{}.Format(path...)
 		a.gather(selector, err)

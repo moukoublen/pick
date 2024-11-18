@@ -80,8 +80,18 @@ sink.Outcome() != nil // true
 //  picker error with selector `item.three` ... invalid type
 //}
 
+```
+
+**Generics functions**
+```go
 got, err := Get[int64](p1, "item.three[1]")
 // got == int64(2)
+
+got, err := Get[string](p1, "item.three[1]")
+// got == "2"
+
+got, err := Path[string](p1, Field("item"), Field("three"), Index(1))
+// got == "2"
 ```
 
 **`Map` functions**
