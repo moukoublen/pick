@@ -14,7 +14,8 @@ tools: \
 	$(TOOLS_BIN)/golangci-lint \
 	$(TOOLS_BIN)/gofumpt \
 	$(TOOLS_BIN)/gojq \
-	$(TOOLS_BIN)/shfmt
+	$(TOOLS_BIN)/shfmt \
+	$(TOOLS_BIN)/shellcheck
 
 .PHONY: clean-tools
 clean-tools:
