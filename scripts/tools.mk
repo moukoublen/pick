@@ -132,7 +132,8 @@ $(TOOLS_BIN)/shfmt: $(TOOLS_DB)/shfmt.$(SHFMT_VER).$(GO_VER).ver
 
 .PHONY: shfmt
 shfmt: $(TOOLS_BIN)/shfmt
-	@./scripts/foreach-script $(TOOLS_BIN)/shfmt --simplify \
+	./scripts/foreach-script $(TOOLS_BIN)/shfmt \
+		--simplify \
 		--language-dialect auto \
 		--case-indent \
 		--indent 2 \
@@ -147,7 +148,8 @@ $(TOOLS_BIN)/shellcheck: $(TOOLS_DB)/shellcheck.$(SHELLCHECK_VER).ver | $(TOOLS_
 
 .PHONY: shellcheck
 shellcheck: $(TOOLS_BIN)/shellcheck
-	@./scripts/foreach-script $(TOOLS_BIN)/shellcheck --norc \
+	./scripts/foreach-script $(TOOLS_BIN)/shellcheck \
+		--norc \
 		--external-sources \
 		--format=tty \
 		--enable=require-variable-braces,add-default-case
