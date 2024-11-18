@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+set -e
+#set -u
+set -o pipefail
+
+get_protoc_latest_version() {
+  JS_BODY=$(curl --silent --fail --location "https://api.github.com/repos/koalaman/shellcheck/releases/latest")
+  echo "${JS_BODY}" | jq '.tag_name' --raw-output
+}
+
+package_os() {
+  case "$(uname)" in
+    "Darwin")
+      echo "darwin"
+      ;;
+    "Linux")
+      echo "linux"
+      ;;
+    *)
+      echo ""
+      ;;
+  esac
+}
+
+package_arch() {
+  local arch
+  arch="$(uname -m | tr '[:upper:]' '[:lower:]')"
+  case "${arch}" in
+    "x86_64")
+      echo "x86_64"
+      ;;
+    "aarch64")
+      echo "aarch64"
+      ;;
+    "arm64")
+      echo "aarch64"
+      ;;
+    *)
+      echo ""
+      ;;
+  esac
+}
+
+VERSION=""
+DESTINATION_DIR=""
+
+UNKNOWN_ARGS=()
+while (($#)); do
+  case "${1}" in
+    -v | --version)
+      VERSION="${2}"
+      shift 2
+      ;;
+    -d | --destination)
+      DESTINATION_DIR="${2}"
+      shift 2
+      ;;
+    *)
+      UNKNOWN_ARGS+=("${1}")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${VERSION} == "" ]]; then
+  VERSION="$(get_protoc_latest_version)"
+fi
+
+if [[ ${DESTINATION_DIR} == "" ]]; then
+  echo "missing destination argument"
+  exit 1
+fi
+
+# uninstall previous version
+rm -rf "${DESTINATION_DIR}"/bin/shellcheck
+
+DL_URL="https://github.com/koalaman/shellcheck/releases/download/${VERSION}/shellcheck-${VERSION}.$(package_os).$(package_arch).tar.xz"
+
+curl \
+  --silent \
+  --fail \
+  --location \
+  "${DL_URL}" \
+  -o "${DESTINATION_DIR}/shellcheck.tar.xz"
+
+tar \
+  --extract \
+  --xz \
+  --file="${DESTINATION_DIR}/shellcheck.tar.xz" \
+  --strip-components=1 \
+  --directory="${DESTINATION_DIR}/bin"
+
+rm -f "${DESTINATION_DIR}/shellcheck.tar.xz"
+rm -f "${DESTINATION_DIR}/bin/LICENSE.txt"
+rm -f "${DESTINATION_DIR}/bin/README.txt"
+
+# to update all dates in order for make file to get it as new (check stat "${DESTINATION_DIR}/bin/shellcheck")
+touch "${DESTINATION_DIR}/bin/shellcheck"

@@ -14,7 +14,8 @@ tools: \
 	$(TOOLS_BIN)/golangci-lint \
 	$(TOOLS_BIN)/gofumpt \
 	$(TOOLS_BIN)/gojq \
-	$(TOOLS_BIN)/shfmt
+	$(TOOLS_BIN)/shfmt \
+	$(TOOLS_BIN)/shellcheck
 
 .PHONY: clean-tools
 clean-tools:
@@ -131,4 +132,26 @@ $(TOOLS_BIN)/shfmt: $(TOOLS_DB)/shfmt.$(SHFMT_VER).$(GO_VER).ver
 
 .PHONY: shfmt
 shfmt: $(TOOLS_BIN)/shfmt
-## <shfmt>
+	./scripts/foreach-script $(TOOLS_BIN)/shfmt \
+		--simplify \
+		--language-dialect auto \
+		--case-indent \
+		--indent 2 \
+		--write
+## </shfmt>
+
+## <shellcheck>
+# https://github.com/koalaman/shellcheck/releases
+SHELLCHECK_VER := v0.10.0
+$(TOOLS_BIN)/shellcheck: $(TOOLS_DB)/shellcheck.$(SHELLCHECK_VER).ver | $(TOOLS_BIN)
+	@./scripts/install-shellcheck --version $(SHELLCHECK_VER) --destination $(TOOLS_DIR)
+
+.PHONY: shellcheck
+shellcheck: $(TOOLS_BIN)/shellcheck
+	./scripts/foreach-script $(TOOLS_BIN)/shellcheck \
+		--norc \
+		--external-sources \
+		--format=tty \
+		--enable=require-variable-braces,add-default-case
+## </shellcheck>
+
