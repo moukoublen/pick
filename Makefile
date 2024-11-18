@@ -84,7 +84,5 @@ ci-mod: mod
 	./scripts/git-check-dirty
 
 .PHONY: ci-sh
-ci-sh: shfmt
-	@./scripts/shfmt
-	@./scripts/shellcheck
+ci-sh: shfmt shellcheck
 	@./scripts/git-check-dirty
