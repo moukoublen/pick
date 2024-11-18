@@ -821,6 +821,11 @@ func TestReadme(t *testing.T) {
 		got := m.Int32("non-existing")
 		assert(got, int32(0))
 	}
+	{
+		got, err := Get[int64](p1, "item.three[1]")
+		assert(got, int64(2))
+		assert(err, nil)
+	}
 
 	// Map examples
 	j2 := `{

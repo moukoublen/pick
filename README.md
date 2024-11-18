@@ -79,6 +79,9 @@ sink.Outcome() != nil // true
 //  picker error with selector `float` ... missing decimals error
 //  picker error with selector `item.three` ... invalid type
 //}
+
+got, err := Get[int64](p1, "item.three[1]")
+// got == int64(2)
 ```
 
 **`Map` functions**
