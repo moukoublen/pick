@@ -832,9 +832,17 @@ func TestReadme(t *testing.T) {
 		assert(err, nil)
 	}
 	{
+		got := MustGet[string](m, "item.three[1]")
+		assert(got, "2")
+	}
+	{
 		got, err := Path[string](p1, Field("item"), Field("three"), Index(1))
 		assert(got, "2")
 		assert(err, nil)
+	}
+	{
+		got := MustPath[float32](m, Field("item"), Field("one"))
+		assert(got, float32(1))
 	}
 
 	// Map examples

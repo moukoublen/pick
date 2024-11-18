@@ -90,8 +90,14 @@ got, err := Get[int64](p1, "item.three[1]")
 got, err := Get[string](p1, "item.three[1]")
 // got == "2"
 
+got := MustGet[string](m, "item.three[1]")
+// got == "2"
+
 got, err := Path[string](p1, Field("item"), Field("three"), Index(1))
 // got == "2"
+
+got := MustPath[float32](m, Field("item"), Field("one"))
+// got == float32(1)
 ```
 
 **`Map` functions**
