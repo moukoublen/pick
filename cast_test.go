@@ -10,10 +10,22 @@ import (
 )
 
 var (
-	expectOverFlowError   = testingx.ExpectedErrorIs(&Error{}, ErrCastOverFlow)
-	expectLostDecimals    = testingx.ExpectedErrorIs(&Error{}, ErrCastLostDecimals)
-	expectMalformedSyntax = testingx.ExpectedErrorIs(&Error{}, ErrCastInvalidSyntax)
-	expectInvalidType     = testingx.ExpectedErrorIs(&Error{}, ErrCastInvalidType)
+	expectOverFlowError = testingx.ExpectedErrorChecks(
+		testingx.ExpectedErrorOfType[*CastError](),
+		testingx.ExpectedErrorIs(ErrCastOverFlow),
+	)
+	expectLostDecimals = testingx.ExpectedErrorChecks(
+		testingx.ExpectedErrorOfType[*CastError](),
+		testingx.ExpectedErrorIs(ErrCastLostDecimals),
+	)
+	expectMalformedSyntax = testingx.ExpectedErrorChecks(
+		testingx.ExpectedErrorOfType[*CastError](),
+		testingx.ExpectedErrorIs(ErrCastInvalidSyntax),
+	)
+	expectInvalidType = testingx.ExpectedErrorChecks(
+		testingx.ExpectedErrorOfType[*CastError](),
+		testingx.ExpectedErrorIs(ErrCastInvalidType),
+	)
 )
 
 type casterTestCaseMel[T any] struct {

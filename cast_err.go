@@ -13,12 +13,12 @@ var (
 	ErrCastInvalidSyntax = errors.New("invalid syntax")
 )
 
-type Error struct {
+type CastError struct {
 	inner         error
 	originalValue any
 }
 
-func (c *Error) Error() string {
+func (c *CastError) Error() string {
 	innerStr := ""
 	if c.inner != nil {
 		innerStr = c.inner.Error()
@@ -27,25 +27,18 @@ func (c *Error) Error() string {
 	return fmt.Sprintf("cast error, original value %T(%v), error: %s", c.originalValue, c.originalValue, innerStr)
 }
 
-func (c *Error) Unwrap() error {
+func (c *CastError) Unwrap() error {
 	return c.inner
 }
 
-func (c *Error) Is(e error) bool {
-	//nolint:errorlint // non need to unwrap here.
-	_, is := e.(*Error)
-
-	return is
-}
-
-func newCastError(inner error, originalValue any) *Error {
+func newCastError(inner error, originalValue any) *CastError {
 	if errors.Is(inner, strconv.ErrRange) {
 		inner = ErrCastOverFlow
 	} else if errors.Is(inner, strconv.ErrSyntax) {
 		inner = ErrCastInvalidSyntax
 	}
 
-	return &Error{
+	return &CastError{
 		inner:         inner,
 		originalValue: originalValue,
 	}

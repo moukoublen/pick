@@ -43,7 +43,7 @@ func ExpectedErrorIs(allExpectedErrors ...error) func(*testing.T, error) {
 	}
 }
 
-func ExpectedErrorOfType[T error](extraAsserts ...func(*testing.T, T)) func(*testing.T, error) {
+func ExpectedErrorOfType[T error](assertsOfType ...func(*testing.T, T)) func(*testing.T, error) {
 	return func(t *testing.T, err error) {
 		t.Helper()
 
@@ -52,7 +52,7 @@ func ExpectedErrorOfType[T error](extraAsserts ...func(*testing.T, T)) func(*tes
 			var tErr T
 			t.Errorf("Error type check failed.\nExpected error type: %T\nGot                : %T(%s)", tErr, err, err)
 		} else {
-			for _, e := range extraAsserts {
+			for _, e := range assertsOfType {
 				e(t, wantErr)
 			}
 		}
