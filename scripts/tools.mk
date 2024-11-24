@@ -35,13 +35,13 @@ $(TOOLS_DB)/%.ver: | $(TOOLS_DB)
 
 define go_install
 	@echo -e "Installing \e[1;36m$(1)\e[0m@\e[1;36m$(3)\e[0m using \e[1;36m$(GO_VER)\e[0m"
-	GOBIN="$(TOOLS_BIN)" CGO_ENABLED=0 $(GO_EXEC) install -trimpath -ldflags '-s -w -extldflags "-static"' "$(2)@$(3)"
+	GOBIN="$(TOOLS_BIN)" CGO_ENABLED=0 go install -trimpath -ldflags '-s -w -extldflags "-static"' "$(2)@$(3)"
 	@echo ""
 endef
 
 .PHONY: vet
 vet:
-	$(GO_EXEC) vet `$(GO_PACKAGES)`
+	go vet `$(GO_PACKAGES)`
 	@echo ""
 
 ## <staticcheck>

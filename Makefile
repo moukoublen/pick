@@ -1,39 +1,16 @@
-SHELL := /bin/bash
+SHELL := /usr/bin/env bash
 
 .NOTPARALLEL:
 .SECONDEXPANSION:
 ## NOTINTERMEDIATE requires make >=4.4
 .NOTINTERMEDIATE:
 
-MODULE := $(shell cat go.mod | grep -e "^module" | sed "s/^module //")
-VERSION ?= 0.0.0
-
-GO_PACKAGES = $(GO_EXEC) list -tags='$(TAGS)' ./...
-GO_FOLDERS = $(GO_EXEC) list -tags='$(TAGS)' -f '{{ .Dir }}' ./...
-GO_FILES = find . -type f -name '*.go' -not -path './vendor/*'
-
-export GO111MODULE := on
-#export GOFLAGS := -mod=vendor
-GOPATH := $(shell go env GOPATH)
-GO_VER := $(shell go env GOVERSION)
-
-GO_EXEC ?= go
-export GO_EXEC
-DOCKER_EXEC ?= docker
-export DOCKER_EXEC
+include $(CURDIR)/scripts/go.mk
+include $(CURDIR)/scripts/tools.mk
 
 .DEFAULT_GOAL=default
 .PHONY: default
 default: checks test
-
-.PHONY: mod
-mod:
-	$(GO_EXEC) mod tidy -go=1.22
-	$(GO_EXEC) mod verify
-
-# https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
-# https://pkg.go.dev/cmd/compile
-# https://pkg.go.dev/cmd/link
 
 # man git-clean
 .PHONY: git-reset
@@ -43,37 +20,43 @@ git-reset:
 
 .PHONY: env
 env:
-	@echo "Module: $(MODULE)"
-	$(GO_EXEC) env
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Module \e[0m \e[0;90m<<<\e[0m"
+	@echo "$(MODULE)"
 	@echo ""
-	@echo ">>> Packages:"
+
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Go env \e[0m \e[0;90m<<<\e[0m"
+	go env
+	@echo ""
+
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Packages \e[0m \e[0;90m<<<\e[0m"
 	$(GO_PACKAGES)
 	@echo ""
-	@echo ">>> Folders:"
+
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Folders \e[0m \e[0;90m<<<\e[0m"
 	$(GO_FOLDERS)
 	@echo ""
-	@echo ">>> Tools:"
+
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Files \e[0m \e[0;90m<<<\e[0m"
+	$(GO_FILES)
+	@echo ""
+
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Tools \e[0m \e[0;90m<<<\e[0m"
 	@echo '$(TOOLS_BIN)'
 	@echo ""
-	@echo ">>> Path:"
+
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Path \e[0m \e[0;90m<<<\e[0m"
 	@echo "$${PATH}" | tr ':' '\n'
+	@echo ""
 
-.PHONY: test
-test:
-	CGO_ENABLED=1 $(GO_EXEC) test -timeout 60s -race -tags='$(TAGS)' -coverprofile=coverage.txt -covermode=atomic ./...
-
-.PHONY: test-n-read
-test-n-read: test
-	@$(GO_EXEC) tool cover -func coverage.txt
-
-.PHONY: bench
-bench:
-	CGO_ENABLED=1 $(GO_EXEC) test -benchmem -run=^$$ -mod=readonly -count=1 -v -race -bench=. ./...
+	@echo -e "\e[0;90m>>>\e[0m \e[0;94m Shell \e[0m \e[0;90m<<<\e[0m"
+	@echo "SHELL=$${SHELL}"
+	@echo "BASH=$${BASH}"
+	@echo "BASH_VERSION=$${BASH_VERSION}"
+	@echo "BASH_VERSINFO=$${BASH_VERSINFO}"
+	@echo ""
 
 .PHONY: checks
 checks: vet staticcheck gofumpt goimports golangci-lint
-
-include $(CURDIR)/scripts/tools.mk
 
 .PHONY: ci-format
 ci-format: goimports gofumpt
