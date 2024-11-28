@@ -285,3 +285,31 @@ var (
 	ErrCannotBeCastedToBasic = errors.New("value cannot be casted to basic type")
 	ErrAlreadyBasicType      = errors.New("value is already basic type")
 )
+
+// cast attempts to convert the input value to the specified (generic) Output type using the provided caster.
+// It returns the converted value of type Output and an error if the casting fails.
+func cast[Output any](caster Caster, input any) (Output, error) { //nolint:ireturn
+	var o Output
+
+	n, err := caster.ByType(input, reflect.TypeOf(o))
+	if err != nil {
+		return o, err
+	}
+
+	casted, is := n.(Output)
+	if !is {
+		return o, newCastError(ErrCastInvalidType, input)
+	}
+
+	return casted, nil
+}
+
+// cast attempts to convert the input value to the specified (generic) Output type.
+// It returns the converted value of type Output and an error if the casting fails.
+// e.g.
+//
+//	Cast[string](123) // "123", nil
+func Cast[Output any](input any) (Output, error) { //nolint:ireturn
+	dc := NewDefaultCaster()
+	return cast[Output](dc, input)
+}

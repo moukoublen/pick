@@ -412,3 +412,64 @@ func TestByType(t *testing.T) {
 		})
 	}
 }
+
+func TestCastGeneric(t *testing.T) {
+	type stringAlias string
+
+	tests := []struct {
+		castFn        func() (any, error)
+		expected      any
+		expectedError func(*testing.T, error)
+	}{
+		0: {
+			castFn: func() (any, error) {
+				return Cast[string](1)
+			},
+			expected:      string("1"),
+			expectedError: nil,
+		},
+		1: {
+			castFn: func() (any, error) {
+				return Cast[int64]("1234567")
+			},
+			expected:      int64(1234567),
+			expectedError: nil,
+		},
+		2: {
+			castFn: func() (any, error) {
+				return Cast[[]uint8]([]int64{1, 2, 3, 4, 5, 6, 7})
+			},
+			expected:      []uint8{1, 2, 3, 4, 5, 6, 7},
+			expectedError: nil,
+		},
+		3: {
+			castFn: func() (any, error) {
+				return Cast[[]stringAlias]([]string{"one", "two"})
+			},
+			expected:      []stringAlias{"one", "two"},
+			expectedError: nil,
+		},
+		4: {
+			castFn: func() (any, error) {
+				return Cast[[]string]([]stringAlias{"one", "two"})
+			},
+			expected:      []string{"one", "two"},
+			expectedError: nil,
+		},
+		5: {
+			castFn: func() (any, error) {
+				return Cast[map[string]string](map[string]any{"one": 1, "two": 2})
+			},
+			expected:      map[string]string(nil),
+			expectedError: testingx.ExpectedErrorIs(ErrCastInvalidType),
+		},
+	}
+
+	for idx, tc := range tests {
+		t.Run(fmt.Sprintf("[%d]_%T", idx, tc.expected), func(t *testing.T) {
+			got, err := tc.castFn()
+			testingx.AssertError(t, tc.expectedError, err)
+			testingx.AssertEqual(t, got, tc.expected)
+		})
+	}
+}
