@@ -5,11 +5,60 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
+
+// TestValueExpected GOOS - GOARCH - Expected Value.
+type TestValueExpected[T any] map[string]map[string]T
+
+func Expected[T any]() *TestValueExpected[T] {
+	t := TestValueExpected[T](map[string]map[string]T{})
+	return &t
+}
+
+func (tv *TestValueExpected[T]) Any(val T) *TestValueExpected[T] {
+	return tv.At("*", "*", val)
+}
+
+func (tv *TestValueExpected[T]) Arch(goarch string, val T) *TestValueExpected[T] {
+	return tv.At("*", goarch, val)
+}
+
+func (tv *TestValueExpected[T]) At(goos, goarch string, val T) *TestValueExpected[T] {
+	atOs, osExists := (*tv)[goos]
+	if !osExists || atOs == nil {
+		atOs = map[string]T{}
+	}
+
+	atOs[goarch] = val
+	(*tv)[goos] = atOs
+
+	return tv
+}
+
+func (tv *TestValueExpected[T]) Get() T {
+	atOs, osExists := (*tv)[runtime.GOOS]
+	if !osExists || atOs == nil {
+		atOs, osExists = (*tv)["*"]
+		if !osExists || atOs == nil {
+			panic(fmt.Sprintf("expected value is not set for os (%s %s)", runtime.GOOS, runtime.GOARCH))
+		}
+	}
+
+	v, exists := atOs[runtime.GOARCH]
+	if !exists {
+		v, exists = atOs["*"]
+		if !exists {
+			panic(fmt.Sprintf("expected value is not set for arch (%s %s)", runtime.GOOS, runtime.GOARCH))
+		}
+	}
+
+	return v
+}
 
 func AssertError(t *testing.T, assertErrFn func(*testing.T, error), err error) {
 	t.Helper()
