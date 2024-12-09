@@ -37,9 +37,17 @@ func NewDefaultCaster() DefaultCaster {
 	}
 }
 
-//nolint:gocyclo
+// ByType attempts to cast the `input` to the type defined by `asType`. It returns error if the cast fails.
+// It first attempts to cast using a quick flow (performance wise) when the target type is a basic type, without using reflect.
+// Then it tries to handle basic type aliases.
+// And then it falls back to reflect usage depending on the target type.
+// If no error is returned then it is safe to use type assertion in the returned value, to the type given in `asType`.
+// e.g.
+//
+//	i, err := c.ByType("123", reflect.TypeOf(int64(0)))
+//	i.(int64) // safe
 func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
-	// check if direct function is available
+	// if target type is a basic type.
 	switch asType {
 	case c.directCastFunctionsTypes.typeOfBool:
 		return c.AsBool(input)
@@ -112,10 +120,10 @@ func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
 		return c.AsDurationSlice(input)
 	}
 
-	// check basic types aliases
 	asKind := asType.Kind()
-	_, isBasicKind := c.directCastFunctionsTypes.basicKindTypeMap[asKind]
-	if isBasicKind {
+
+	// if target type is a basic type alias (e.g. type myString string).
+	if _, isBasicKind := c.directCastFunctionsTypes.basicKindTypeMap[asKind]; isBasicKind {
 		v, err := c.As(input, asKind)
 		if err != nil {
 			return nil, err
@@ -128,14 +136,19 @@ func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
 		return val.Convert(asType).Interface(), nil
 	}
 
-	// slice / array
-	if asKind == reflect.Array || asKind == reflect.Slice {
-		return c.sliceByType(input, asType.Elem())
-	}
+	switch asKind {
+	// if target type is slice / array
+	case reflect.Array, reflect.Slice:
+		return c.toSliceByType(input, asType.Elem())
 
-	// TODO: reflect.Map
-	// TODO: reflect.Pointer
-	// TODO: reflect.Interface
+	// if target type is map
+	case reflect.Map:
+		return c.toMapByType(input, asType.Key(), asType.Elem())
+
+	// if target type is pointer
+	case reflect.Pointer:
+		return c.toPointerByType(input, asType.Elem())
+	}
 
 	// fallback attempt to reflect convert
 	val := reflect.ValueOf(input)
@@ -146,7 +159,7 @@ func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
 	return val.Convert(asType).Interface(), nil
 }
 
-func (c DefaultCaster) sliceByType(input any, asSliceElemType reflect.Type) (any, error) {
+func (c DefaultCaster) toSliceByType(input any, asSliceElemType reflect.Type) (any, error) {
 	inputValue := reflect.ValueOf(input)
 
 	sc := 1
@@ -171,6 +184,19 @@ func (c DefaultCaster) sliceByType(input any, asSliceElemType reflect.Type) (any
 	}
 
 	return sliceValue.Interface(), nil
+}
+
+// toMapByType can cast to map if the input is either slice, array or map of any type.
+func (c DefaultCaster) toMapByType(input any, keyType, valueType reflect.Type) (any, error) { //nolint:revive
+	// TODO: implement.
+	return nil, ErrCastInvalidType
+}
+
+func (c DefaultCaster) toPointerByType(input any, pointerTargetType reflect.Type) (any, error) { //nolint:revive
+	// pointerValue := reflect.New(pointerTargetType)
+
+	// TODO: implement.
+	return nil, ErrCastInvalidType
 }
 
 func (c DefaultCaster) As(input any, asKind reflect.Kind) (any, error) {
@@ -286,12 +312,18 @@ var (
 	ErrAlreadyBasicType      = errors.New("value is already basic type")
 )
 
-// cast attempts to convert the input value to the specified (generic) Output type using the provided caster.
+//nolint:gochecknoglobals
+var defaultCasterGlobal = NewDefaultCaster()
+
+// Cast attempts to convert the input value to the specified (generic) Output type.
 // It returns the converted value of type Output and an error if the casting fails.
-func cast[Output any](caster Caster, input any) (Output, error) { //nolint:ireturn
+// e.g.
+//
+//	Cast[string](123) // "123", nil
+func Cast[Output any](input any) (Output, error) { //nolint:ireturn
 	var o Output
 
-	n, err := caster.ByType(input, reflect.TypeOf(o))
+	n, err := defaultCasterGlobal.ByType(input, reflect.TypeOf(o))
 	if err != nil {
 		return o, err
 	}
@@ -302,14 +334,4 @@ func cast[Output any](caster Caster, input any) (Output, error) { //nolint:iretu
 	}
 
 	return casted, nil
-}
-
-// cast attempts to convert the input value to the specified (generic) Output type.
-// It returns the converted value of type Output and an error if the casting fails.
-// e.g.
-//
-//	Cast[string](123) // "123", nil
-func Cast[Output any](input any) (Output, error) { //nolint:ireturn
-	dc := NewDefaultCaster()
-	return cast[Output](dc, input)
 }
