@@ -621,7 +621,7 @@ func TestCasterMatrix(t *testing.T) {
 			Input: float64(math.MaxFloat64),
 			Asserters: []CasterTester{
 				expectByte(0, expectOverFlowError),
-				expectInt8(0, expectOverFlowError),
+				expectInt8(testingx.Expected[int8]().Arch("arm64", -1).Arch("amd64", 0).Any(0).Get(), expectOverFlowError),
 				expectInt16(0, expectOverFlowError),
 				expectInt32(0, expectOverFlowError),
 				expectInt64(-9223372036854775808, expectOverFlowError),
