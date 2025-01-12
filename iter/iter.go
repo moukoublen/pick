@@ -7,6 +7,93 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
+type FieldOpMeta struct {
+	Field  any
+	Length int
+}
+
+func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (rErr error) { //nolint:gocyclo
+	defer errorsx.RecoverPanicToError(&rErr)
+
+	// attempt to quick return on map of basic types by avoiding reflect.
+	switch cc := input.(type) {
+	case map[string]any:
+		return forEachMap(cc, operation)
+	case map[string]string:
+		return forEachMap(cc, operation)
+	}
+
+	typeOfInput := reflect.TypeOf(input)
+
+	if typeOfInput == nil {
+		return nil // no op
+	}
+
+	kindOfInput := typeOfInput.Kind()
+	switch kindOfInput {
+	case reflect.Array, reflect.Slice:
+		return ErrNoFields
+
+	case reflect.Pointer, reflect.Interface:
+		valueOfInput := reflect.ValueOf(input)
+		if valueOfInput.IsNil() {
+			return rErr
+		}
+
+		// deref
+		el := valueOfInput.Elem()
+		if !el.IsValid() {
+			return rErr
+		}
+
+		return ForEachField(el.Interface(), operation)
+
+	case reflect.Struct:
+		valueOfInput := reflect.ValueOf(input)
+		num := valueOfInput.NumField()
+		for i := range num {
+			fieldVal := valueOfInput.Field(i)
+			fieldType := typeOfInput.Field(i)
+			err := operation(fieldVal.Interface(), FieldOpMeta{Field: fieldType.Name, Length: num})
+			if err != nil {
+				return err
+			}
+		}
+
+	case reflect.Map:
+		valueOfInput := reflect.ValueOf(input)
+		itr := valueOfInput.MapRange()
+		num := valueOfInput.Len()
+		for itr.Next() {
+			k := itr.Key()
+			v := itr.Value()
+			err := operation(v.Interface(), FieldOpMeta{Field: k.Interface(), Length: num})
+			if err != nil {
+				return err
+			}
+		}
+
+	default:
+		// single operation call attempt
+		return ErrNoFields
+	}
+
+	return rErr
+}
+
+var ErrNoFields = errors.New("type does not have fields")
+
+func forEachMap[V any](m map[string]V, operation func(item any, meta FieldOpMeta) error) error {
+	l := len(m)
+	for k, v := range m {
+		if err := operation(v, FieldOpMeta{Field: k, Length: l}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type OpMeta struct {
 	Index  int
 	Length int
