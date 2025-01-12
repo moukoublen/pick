@@ -2,6 +2,8 @@ package pick
 
 import (
 	"encoding/json"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 func (c DefaultCaster) AsByte(input any) (byte, error) {
@@ -46,5 +48,5 @@ func (c DefaultCaster) AsByteSlice(input any) ([]byte, error) {
 		return []byte(cc), nil
 	}
 
-	return mapTo(input, mapOpFn(c.AsByte))
+	return iter.Map(input, iter.MapOpFn(c.AsByte))
 }

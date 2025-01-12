@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"math"
 	"strconv"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 func (c DefaultCaster) AsFloat64(input any) (float64, error) {
@@ -128,9 +130,9 @@ func (c DefaultCaster) AsFloat32(input any) (float32, error) {
 }
 
 func (c DefaultCaster) AsFloat32Slice(input any) ([]float32, error) {
-	return mapTo(input, mapOpFn(c.AsFloat32))
+	return iter.Map(input, iter.MapOpFn(c.AsFloat32))
 }
 
 func (c DefaultCaster) AsFloat64Slice(input any) ([]float64, error) {
-	return mapTo(input, mapOpFn(c.AsFloat64))
+	return iter.Map(input, iter.MapOpFn(c.AsFloat64))
 }

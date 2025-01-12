@@ -3,6 +3,8 @@ package pick
 import (
 	"encoding/json"
 	"strconv"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 func (c DefaultCaster) AsString(input any) (string, error) {
@@ -60,5 +62,5 @@ func (c DefaultCaster) AsString(input any) (string, error) {
 }
 
 func (c DefaultCaster) AsStringSlice(input any) ([]string, error) {
-	return mapTo(input, mapOpFn(c.AsString))
+	return iter.Map(input, iter.MapOpFn(c.AsString))
 }

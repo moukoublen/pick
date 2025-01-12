@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 func (c DefaultCaster) AsInt(input any) (int, error) {
@@ -49,43 +51,43 @@ func (c DefaultCaster) AsUint64(input any) (uint64, error) {
 }
 
 func (c DefaultCaster) AsIntSlice(input any) ([]int, error) {
-	return mapTo(input, mapOpFn(c.AsInt))
+	return iter.Map(input, iter.MapOpFn(c.AsInt))
 }
 
 func (c DefaultCaster) AsInt8Slice(input any) ([]int8, error) {
-	return mapTo(input, mapOpFn(c.AsInt8))
+	return iter.Map(input, iter.MapOpFn(c.AsInt8))
 }
 
 func (c DefaultCaster) AsInt16Slice(input any) ([]int16, error) {
-	return mapTo(input, mapOpFn(c.AsInt16))
+	return iter.Map(input, iter.MapOpFn(c.AsInt16))
 }
 
 func (c DefaultCaster) AsInt32Slice(input any) ([]int32, error) {
-	return mapTo(input, mapOpFn(c.AsInt32))
+	return iter.Map(input, iter.MapOpFn(c.AsInt32))
 }
 
 func (c DefaultCaster) AsInt64Slice(input any) ([]int64, error) {
-	return mapTo(input, mapOpFn(c.AsInt64))
+	return iter.Map(input, iter.MapOpFn(c.AsInt64))
 }
 
 func (c DefaultCaster) AsUintSlice(input any) ([]uint, error) {
-	return mapTo(input, mapOpFn(c.AsUint))
+	return iter.Map(input, iter.MapOpFn(c.AsUint))
 }
 
 func (c DefaultCaster) AsUint8Slice(input any) ([]uint8, error) {
-	return mapTo(input, mapOpFn(c.AsUint8))
+	return iter.Map(input, iter.MapOpFn(c.AsUint8))
 }
 
 func (c DefaultCaster) AsUint16Slice(input any) ([]uint16, error) {
-	return mapTo(input, mapOpFn(c.AsUint16))
+	return iter.Map(input, iter.MapOpFn(c.AsUint16))
 }
 
 func (c DefaultCaster) AsUint32Slice(input any) ([]uint32, error) {
-	return mapTo(input, mapOpFn(c.AsUint32))
+	return iter.Map(input, iter.MapOpFn(c.AsUint32))
 }
 
 func (c DefaultCaster) AsUint64Slice(input any) ([]uint64, error) {
-	return mapTo(input, mapOpFn(c.AsUint64))
+	return iter.Map(input, iter.MapOpFn(c.AsUint64))
 }
 
 type intCast[T Integer] struct {

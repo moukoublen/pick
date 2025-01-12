@@ -295,7 +295,7 @@ func BenchmarkIntCaster(b *testing.B) {
 func benchmarkIntegerCaster[T Integer](caster func(any) (T, error), input any) func(*testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			_, _ = caster(input)
 		}
 	}

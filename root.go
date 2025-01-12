@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 // This file contains the top-level functions that operates to `Picker` and `SelectorMustAPI`
@@ -20,9 +22,9 @@ func Each(p *Picker, selector string, operation func(index int, p *Picker, total
 		return err
 	}
 
-	return forEach(
+	return iter.ForEach(
 		item,
-		func(item any, meta iterationOpMeta) error {
+		func(item any, meta iter.OpMeta) error {
 			return operation(meta.Index, p.Wrap(item), meta.Length)
 		},
 	)
@@ -35,9 +37,9 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 		return nil, err
 	}
 
-	return mapTo(
+	return iter.Map(
 		item,
-		func(item any, _ iterationOpMeta) (Output, error) {
+		func(item any, _ iter.OpMeta) (Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -50,9 +52,9 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 		return nil, err
 	}
 
-	return mapFilterTo(
+	return iter.MapFilter(
 		item,
-		func(item any, _ iterationOpMeta) (Output, bool, error) {
+		func(item any, _ iter.OpMeta) (Output, bool, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -65,9 +67,9 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 		return nil, err
 	}
 
-	doubleSlice, err := mapTo(
+	doubleSlice, err := iter.Map(
 		item,
-		func(item any, _ iterationOpMeta) ([]Output, error) {
+		func(item any, _ iter.OpMeta) ([]Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -129,7 +131,7 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 		return
 	}
 
-	err = forEach(item, func(item any, meta iterationOpMeta) error {
+	err = iter.ForEach(item, func(item any, meta iter.OpMeta) error {
 		opErr := operation(meta.Index, a.Wrap(item), meta.Length)
 		if opErr != nil {
 			path = append(path, Index(meta.Index))
@@ -171,7 +173,7 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 		return nil
 	}
 
-	sl, err := mapFilterTo(item, func(item any, meta iterationOpMeta) (Output, bool, error) {
+	sl, err := iter.MapFilter(item, func(item any, meta iter.OpMeta) (Output, bool, error) {
 		t, keep, opErr := transform(a.Wrap(item))
 		if opErr != nil {
 			path = append(path, Index(meta.Index))

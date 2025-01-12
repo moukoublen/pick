@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"time"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 func WrapJSON(js []byte) (*Picker, error) {
@@ -76,7 +78,7 @@ func (p *Picker) Len(selector string) (int, error) {
 		return 0, err
 	}
 
-	return itemLen(a)
+	return iter.Len(a)
 }
 
 // Default Selector API (embedded into Picker)

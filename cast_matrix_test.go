@@ -1237,7 +1237,7 @@ func casterSubBenchmarks[Output any](testCases []any, castFn func(any) (Output, 
 func matrixSubBenchmark[Output any](input any, castFn func(any) (Output, error)) func(b *testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
-		for i := 0; i < b.N; i++ {
+		for range b.N {
 			_, err := castFn(input)
 			if err != nil {
 				b.Skipf("skipped because of error %s", err.Error())

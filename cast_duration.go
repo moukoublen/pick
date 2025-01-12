@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/moukoublen/pick/iter"
 )
 
 type DurationCastNumberFormat int
@@ -139,7 +141,7 @@ func (c DefaultCaster) AsDurationSlice(input any) ([]time.Duration, error) {
 }
 
 func (c DefaultCaster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
-	return mapTo(input, func(item any, _ iterationOpMeta) (time.Duration, error) {
+	return iter.Map(input, func(item any, _ iter.OpMeta) (time.Duration, error) {
 		return c.AsDurationWithConfig(config, item)
 	})
 }

@@ -1,4 +1,4 @@
-package pick
+package iter
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func TestIterMapErrorScenarios(t *testing.T) {
 	for idx, tc := range testsCases {
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
-			_, gotErr := mapTo(tc.input, mapOpFn(tc.inputSingleItemCastFn))
+			_, gotErr := Map(tc.input, MapOpFn(tc.inputSingleItemCastFn))
 			testingx.AssertError(t, tc.expectedErr, gotErr)
 		})
 	}
@@ -42,7 +42,7 @@ func TestIterMapErrorScenarios(t *testing.T) {
 type expectedOpCall struct {
 	Item        any
 	ReturnError error
-	Meta        iterationOpMeta
+	Meta        OpMeta
 }
 
 func generateExpectedCalls[T any](input []T) []expectedOpCall {
@@ -50,7 +50,7 @@ func generateExpectedCalls[T any](input []T) []expectedOpCall {
 
 	for i, n := range input {
 		e = append(e, expectedOpCall{
-			Meta:        iterationOpMeta{Index: i, Length: len(input)},
+			Meta:        OpMeta{Index: i, Length: len(input)},
 			Item:        n,
 			ReturnError: nil,
 		})
@@ -62,7 +62,7 @@ func generateExpectedCalls[T any](input []T) []expectedOpCall {
 func TestIterForEach(t *testing.T) {
 	// t.Parallel()
 
-	mockOp := func(t *testing.T, expectedCalls []expectedOpCall) func(item any, meta iterationOpMeta) error {
+	mockOp := func(t *testing.T, expectedCalls []expectedOpCall) func(item any, meta OpMeta) error {
 		t.Helper()
 		idx := 0
 		t.Cleanup(func() {
@@ -70,7 +70,7 @@ func TestIterForEach(t *testing.T) {
 				t.Errorf("mockOp not all expected calls were performed. Expected %d calls made %d", len(expectedCalls), idx)
 			}
 		})
-		return func(item any, meta iterationOpMeta) error {
+		return func(item any, meta OpMeta) error {
 			t.Helper()
 			exp := expectedCalls[idx]
 
@@ -101,7 +101,7 @@ func TestIterForEach(t *testing.T) {
 			ExpectedErr: nil,
 			ExpectedCalls: []expectedOpCall{
 				{
-					Meta:        iterationOpMeta{Index: 0, Length: 1},
+					Meta:        OpMeta{Index: 0, Length: 1},
 					Item:        "abc",
 					ReturnError: nil,
 				},
@@ -112,7 +112,7 @@ func TestIterForEach(t *testing.T) {
 			ExpectedErr: testingx.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall{
 				{
-					Meta:        iterationOpMeta{Index: 0, Length: 1},
+					Meta:        OpMeta{Index: 0, Length: 1},
 					Item:        "abc",
 					ReturnError: mockError,
 				},
@@ -123,7 +123,7 @@ func TestIterForEach(t *testing.T) {
 			ExpectedErr: nil,
 			ExpectedCalls: []expectedOpCall{
 				{
-					Meta:        iterationOpMeta{Index: 0, Length: 1},
+					Meta:        OpMeta{Index: 0, Length: 1},
 					Item:        struct{}{},
 					ReturnError: nil,
 				},
@@ -245,12 +245,12 @@ func TestIterForEach(t *testing.T) {
 			ExpectedErr: testingx.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall{
 				{
-					Meta:        iterationOpMeta{Index: 0, Length: 8},
+					Meta:        OpMeta{Index: 0, Length: 8},
 					Item:        int8(1),
 					ReturnError: nil,
 				},
 				{
-					Meta:        iterationOpMeta{Index: 1, Length: 8},
+					Meta:        OpMeta{Index: 1, Length: 8},
 					Item:        int8(2),
 					ReturnError: mockError,
 				},
@@ -268,7 +268,7 @@ func TestIterForEach(t *testing.T) {
 			ExpectedErr: nil,
 			ExpectedCalls: []expectedOpCall{
 				{
-					Meta:        iterationOpMeta{Index: 0, Length: 1},
+					Meta:        OpMeta{Index: 0, Length: 1},
 					Item:        *ptrStr,
 					ReturnError: nil,
 				},
@@ -280,7 +280,7 @@ func TestIterForEach(t *testing.T) {
 			ExpectedErr: nil,
 			ExpectedCalls: []expectedOpCall{
 				{
-					Meta:        iterationOpMeta{Index: 0, Length: 1},
+					Meta:        OpMeta{Index: 0, Length: 1},
 					Item:        ptrStr,
 					ReturnError: nil,
 				},
@@ -290,14 +290,14 @@ func TestIterForEach(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			gotErr := forEach(tc.Input, mockOp(t, tc.ExpectedCalls))
+			gotErr := ForEach(tc.Input, mockOp(t, tc.ExpectedCalls))
 			testingx.AssertError(t, tc.ExpectedErr, gotErr)
 		})
 	}
 }
 
 func BenchmarkIterForEach(b *testing.B) {
-	noop := func(_ any, _ iterationOpMeta) error { return nil }
+	noop := func(_ any, _ OpMeta) error { return nil }
 
 	tests := map[string]struct {
 		Input any
@@ -404,8 +404,8 @@ func BenchmarkIterForEach(b *testing.B) {
 
 	for name, tc := range tests {
 		b.Run(name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				_ = forEach(tc.Input, noop)
+			for range b.N {
+				_ = ForEach(tc.Input, noop)
 			}
 		})
 	}
@@ -586,10 +586,10 @@ var lenTests = map[string]struct {
 	},
 }
 
-func TestIterLen(t *testing.T) {
+func TestLen(t *testing.T) {
 	for name, tc := range lenTests {
 		t.Run(name, func(t *testing.T) {
-			got, gotErr := itemLen(tc.Input)
+			got, gotErr := Len(tc.Input)
 			testingx.AssertError(t, tc.ExpectedErr, gotErr)
 			testingx.AssertEqual(t, got, tc.Expected)
 		})
@@ -598,19 +598,21 @@ func TestIterLen(t *testing.T) {
 	t.Run("avgInterface wraps implementsAvgInterface", func(t *testing.T) {
 		var a avgInterface = implementsAvgInterface{1, 2, 3, 4, 5, 6, 7}
 		func(a avgInterface) {
-			got, gotErr := itemLen(a)
+			got, gotErr := Len(a)
 			testingx.AssertError(t, nil, gotErr)
 			testingx.AssertEqual(t, got, 7)
 		}(a)
 	})
 }
 
-func BenchmarkIterLen(b *testing.B) {
+func BenchmarkLen(b *testing.B) {
 	for name, tc := range lenTests {
 		b.Run(name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				_, _ = itemLen(tc.Input)
+			for range b.N {
+				_, _ = Len(tc.Input)
 			}
 		})
 	}
 }
+
+func ptr[T any](x T) *T { return &x }

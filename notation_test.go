@@ -144,7 +144,7 @@ func BenchmarkDotNotation(b *testing.B) {
 	for i, tc := range tests {
 		name := "0000" + strconv.Itoa(i)
 		b.Run(name[(len(name)-4):], func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for range b.N {
 				_, _ = d.Parse(tc)
 			}
 		})

@@ -1,4 +1,4 @@
-package pick
+package iter
 
 import (
 	"errors"
@@ -7,13 +7,15 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
-type iterationOpMeta struct {
+type OpMeta struct {
 	Index  int
 	Length int
 }
 
-// forEach applies the given operation to each element of the input if it is a collection
+// ForEach applies the given operation to each element of the input if it is a collection
 // (slice or array), or directly if it is a single item (pointer, interface, or other type).
+// If the operation returns a non-nil error it will cause the entire ForEach function to terminate without applying the
+// operation to the rest of the elements (if any).
 //
 // The function first tries to handle slices of basic types directly by avoiding reflection for performance reasons.
 // If the input is not one of the directly handled types, it uses reflection to determine the input type and
@@ -21,7 +23,7 @@ type iterationOpMeta struct {
 // applies the operation to the dereferenced value. For other types, it applies the operation directly.
 //
 // The function uses deferred recovery to capture and return any panic as an error.
-func forEach(input any, operation func(item any, meta iterationOpMeta) error) (rErr error) { //nolint:gocyclo
+func ForEach(input any, operation func(item any, meta OpMeta) error) (rErr error) { //nolint:gocyclo
 	defer errorsx.RecoverPanicToError(&rErr)
 
 	// attempt to quick return on slice of basic types by avoiding reflect.
@@ -71,7 +73,7 @@ func forEach(input any, operation func(item any, meta iterationOpMeta) error) (r
 		length := valueOfInput.Len()
 		for i := range length {
 			item := valueOfInput.Index(i)
-			if err := operation(item.Interface(), iterationOpMeta{Index: i, Length: length}); err != nil {
+			if err := operation(item.Interface(), OpMeta{Index: i, Length: length}); err != nil {
 				return err
 			}
 		}
@@ -91,18 +93,18 @@ func forEach(input any, operation func(item any, meta iterationOpMeta) error) (r
 		}
 
 		// single operation call attempt
-		return operation(el.Interface(), iterationOpMeta{Index: 0, Length: 1})
+		return operation(el.Interface(), OpMeta{Index: 0, Length: 1})
 
 	default:
 		// single operation call attempt
-		return operation(input, iterationOpMeta{Index: 0, Length: 1})
+		return operation(input, OpMeta{Index: 0, Length: 1})
 	}
 }
 
-func forEachSlice[T any](s []T, operation func(item any, meta iterationOpMeta) error) error {
+func forEachSlice[T any](s []T, operation func(item any, meta OpMeta) error) error {
 	l := len(s)
 	for i := range s {
-		if err := operation(s[i], iterationOpMeta{Index: i, Length: l}); err != nil {
+		if err := operation(s[i], OpMeta{Index: i, Length: l}); err != nil {
 			return err
 		}
 	}
@@ -110,27 +112,37 @@ func forEachSlice[T any](s []T, operation func(item any, meta iterationOpMeta) e
 	return nil
 }
 
-func mapTo[T any](input any, castOp func(item any, meta iterationOpMeta) (T, error)) ([]T, error) {
+// Map applies a transformation operation to each element of the provided input if it is a collection
+// (slice or array), or directly to it, if it is a single item (pointer, interface, or other type).
+func Map[T any](input any, operation func(item any, meta OpMeta) (T, error)) ([]T, error) {
 	// quick returns just in case its already slice of T.
 	if ss, is := input.([]T); is {
 		return ss, nil
 	}
 
-	return mapFilterTo(input, func(item any, meta iterationOpMeta) (T, bool, error) {
-		casted, err := castOp(item, meta)
-		return casted, err == nil, err
+	return MapFilter(input, func(item any, meta OpMeta) (T, bool, error) {
+		casted, err := operation(item, meta)
+		return casted, true, err
 	})
 }
 
-func mapFilterTo[T any](input any, castFilterOp func(item any, meta iterationOpMeta) (T, bool, error)) ([]T, error) {
+// MapFilter applies a transformation and filtering operation to each element of the provided input if it is a collection
+// (slice or array), or directly to it, if it is a single item (pointer, interface, or other type).
+// The operation function returns three values:
+//  1. A transformed value of type T
+//  2. A boolean indicating whether the transformed value should be included (If the boolean is false for a given element, that element is excluded)
+//  3. An error, which if non-nil will cause the entire MapFilter operation to terminate
+//
+// It returns a slice containing all included transformed elements, or an error if any operation fails.
+func MapFilter[T any](input any, operation func(item any, meta OpMeta) (T, bool, error)) ([]T, error) {
 	var castedSlice []T
 
 	if input == nil {
 		return castedSlice, nil
 	}
 
-	err := forEach(input, func(item any, meta iterationOpMeta) error {
-		casted, keep, err := castFilterOp(item, meta)
+	err := ForEach(input, func(item any, meta OpMeta) error {
+		casted, keep, err := operation(item, meta)
 		switch {
 		case err != nil:
 			return err
@@ -153,15 +165,15 @@ func mapFilterTo[T any](input any, castFilterOp func(item any, meta iterationOpM
 	return castedSlice, nil
 }
 
-func mapOpFn[T any](fn func(item any) (T, error)) func(item any, meta iterationOpMeta) (T, error) {
-	return func(item any, _ iterationOpMeta) (T, error) {
+func MapOpFn[T any](fn func(item any) (T, error)) func(item any, meta OpMeta) (T, error) {
+	return func(item any, _ OpMeta) (T, error) {
 		return fn(item)
 	}
 }
 
-// itemLen returns the result of built in len function if the input is of type slice, array, map, string or channel.
+// Len returns the result of built in len function if the input is of type slice, array, map, string or channel.
 // If the input is pointer and not nil, it dereferences the destination.
-func itemLen(input any) (l int, rErr error) {
+func Len(input any) (l int, rErr error) {
 	defer errorsx.RecoverPanicToError(&rErr)
 
 	// attempt to quick return on slice of basic types by avoiding reflect.
@@ -223,7 +235,7 @@ func itemLen(input any) (l int, rErr error) {
 		}
 
 		elemValue := valueOfInput.Elem()
-		return itemLen(elemValue.Interface())
+		return Len(elemValue.Interface())
 	}
 
 	return -1, ErrNoLength
