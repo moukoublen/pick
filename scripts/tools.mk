@@ -39,6 +39,13 @@ define go_install
 	@echo ""
 endef
 
+# export GOMOD=$(shell pwd)/go_tools.mod
+# go get -modfile='go_tools.mod' -u ...
+define go_mod_ver
+$(shell go list -modfile='./tools/go.mod' -m $(1) | cut -d ' ' -f2)
+endef
+
+
 .PHONY: vet
 vet:
 	go vet `$(GO_PACKAGES)`
@@ -46,10 +53,10 @@ vet:
 
 ## <staticcheck>
 # https://github.com/dominikh/go-tools/releases    https://staticcheck.io/c
-STATICCHECK_CMD:=honnef.co/go/tools/cmd/staticcheck
-STATICCHECK_VER:=2024.1.1
+STATICCHECK_MOD:=honnef.co/go/tools
+STATICCHECK_VER:=$(call go_mod_ver,$(STATICCHECK_MOD))
 $(TOOLS_BIN)/staticcheck: $(TOOLS_DB)/staticcheck.$(STATICCHECK_VER).$(GO_VER).ver
-	$(call go_install,staticcheck,$(STATICCHECK_CMD),$(STATICCHECK_VER))
+	$(call go_install,staticcheck,$(STATICCHECK_MOD)/cmd/staticcheck,$(STATICCHECK_VER))
 
 .PHONY: staticcheck
 staticcheck: $(TOOLS_BIN)/staticcheck
@@ -59,8 +66,8 @@ staticcheck: $(TOOLS_BIN)/staticcheck
 
 ## <golangci-lint>
 # https://github.com/golangci/golangci-lint/releases
-GOLANGCI-LINT_CMD:=github.com/golangci/golangci-lint/cmd/golangci-lint
-GOLANGCI-LINT_VER:=v1.63.4
+GOLANGCI-LINT_MOD:=github.com/golangci/golangci-lint
+GOLANGCI-LINT_VER:=$(call go_mod_ver,$(GOLANGCI-LINT_MOD))
 $(TOOLS_BIN)/golangci-lint: $(TOOLS_DB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_VER).ver
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) $(GOLANGCI-LINT_VER)
 
@@ -72,10 +79,10 @@ golangci-lint: $(TOOLS_BIN)/golangci-lint
 
 ## <goimports>
 # https://pkg.go.dev/golang.org/x/tools?tab=versions
-GOIMPORTS_CMD := golang.org/x/tools/cmd/goimports
-GOIMPORTS_VER := v0.29.0
+GOIMPORTS_MOD:=golang.org/x/tools
+GOIMPORTS_VER:=$(call go_mod_ver,$(GOIMPORTS_MOD))
 $(TOOLS_BIN)/goimports: $(TOOLS_DB)/goimports.$(GOIMPORTS_VER).$(GO_VER).ver
-	$(call go_install,goimports,$(GOIMPORTS_CMD),$(GOIMPORTS_VER))
+	$(call go_install,goimports,$(GOIMPORTS_MOD)/cmd/goimports,$(GOIMPORTS_VER))
 
 .PHONY: goimports
 goimports: $(TOOLS_BIN)/goimports
@@ -88,10 +95,10 @@ goimports.display: $(TOOLS_BIN)/goimports
 
 ## <gofumpt>
 # https://github.com/mvdan/gofumpt/releases
-GOFUMPT_CMD:=mvdan.cc/gofumpt
-GOFUMPT_VER:=v0.7.0
+GOFUMPT_MOD:=mvdan.cc/gofumpt
+GOFUMPT_VER:=$(call go_mod_ver,$(GOFUMPT_MOD))
 $(TOOLS_BIN)/gofumpt: $(TOOLS_DB)/gofumpt.$(GOFUMPT_VER).$(GO_VER).ver
-	$(call go_install,gofumpt,$(GOFUMPT_CMD),$(GOFUMPT_VER))
+	$(call go_install,gofumpt,$(GOFUMPT_MOD),$(GOFUMPT_VER))
 
 .PHONY: gofumpt
 gofumpt: $(TOOLS_BIN)/gofumpt
@@ -114,10 +121,10 @@ gofmt.display:
 
 ## <gojq>
 # https://github.com/itchyny/gojq/releases
-GOJQ_CMD := github.com/itchyny/gojq/cmd/gojq
-GOJQ_VER := v0.12.17
+GOJQ_MOD:=github.com/itchyny/gojq
+GOJQ_VER:=$(call go_mod_ver,$(GOJQ_MOD))
 $(TOOLS_BIN)/gojq: $(TOOLS_DB)/gojq.$(GOJQ_VER).$(GO_VER).ver
-	$(call go_install,gojq,$(GOJQ_CMD),$(GOJQ_VER))
+	$(call go_install,gojq,$(GOJQ_MOD)/cmd/gojq,$(GOJQ_VER))
 
 .PHONY: gojq
 gojq: $(TOOLS_BIN)/gojq
@@ -125,10 +132,10 @@ gojq: $(TOOLS_BIN)/gojq
 
 ## <shfmt>
 # https://github.com/mvdan/sh/releases
-SHFMT_CMD := mvdan.cc/sh/v3/cmd/shfmt
-SHFMT_VER := v3.10.0
+SHFMT_MOD:=mvdan.cc/sh/v3
+SHFMT_VER:=$(call go_mod_ver,$(SHFMT_MOD))
 $(TOOLS_BIN)/shfmt: $(TOOLS_DB)/shfmt.$(SHFMT_VER).$(GO_VER).ver
-	$(call go_install,shfmt,$(SHFMT_CMD),$(SHFMT_VER))
+	$(call go_install,shfmt,$(SHFMT_MOD)/cmd/shfmt,$(SHFMT_VER))
 
 .PHONY: shfmt
 shfmt: $(TOOLS_BIN)/shfmt
@@ -154,4 +161,3 @@ shellcheck: $(TOOLS_BIN)/shellcheck
 		--format=tty \
 		--enable=require-variable-braces,add-default-case
 ## </shellcheck>
-

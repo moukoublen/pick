@@ -11,3 +11,11 @@ updates:
       - dependency-type: all
     schedule:
       interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/tools/"
+    allow:
+      - dependency-type: direct
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "[tools]"
