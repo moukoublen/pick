@@ -19,3 +19,7 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "[tools]"
+    groups:
+      all-tools:
+        patterns:
+          - "*"
