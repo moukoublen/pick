@@ -7,7 +7,7 @@ go 1.22.1
 
 require (
 	github.com/golangci/golangci-lint v1.63.4
-	github.com/itchyny/gojq v0.12.16
+	github.com/itchyny/gojq v0.12.17
 	golang.org/x/tools v0.29.0
 	honnef.co/go/tools v0.5.1
 	mvdan.cc/gofumpt v0.7.0
