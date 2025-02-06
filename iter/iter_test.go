@@ -6,7 +6,110 @@ import (
 	"testing"
 
 	"github.com/moukoublen/pick/internal/tst"
+	"github.com/stretchr/testify/mock"
 )
+
+type expectedOpCall[M CollectionOpMeta | FieldOpMeta] struct {
+	Item        any
+	ReturnError error
+	Meta        M
+}
+
+type MockOp[M CollectionOpMeta | FieldOpMeta] struct {
+	mock.Mock
+}
+
+func (m *MockOp[M]) Operation(item any, meta M) error {
+	return m.Called(item, meta).Error(0)
+}
+
+func (m *MockOp[M]) init(ex []expectedOpCall[M], ordered bool) {
+	sl := make([]*mock.Call, 0, len(ex))
+	for _, e := range ex {
+		c := m.On("Operation", e.Item, e.Meta).Return(e.ReturnError)
+		sl = append(sl, c)
+	}
+
+	if ordered {
+		mock.InOrder(sl...)
+	}
+}
+
+func generateExpectedCalls[Input any](input []Input) []expectedOpCall[CollectionOpMeta] {
+	e := make([]expectedOpCall[CollectionOpMeta], 0, len(input))
+
+	for i, n := range input {
+		e = append(e, expectedOpCall[CollectionOpMeta]{
+			Meta:        CollectionOpMeta{Index: i, Length: len(input)},
+			Item:        n,
+			ReturnError: nil,
+		})
+	}
+
+	return e
+}
+
+func TestIterForEachField(t *testing.T) {
+	tests := map[string]struct {
+		Input         any
+		ErrorAsserter tst.ErrorAsserter
+		ExpectedCalls []expectedOpCall[FieldOpMeta]
+	}{
+		"nil": {
+			Input:         nil,
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
+		},
+		"map[string]any": {
+			Input:         map[string]any{"one": 1, "two": 2},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Item:        1,
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Item:        2,
+					ReturnError: nil,
+				},
+			},
+		},
+		"string": {
+			Input:         "string",
+			ErrorAsserter: tst.ExpectedErrorIs(ErrNoFields),
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
+		},
+		"map[string]string": {
+			Input:         map[string]any{"one": "1", "two": "2"},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Item:        "1",
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Item:        "2",
+					ReturnError: nil,
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			m := &MockOp[FieldOpMeta]{}
+			m.Test(t)
+			m.init(tc.ExpectedCalls, false)
+			gotErr := ForEachField(tc.Input, m.Operation)
+			tc.ErrorAsserter(t, gotErr)
+			m.AssertExpectations(t)
+		})
+	}
+}
 
 func TestIterMapErrorScenarios(t *testing.T) {
 	errMock1 := errors.New("mock error")
@@ -39,49 +142,7 @@ func TestIterMapErrorScenarios(t *testing.T) {
 	}
 }
 
-type expectedOpCall struct {
-	Item        any
-	ReturnError error
-	Meta        OpMeta
-}
-
-func generateExpectedCalls[T any](input []T) []expectedOpCall {
-	e := make([]expectedOpCall, 0, len(input))
-
-	for i, n := range input {
-		e = append(e, expectedOpCall{
-			Meta:        OpMeta{Index: i, Length: len(input)},
-			Item:        n,
-			ReturnError: nil,
-		})
-	}
-
-	return e
-}
-
 func TestIterForEach(t *testing.T) {
-	// t.Parallel()
-
-	mockOp := func(t *testing.T, expectedCalls []expectedOpCall) func(item any, meta OpMeta) error {
-		t.Helper()
-		idx := 0
-		t.Cleanup(func() {
-			if idx != len(expectedCalls) {
-				t.Errorf("mockOp not all expected calls were performed. Expected %d calls made %d", len(expectedCalls), idx)
-			}
-		})
-		return func(item any, meta OpMeta) error {
-			t.Helper()
-			exp := expectedCalls[idx]
-
-			tst.AssertEqual(t, item, exp.Item)
-			tst.AssertEqual(t, meta, exp.Meta)
-
-			idx++
-			return exp.ReturnError
-		}
-	}
-
 	mockError := errors.New("error")
 
 	ptrStr := ptr("test")
@@ -89,19 +150,19 @@ func TestIterForEach(t *testing.T) {
 	tests := map[string]struct {
 		Input         any
 		ErrorAsserter tst.ErrorAsserter
-		ExpectedCalls []expectedOpCall
+		ExpectedCalls []expectedOpCall[CollectionOpMeta]
 	}{
 		"nil": {
 			Input:         nil,
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{},
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{},
 		},
 		"string": {
 			Input:         "abc",
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{
 				{
-					Meta:        OpMeta{Index: 0, Length: 1},
+					Meta:        CollectionOpMeta{Index: 0, Length: 1},
 					Item:        "abc",
 					ReturnError: nil,
 				},
@@ -110,9 +171,9 @@ func TestIterForEach(t *testing.T) {
 		"string error": {
 			Input:         "abc",
 			ErrorAsserter: tst.ExpectedErrorIs(mockError),
-			ExpectedCalls: []expectedOpCall{
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{
 				{
-					Meta:        OpMeta{Index: 0, Length: 1},
+					Meta:        CollectionOpMeta{Index: 0, Length: 1},
 					Item:        "abc",
 					ReturnError: mockError,
 				},
@@ -121,9 +182,9 @@ func TestIterForEach(t *testing.T) {
 		"struct{}": {
 			Input:         struct{}{},
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{
 				{
-					Meta:        OpMeta{Index: 0, Length: 1},
+					Meta:        CollectionOpMeta{Index: 0, Length: 1},
 					Item:        struct{}{},
 					ReturnError: nil,
 				},
@@ -133,7 +194,7 @@ func TestIterForEach(t *testing.T) {
 		"[]any:0": {
 			Input:         []any{},
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{},
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{},
 		},
 		"[]any:8": {
 			Input:         []any{1, 2, 3, 4, 5, 6, 7, 8},
@@ -243,14 +304,14 @@ func TestIterForEach(t *testing.T) {
 		"[8]int8 error": {
 			Input:         [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
 			ErrorAsserter: tst.ExpectedErrorIs(mockError),
-			ExpectedCalls: []expectedOpCall{
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{
 				{
-					Meta:        OpMeta{Index: 0, Length: 8},
+					Meta:        CollectionOpMeta{Index: 0, Length: 8},
 					Item:        int8(1),
 					ReturnError: nil,
 				},
 				{
-					Meta:        OpMeta{Index: 1, Length: 8},
+					Meta:        CollectionOpMeta{Index: 1, Length: 8},
 					Item:        int8(2),
 					ReturnError: mockError,
 				},
@@ -260,15 +321,15 @@ func TestIterForEach(t *testing.T) {
 		"*string nil": {
 			Input:         (*string)(nil),
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{},
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{},
 		},
 
 		"*string not nil": {
 			Input:         ptrStr,
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{
 				{
-					Meta:        OpMeta{Index: 0, Length: 1},
+					Meta:        CollectionOpMeta{Index: 0, Length: 1},
 					Item:        *ptrStr,
 					ReturnError: nil,
 				},
@@ -278,9 +339,9 @@ func TestIterForEach(t *testing.T) {
 		"**string not nil": {
 			Input:         &ptrStr,
 			ErrorAsserter: tst.NoError,
-			ExpectedCalls: []expectedOpCall{
+			ExpectedCalls: []expectedOpCall[CollectionOpMeta]{
 				{
-					Meta:        OpMeta{Index: 0, Length: 1},
+					Meta:        CollectionOpMeta{Index: 0, Length: 1},
 					Item:        ptrStr,
 					ReturnError: nil,
 				},
@@ -290,14 +351,18 @@ func TestIterForEach(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			gotErr := ForEach(tc.Input, mockOp(t, tc.ExpectedCalls))
+			m := &MockOp[CollectionOpMeta]{}
+			m.Test(t)
+			m.init(tc.ExpectedCalls, true)
+			gotErr := ForEach(tc.Input, m.Operation)
 			tc.ErrorAsserter(t, gotErr)
+			m.AssertExpectations(t)
 		})
 	}
 }
 
 func BenchmarkIterForEach(b *testing.B) {
-	noop := func(_ any, _ OpMeta) error { return nil }
+	noop := func(_ any, _ CollectionOpMeta) error { return nil }
 
 	tests := map[string]struct {
 		Input any
