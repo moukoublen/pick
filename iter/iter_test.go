@@ -50,6 +50,8 @@ func generateExpectedCalls[Input any](input []Input) []expectedOpCall[Collection
 }
 
 func TestIterForEachField(t *testing.T) {
+	mockError := errors.New("error")
+
 	type Foo struct {
 		A string
 		B int
@@ -139,6 +141,16 @@ func TestIterForEachField(t *testing.T) {
 				},
 			},
 		},
+		"*map[string]int(nil)": {
+			Input:         (*map[string]any)(nil),
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
+		},
+		"map[string]int(nil)": {
+			Input:         (map[string]any)(nil),
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
+		},
 		"struct Foo": {
 			Input:         Foo{A: "a", B: 1},
 			ErrorAsserter: tst.NoError,
@@ -152,6 +164,28 @@ func TestIterForEachField(t *testing.T) {
 					Meta:        FieldOpMeta{Field: "B", Length: 2},
 					Item:        1,
 					ReturnError: nil,
+				},
+			},
+		},
+		"map[string]string errors": {
+			Input:         map[string]string{"one": "1"},
+			ErrorAsserter: tst.ExpectedErrorIs(mockError),
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "one", Length: 1},
+					Item:        "1",
+					ReturnError: mockError,
+				},
+			},
+		},
+		"map[string]int errors": {
+			Input:         map[string]int{"one": 1},
+			ErrorAsserter: tst.ExpectedErrorIs(mockError),
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "one", Length: 1},
+					Item:        1,
+					ReturnError: mockError,
 				},
 			},
 		},
