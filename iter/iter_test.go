@@ -50,6 +50,11 @@ func generateExpectedCalls[Input any](input []Input) []expectedOpCall[Collection
 }
 
 func TestIterForEachField(t *testing.T) {
+	type Foo struct {
+		A string
+		B int
+	}
+
 	tests := map[string]struct {
 		Input         any
 		ErrorAsserter tst.ErrorAsserter
@@ -81,8 +86,13 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.ExpectedErrorIs(ErrNoFields),
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
 		},
+		"[]string": {
+			Input:         []string{"a", "b"},
+			ErrorAsserter: tst.ExpectedErrorIs(ErrNoFields),
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
+		},
 		"map[string]string": {
-			Input:         map[string]any{"one": "1", "two": "2"},
+			Input:         map[string]string{"one": "1", "two": "2"},
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
@@ -93,6 +103,54 @@ func TestIterForEachField(t *testing.T) {
 				{
 					Meta:        FieldOpMeta{Field: "two", Length: 2},
 					Item:        "2",
+					ReturnError: nil,
+				},
+			},
+		},
+		"map[string]int": {
+			Input:         map[string]int{"one": 1, "two": 2},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Item:        1,
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Item:        2,
+					ReturnError: nil,
+				},
+			},
+		},
+		"*map[string]any": {
+			Input:         ptr(map[string]any{"one": "1", "two": "2"}),
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Item:        "1",
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Item:        "2",
+					ReturnError: nil,
+				},
+			},
+		},
+		"struct Foo": {
+			Input:         Foo{A: "a", B: 1},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "A", Length: 2},
+					Item:        "a",
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Field: "B", Length: 2},
+					Item:        1,
 					ReturnError: nil,
 				},
 			},

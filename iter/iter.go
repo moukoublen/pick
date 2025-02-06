@@ -21,8 +21,6 @@ func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (
 		return forEachMap(cc, operation)
 	case map[string]string:
 		return forEachMap(cc, operation)
-	case map[string]map[string]any:
-		return forEachMap(cc, operation)
 	}
 
 	typeOfInput := reflect.TypeOf(input)
