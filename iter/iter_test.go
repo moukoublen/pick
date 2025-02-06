@@ -167,6 +167,17 @@ func TestIterForEachField(t *testing.T) {
 				},
 			},
 		},
+		"struct Foo error": {
+			Input:         Foo{A: "a", B: 1},
+			ErrorAsserter: tst.ExpectedErrorIs(mockError),
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Field: "A", Length: 2},
+					Item:        "a",
+					ReturnError: mockError,
+				},
+			},
+		},
 		"map[string]string errors": {
 			Input:         map[string]string{"one": "1"},
 			ErrorAsserter: tst.ExpectedErrorIs(mockError),
