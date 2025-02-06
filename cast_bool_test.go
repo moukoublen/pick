@@ -2,6 +2,8 @@ package pick
 
 import (
 	"testing"
+
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestBoolCaster(t *testing.T) {
@@ -9,14 +11,14 @@ func TestBoolCaster(t *testing.T) {
 
 	testCases := []singleCastTestCase[bool]{
 		{
-			input:       "true",
-			expected:    true,
-			expectedErr: nil,
+			input:         "true",
+			expected:      true,
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       "false",
-			expected:    false,
-			expectedErr: nil,
+			input:         "false",
+			expected:      false,
+			errorAsserter: tst.NoError,
 		},
 	}
 

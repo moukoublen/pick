@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func expectJoinedErrorWithLen(expectedLen int) func(t *testing.T, err error) {
@@ -37,23 +37,23 @@ var errSample = errors.New("sample error")
 
 func TestRecoverPanicToError(t *testing.T) {
 	tests := map[string]struct {
-		out         *error
-		fnPanics    func()
-		expectedErr func(*testing.T, error)
+		out           *error
+		fnPanics      func()
+		errorAsserter tst.ErrorAsserter
 	}{
 		"no error": {
-			out:         ptrNilErr(),
-			fnPanics:    func() {},
-			expectedErr: nil,
+			out:           ptrNilErr(),
+			fnPanics:      func() {},
+			errorAsserter: tst.NoError,
 		},
 		"panic to nil out": {
 			out:      ptrNilErr(),
 			fnPanics: func() { panic("panic!") },
-			expectedErr: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorStringContains(`recovered panic: "panic!"`),
-				testingx.ExpectedErrorOfType[*recoveredPanicError](
+			errorAsserter: tst.ExpectedErrorChecks(
+				tst.ExpectedErrorStringContains(`recovered panic: "panic!"`),
+				tst.ExpectedErrorOfType[*recoveredPanicError](
 					func(t *testing.T, rpe *recoveredPanicError) { //nolint:thelper
-						testingx.AssertEqual(t, rpe.Recovered(), "panic!")
+						tst.AssertEqual(t, rpe.Recovered(), "panic!")
 					},
 				),
 			),
@@ -61,20 +61,20 @@ func TestRecoverPanicToError(t *testing.T) {
 		"panic to not nil out": {
 			out:      ptrErr(errSample),
 			fnPanics: func() { panic("panic!") },
-			expectedErr: testingx.ExpectedErrorChecks(
+			errorAsserter: tst.ExpectedErrorChecks(
 				expectJoinedErrorWithLen(2),
-				testingx.ExpectedErrorStringContains("recovered panic: \"panic!\"\nsample error"),
-				testingx.ExpectedErrorOfType[*recoveredPanicError](),
+				tst.ExpectedErrorStringContains("recovered panic: \"panic!\"\nsample error"),
+				tst.ExpectedErrorOfType[*recoveredPanicError](),
 			),
 		},
 		"panic error to nil out": {
 			out:      ptrNilErr(),
 			fnPanics: func() { panic(errSample) },
-			expectedErr: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorStringContains(`recovered panic: sample error`),
-				testingx.ExpectedErrorOfType[*recoveredPanicError](
+			errorAsserter: tst.ExpectedErrorChecks(
+				tst.ExpectedErrorStringContains(`recovered panic: sample error`),
+				tst.ExpectedErrorOfType[*recoveredPanicError](
 					func(t *testing.T, rpe *recoveredPanicError) { //nolint:thelper
-						testingx.ExpectedErrorIs(errSample)(t, rpe.Unwrap())
+						tst.ExpectedErrorIs(errSample)(t, rpe.Unwrap())
 					},
 				),
 			),
@@ -82,21 +82,25 @@ func TestRecoverPanicToError(t *testing.T) {
 		"panic error to not nil out": {
 			out:      ptrErr(errSample),
 			fnPanics: func() { panic(errSample) },
-			expectedErr: testingx.ExpectedErrorChecks(
+			errorAsserter: tst.ExpectedErrorChecks(
 				expectJoinedErrorWithLen(2),
-				testingx.ExpectedErrorStringContains("recovered panic: sample error\nsample error"),
-				testingx.ExpectedErrorOfType[*recoveredPanicError](),
+				tst.ExpectedErrorStringContains("recovered panic: sample error\nsample error"),
+				tst.ExpectedErrorOfType[*recoveredPanicError](),
 			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			// stacked position 2, assert.
 			defer func() {
-				testingx.AssertError(t, tc.expectedErr, *tc.out)
+				tc.errorAsserter(t, *tc.out)
 			}()
 
+			// stacked position 1, recover.
 			defer RecoverPanicToError(tc.out)
+
+			// panic (or not).
 			if tc.fnPanics != nil {
 				tc.fnPanics()
 			}

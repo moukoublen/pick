@@ -1,18 +1,17 @@
 package pick
 
 import (
-	"reflect"
 	"strconv"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestDotNotation(t *testing.T) {
 	// t.Parallel()
 
 	tests := []struct {
-		expectedError     func(*testing.T, error)
+		errorAsserter     tst.ErrorAsserter
 		input             string
 		expectedPath      []Key
 		expectedFormatted string
@@ -20,77 +19,77 @@ func TestDotNotation(t *testing.T) {
 		{
 			input:         "",
 			expectedPath:  nil,
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "one.two",
 			expectedPath:  []Key{Field("one"), Field("two")},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "one[1]",
 			expectedPath:  []Key{Field("one"), Index(1)},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "one[1432]",
 			expectedPath:  []Key{Field("one"), Index(1432)},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "[1][2][3]",
 			expectedPath:  []Key{Index(1), Index(2), Index(3)},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "[1][-1].field",
 			expectedPath:  []Key{Index(1), Index(-1), Field("field")},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "[154][34][376]",
 			expectedPath:  []Key{Index(154), Index(34), Index(376)},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "[154].a[2].three",
 			expectedPath:  []Key{Index(154), Field("a"), Index(2), Field("three")},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "r[154].a[2].three",
 			expectedPath:  []Key{Field("r"), Index(154), Field("a"), Index(2), Field("three")},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "ελληνικά[154].a[2].three",
 			expectedPath:  []Key{Field("ελληνικά"), Index(154), Field("a"), Index(2), Field("three")},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "start[3].ελληνικά.a[2].three",
 			expectedPath:  []Key{Field("start"), Index(3), Field("ελληνικά"), Field("a"), Index(2), Field("three")},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         "[154].asd[",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
+			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
 		},
 		{
 			input:         "[154].asd.",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
+			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
 		},
 		{
 			input:         "[154].asd[r]",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
+			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
 		},
 		{
 			input:         "..",
 			expectedPath:  []Key(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
+			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
 		},
 	}
 
@@ -100,12 +99,10 @@ func TestDotNotation(t *testing.T) {
 		t.Run(tc.input, func(t *testing.T) {
 			// t.Parallel()
 			got, err := dsf.Parse(tc.input)
-			testingx.AssertError(t, tc.expectedError, err)
-			if !reflect.DeepEqual(tc.expectedPath, got) {
-				t.Errorf("For input: %s \nExpected: %v\nGot     : %v\n", tc.input, tc.expectedPath, got)
-			}
+			tc.errorAsserter(t, err)
+			tst.AssertEqual(t, got, tc.expectedPath)
 
-			if tc.expectedError != nil {
+			if err != nil {
 				return
 			}
 
@@ -115,9 +112,7 @@ func TestDotNotation(t *testing.T) {
 			if tc.expectedFormatted != "" {
 				expectedFormatted = tc.expectedFormatted
 			}
-			if expectedFormatted != gotFormatted {
-				t.Errorf("For input: %s \nExpected formatted: %s\nGot formatted     : %s\n", tc.input, expectedFormatted, gotFormatted)
-			}
+			tst.AssertEqual(t, expectedFormatted, gotFormatted)
 		})
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestInt64CastValid(t *testing.T) {
@@ -278,7 +278,7 @@ func BenchmarkIntCaster(b *testing.B) {
 	}
 
 	for idx, tc := range tests {
-		input := fmt.Sprintf("%d:%s", idx, testingx.Format(tc))
+		input := fmt.Sprintf("%d:%s", idx, tst.Format(tc))
 		b.Run("caster{int8}   "+input, benchmarkIntegerCaster(ic.int8Caster.cast, tc))
 		b.Run("caster{int16}  "+input, benchmarkIntegerCaster(ic.int16Caster.cast, tc))
 		b.Run("caster{int32}  "+input, benchmarkIntegerCaster(ic.int32Caster.cast, tc))

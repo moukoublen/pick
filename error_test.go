@@ -6,7 +6,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestMultiError(t *testing.T) {
@@ -16,16 +16,16 @@ func TestMultiError(t *testing.T) {
 
 	m := &multiError{}
 
-	testingx.AssertEqual(t, m.Error(), "")
+	tst.AssertEqual(t, m.Error(), "")
 
 	m.Add(errOne)
 	m.Add(errTwo)
 	m.Add(errThree)
 
-	testingx.AssertEqual(t, m.Error(), "one | two | three")
-	testingx.AssertEqual(t, errors.Is(m, errOne), true)
-	testingx.AssertEqual(t, errors.Is(m, errTwo), true)
-	testingx.AssertEqual(t, errors.Is(m, errThree), true)
+	tst.AssertEqual(t, m.Error(), "one | two | three")
+	tst.AssertEqual(t, errors.Is(m, errOne), true)
+	tst.AssertEqual(t, errors.Is(m, errTwo), true)
+	tst.AssertEqual(t, errors.Is(m, errThree), true)
 }
 
 func ptr[T any](o T) *T {
@@ -42,14 +42,14 @@ func TestGather(t *testing.T) {
 			destination: nil,
 			newError:    nil,
 			expect: func(t *testing.T, dst *error) {
-				testingx.AssertEqual(t, dst, (*error)(nil))
+				tst.AssertEqual(t, dst, (*error)(nil))
 			},
 		},
 		{
 			destination: nil,
 			newError:    errors.New("error"),
 			expect: func(t *testing.T, dst *error) {
-				testingx.AssertEqual(t, dst, (*error)(nil))
+				tst.AssertEqual(t, dst, (*error)(nil))
 			},
 		},
 		{
@@ -57,8 +57,8 @@ func TestGather(t *testing.T) {
 			newError:    errors.New("error"),
 			expect: func(t *testing.T, dst *error) {
 				m, is := (*dst).(*multiError)
-				testingx.AssertEqual(t, is, true)
-				testingx.AssertEqual(t, m.Error(), "error")
+				tst.AssertEqual(t, is, true)
+				tst.AssertEqual(t, m.Error(), "error")
 			},
 		},
 		{
@@ -66,8 +66,8 @@ func TestGather(t *testing.T) {
 			newError:    errors.New("error"),
 			expect: func(t *testing.T, dst *error) {
 				m, is := (*dst).(*multiError)
-				testingx.AssertEqual(t, is, true)
-				testingx.AssertEqual(t, m.Error(), "error")
+				tst.AssertEqual(t, is, true)
+				tst.AssertEqual(t, m.Error(), "error")
 			},
 		},
 		{
@@ -75,8 +75,8 @@ func TestGather(t *testing.T) {
 			newError:    errors.New("error"),
 			expect: func(t *testing.T, dst *error) {
 				m, is := (*dst).(*multiError)
-				testingx.AssertEqual(t, is, true)
-				testingx.AssertEqual(t, m.Error(), "error")
+				tst.AssertEqual(t, is, true)
+				tst.AssertEqual(t, m.Error(), "error")
 			},
 		},
 		{
@@ -84,9 +84,9 @@ func TestGather(t *testing.T) {
 			newError:    errors.New("two"),
 			expect: func(t *testing.T, dst *error) {
 				m, is := (*dst).(*multiError)
-				testingx.AssertEqual(t, is, true)
-				testingx.AssertEqual(t, len(m.errors), 2)
-				testingx.AssertEqual(t, m.Error(), "one | two")
+				tst.AssertEqual(t, is, true)
+				tst.AssertEqual(t, len(m.errors), 2)
+				tst.AssertEqual(t, m.Error(), "one | two")
 			},
 		},
 	}
@@ -102,19 +102,19 @@ func TestGather(t *testing.T) {
 func TestErrorsSink(t *testing.T) {
 	tests := map[string]struct {
 		op            func(es *ErrorsSink)
-		expectedError func(*testing.T, error)
+		errorAsserter tst.ErrorAsserter
 	}{
 		"empty": {
 			op:            func(_ *ErrorsSink) {},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 
 		"one Gather": {
 			op: func(es *ErrorsSink) {
 				es.Gather(errors.New("error"))
 			},
-			expectedError: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorStringContains("error"),
+			errorAsserter: tst.ExpectedErrorChecks(
+				tst.ExpectedErrorStringContains("error"),
 			),
 		},
 
@@ -122,14 +122,14 @@ func TestErrorsSink(t *testing.T) {
 			op: func(es *ErrorsSink) {
 				es.GatherSelector("one.two", io.ErrUnexpectedEOF)
 			},
-			expectedError: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorStringContains("unexpected EOF"),
-				testingx.ExpectedErrorOfType[*PickerError](
+			errorAsserter: tst.ExpectedErrorChecks(
+				tst.ExpectedErrorStringContains("unexpected EOF"),
+				tst.ExpectedErrorOfType[*PickerError](
 					func(t *testing.T, pe *PickerError) {
-						testingx.AssertEqual(t, "one.two", pe.Selector())
+						tst.AssertEqual(t, "one.two", pe.Selector())
 					},
 				),
-				testingx.ExpectedErrorIs(io.ErrUnexpectedEOF),
+				tst.ExpectedErrorIs(io.ErrUnexpectedEOF),
 			),
 		},
 
@@ -138,26 +138,26 @@ func TestErrorsSink(t *testing.T) {
 				es.GatherSelector("one.two", io.ErrUnexpectedEOF)
 				es.GatherSelector("one.three", io.ErrClosedPipe)
 			},
-			expectedError: testingx.ExpectedErrorChecks(
-				testingx.ExpectedErrorStringContains("picker error with selector `one.two` error: `unexpected EOF` |"),
-				testingx.ExpectedErrorStringContains("| picker error with selector `one.three` error: `io: read/write on closed pipe`"),
-				testingx.ExpectedErrorOfType[*multiError](
+			errorAsserter: tst.ExpectedErrorChecks(
+				tst.ExpectedErrorStringContains("picker error with selector `one.two` error: `unexpected EOF` |"),
+				tst.ExpectedErrorStringContains("| picker error with selector `one.three` error: `io: read/write on closed pipe`"),
+				tst.ExpectedErrorOfType[*multiError](
 					func(t *testing.T, pe *multiError) {
-						testingx.ExpectedErrorOfType[*PickerError](
+						tst.ExpectedErrorOfType[*PickerError](
 							func(t *testing.T, pe *PickerError) {
-								testingx.AssertEqual(t, "one.two", pe.Selector())
+								tst.AssertEqual(t, "one.two", pe.Selector())
 							},
 						)(t, pe.errors[0])
 
-						testingx.ExpectedErrorOfType[*PickerError](
+						tst.ExpectedErrorOfType[*PickerError](
 							func(t *testing.T, pe *PickerError) {
-								testingx.AssertEqual(t, "one.three", pe.Selector())
+								tst.AssertEqual(t, "one.three", pe.Selector())
 							},
 						)(t, pe.errors[1])
 					},
 				),
-				testingx.ExpectedErrorIs(io.ErrUnexpectedEOF),
-				testingx.ExpectedErrorIs(io.ErrClosedPipe),
+				tst.ExpectedErrorIs(io.ErrUnexpectedEOF),
+				tst.ExpectedErrorIs(io.ErrClosedPipe),
 			),
 		},
 	}
@@ -166,7 +166,7 @@ func TestErrorsSink(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			es := &ErrorsSink{}
 			tc.op(es)
-			testingx.AssertError(t, tc.expectedError, es.Outcome())
+			tc.errorAsserter(t, es.Outcome())
 		})
 	}
 }

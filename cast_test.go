@@ -6,32 +6,32 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 var (
-	expectOverFlowError = testingx.ExpectedErrorChecks(
-		testingx.ExpectedErrorOfType[*CastError](),
-		testingx.ExpectedErrorIs(ErrCastOverFlow),
+	expectOverFlowError = tst.ExpectedErrorChecks(
+		tst.ExpectedErrorOfType[*CastError](),
+		tst.ExpectedErrorIs(ErrCastOverFlow),
 	)
-	expectLostDecimals = testingx.ExpectedErrorChecks(
-		testingx.ExpectedErrorOfType[*CastError](),
-		testingx.ExpectedErrorIs(ErrCastLostDecimals),
+	expectLostDecimals = tst.ExpectedErrorChecks(
+		tst.ExpectedErrorOfType[*CastError](),
+		tst.ExpectedErrorIs(ErrCastLostDecimals),
 	)
-	expectMalformedSyntax = testingx.ExpectedErrorChecks(
-		testingx.ExpectedErrorOfType[*CastError](),
-		testingx.ExpectedErrorIs(ErrCastInvalidSyntax),
+	expectMalformedSyntax = tst.ExpectedErrorChecks(
+		tst.ExpectedErrorOfType[*CastError](),
+		tst.ExpectedErrorIs(ErrCastInvalidSyntax),
 	)
-	expectInvalidType = testingx.ExpectedErrorChecks(
-		testingx.ExpectedErrorOfType[*CastError](),
-		testingx.ExpectedErrorIs(ErrCastInvalidType),
+	expectInvalidType = tst.ExpectedErrorChecks(
+		tst.ExpectedErrorOfType[*CastError](),
+		tst.ExpectedErrorIs(ErrCastInvalidType),
 	)
 )
 
 type casterTestCaseMel[T any] struct {
 	Input                 any
 	Expected              T
-	ExpectedErr           func(*testing.T, error)
+	ErrorAsserter         tst.ErrorAsserter
 	OverwriteDirectCastFn func(any) (T, error)
 	Caster                DefaultCaster
 	OmitCastByDirectFn    bool
@@ -49,11 +49,15 @@ func (c *casterTestCaseMel[T]) Test(t *testing.T) {
 
 	typeOfExpected := reflect.TypeOf(c.Expected)
 
+	if c.ErrorAsserter == nil {
+		c.ErrorAsserter = tst.NoError
+	}
+
 	if c.OverwriteDirectCastFn != nil {
 		t.Run(fmt.Sprintf("to_(%s)_custom_direct", typeOfExpected.String()), func(t *testing.T) {
 			got, gotErr := c.OverwriteDirectCastFn(c.Input)
-			testingx.AssertError(t, c.ExpectedErr, gotErr)
-			testingx.AssertEqual(t, got, c.Expected)
+			c.ErrorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, c.Expected)
 		})
 	} else if !c.OmitCastByDirectFn {
 		t.Run(fmt.Sprintf("to_(%s)_direct", typeOfExpected.String()), func(t *testing.T) {
@@ -134,8 +138,8 @@ func (c *casterTestCaseMel[T]) Test(t *testing.T) {
 				t.SkipNow()
 			}
 
-			testingx.AssertError(t, c.ExpectedErr, gotErr)
-			testingx.AssertEqual(t, got, c.Expected)
+			c.ErrorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, c.Expected)
 		})
 	}
 
@@ -176,31 +180,31 @@ func (c *casterTestCaseMel[T]) Test(t *testing.T) {
 				t.SkipNow()
 			}
 
-			testingx.AssertError(t, c.ExpectedErr, gotErr)
-			testingx.AssertEqual(t, got, c.Expected)
+			c.ErrorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, c.Expected)
 		})
 	}
 
 	if !c.OmitCastByType {
 		t.Run(fmt.Sprintf("to_(%s)_by_type", typeOfExpected.String()), func(t *testing.T) {
 			got, gotErr := c.Caster.ByType(c.Input, typeOfExpected)
-			testingx.AssertError(t, c.ExpectedErr, gotErr)
-			testingx.AssertEqual(t, got, c.Expected)
+			c.ErrorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, c.Expected)
 		})
 	}
 }
 
 type singleCastTestCase[T any] struct {
-	input        any
-	expectedErr  func(*testing.T, error)
-	expected     T
-	directCastFn func(any) (T, error)
+	input         any
+	errorAsserter tst.ErrorAsserter
+	expected      T
+	directCastFn  func(any) (T, error)
 }
 
 func runSingleCastTestCases[T any](t *testing.T, testCases []singleCastTestCase[T], defaultCastFn func(any) (T, error)) {
 	t.Helper()
 	for idx, tc := range testCases {
-		name := fmt.Sprintf("index:%d %s", idx, testingx.Format(tc.input))
+		name := fmt.Sprintf("index:%d %s", idx, tst.Format(tc.input))
 		t.Run(name, func(t *testing.T) {
 			// t.Helper()
 			// t.Parallel()
@@ -213,9 +217,9 @@ func runSingleCastTestCases[T any](t *testing.T, testCases []singleCastTestCase[
 			} else {
 				got, gotErr = defaultCastFn(tc.input)
 			}
-			testingx.AssertError(t, tc.expectedErr, gotErr)
+			tc.errorAsserter(t, gotErr)
 
-			testingx.AssertEqual(t, got, tc.expected)
+			tst.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
@@ -223,28 +227,28 @@ func runSingleCastTestCases[T any](t *testing.T, testCases []singleCastTestCase[
 func TestTryCastUsingReflect(t *testing.T) {
 	type intAlias int
 	tests := map[string]struct {
-		fn          any
-		input       any
-		expected    any
-		expectedErr func(*testing.T, error)
+		fn            any
+		input         any
+		expected      any
+		errorAsserter tst.ErrorAsserter
 	}{
 		"intAlias to int16": {
-			fn:          tryReflectConvert[int16],
-			input:       intAlias(13),
-			expected:    int16(13),
-			expectedErr: nil,
+			fn:            tryReflectConvert[int16],
+			input:         intAlias(13),
+			expected:      int16(13),
+			errorAsserter: tst.NoError,
 		},
 		"struct to int16 expect error": {
-			fn:          tryReflectConvert[int16],
-			input:       struct{}{},
-			expected:    int16(0),
-			expectedErr: testingx.ExpectedErrorIs(ErrCastInvalidType),
+			fn:            tryReflectConvert[int16],
+			input:         struct{}{},
+			expected:      int16(0),
+			errorAsserter: tst.ExpectedErrorIs(ErrCastInvalidType),
 		},
 		"string to []byte": {
-			fn:          tryReflectConvert[[]byte],
-			input:       "str",
-			expected:    []byte("str"),
-			expectedErr: nil,
+			fn:            tryReflectConvert[[]byte],
+			input:         "str",
+			expected:      []byte("str"),
+			errorAsserter: tst.NoError,
 		},
 	}
 
@@ -265,7 +269,7 @@ func TestTryCastUsingReflect(t *testing.T) {
 				pass = gotVal.Equal(reflect.ValueOf(tc.expected))
 			} else {
 				a := gotVal.Interface()
-				pass = reflect.DeepEqual(a, tc.expected)
+				pass = tst.Compare(a, tc.expected)
 			}
 			if !pass {
 				t.Fatalf("value comparison failed. Expected %#v got %#v", tc.expected, gotVal.Interface())
@@ -274,20 +278,20 @@ func TestTryCastUsingReflect(t *testing.T) {
 			errVal := returnedVals[1]
 			errInf := errVal.Interface()
 			if errInf == nil {
-				testingx.AssertError(t, tc.expectedErr, nil)
+				tc.errorAsserter(t, nil)
 			} else {
 				err, is := errInf.(error)
 				if !is {
 					t.Errorf("second returned item is not of type error. Type: %s", errVal.Type().String())
 				}
-				testingx.AssertError(t, tc.expectedErr, err)
+				tc.errorAsserter(t, err)
 			}
 		})
 	}
 }
 
 func TestReadmeCast(t *testing.T) {
-	eq := testingx.AssertEqualFn(t)
+	eq := tst.AssertEqualFn(t)
 
 	c := NewDefaultCaster()
 
@@ -337,67 +341,67 @@ func TestByType(t *testing.T) {
 	tests := []struct {
 		input         any
 		expected      any
-		expectedError func(*testing.T, error)
+		errorAsserter tst.ErrorAsserter
 	}{
 		{
 			input:         int(123),
 			expected:      uint(123),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         aliasInt(123),
 			expected:      uint(123),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         []aliasInt{1, 2, 3, 4},
 			expected:      []int{1, 2, 3, 4},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         []int16{1, 2, 3, 4},
 			expected:      []int32{1, 2, 3, 4},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         []int{1, 2, 3, 4},
 			expected:      []aliasInt{1, 2, 3, 4},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         123,
 			expected:      []int{123},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         aliasString("123"),
 			expected:      uint(123),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         aliasString2("123"),
 			expected:      uint(123),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         byte(123),
 			expected:      uint16(123),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         Foo{A: 123},
 			expected:      AliasFoo{A: 123},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         AliasFoo{A: 123},
 			expected:      Foo{A: 123},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		{
 			input:         []AliasFoo{{A: 121}, {A: 122}, {A: 123}},
 			expected:      []Foo{{A: 121}, {A: 122}, {A: 123}},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 	}
 
@@ -407,8 +411,8 @@ func TestByType(t *testing.T) {
 		t.Run(fmt.Sprintf("#%d#%s->%s", idx, fromType, toType), func(t *testing.T) {
 			t.Parallel()
 			got, err := c.ByType(tc.input, reflect.TypeOf(tc.expected))
-			testingx.AssertError(t, tc.expectedError, err)
-			testingx.AssertEqual(t, got, tc.expected)
+			tc.errorAsserter(t, err)
+			tst.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
@@ -419,57 +423,57 @@ func TestCastGeneric(t *testing.T) {
 	tests := []struct {
 		castFn        func() (any, error)
 		expected      any
-		expectedError func(*testing.T, error)
+		errorAsserter tst.ErrorAsserter
 	}{
 		0: {
 			castFn: func() (any, error) {
 				return Cast[string](1)
 			},
 			expected:      string("1"),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		1: {
 			castFn: func() (any, error) {
 				return Cast[int64]("1234567")
 			},
 			expected:      int64(1234567),
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		2: {
 			castFn: func() (any, error) {
 				return Cast[[]uint8]([]int64{1, 2, 3, 4, 5, 6, 7})
 			},
 			expected:      []uint8{1, 2, 3, 4, 5, 6, 7},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		3: {
 			castFn: func() (any, error) {
 				return Cast[[]stringAlias]([]string{"one", "two"})
 			},
 			expected:      []stringAlias{"one", "two"},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		4: {
 			castFn: func() (any, error) {
 				return Cast[[]string]([]stringAlias{"one", "two"})
 			},
 			expected:      []string{"one", "two"},
-			expectedError: nil,
+			errorAsserter: tst.NoError,
 		},
 		5: {
 			castFn: func() (any, error) {
 				return Cast[map[string]string](map[string]any{"one": 1, "two": 2})
 			},
 			expected:      map[string]string(nil),
-			expectedError: testingx.ExpectedErrorIs(ErrCastInvalidType),
+			errorAsserter: tst.ExpectedErrorIs(ErrCastInvalidType),
 		},
 	}
 
 	for idx, tc := range tests {
 		t.Run(fmt.Sprintf("[%d]_%T", idx, tc.expected), func(t *testing.T) {
 			got, err := tc.castFn()
-			testingx.AssertError(t, tc.expectedError, err)
-			testingx.AssertEqual(t, got, tc.expected)
+			tc.errorAsserter(t, err)
+			tst.AssertEqual(t, got, tc.expected)
 		})
 	}
 }

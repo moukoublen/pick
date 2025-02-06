@@ -3,7 +3,7 @@ package pick
 import (
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestOrDefault(t *testing.T) {
@@ -14,7 +14,7 @@ func TestOrDefault(t *testing.T) {
 		call func(*Picker) (any, error)
 
 		expectedValue any
-		expectedErr   func(t *testing.T, err error)
+		errorAsserter tst.ErrorAsserter
 	}{
 		"exists - no cast": {
 			data: map[string]any{"one": "value"},
@@ -23,7 +23,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "value",
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 		"not exists - return default": {
 			data: map[string]any{"one": "value"},
@@ -32,7 +32,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "default",
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 		"exists - with cast": {
 			data: map[string]any{"one": 123},
@@ -41,7 +41,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "123",
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 		"exists - with cast to alias": {
 			data: map[string]any{"one": "value"},
@@ -50,7 +50,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: stringAlias("value"),
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 	}
 
@@ -58,8 +58,8 @@ func TestOrDefault(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
 			got, gotErr := tc.call(p)
-			testingx.AssertError(t, tc.expectedErr, gotErr)
-			testingx.AssertEqual(t, got, tc.expectedValue)
+			tc.errorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -107,7 +107,7 @@ func TestMustOrDefault(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
 			got := tc.call(p.Must())
-			testingx.AssertEqual(t, got, tc.expectedValue)
+			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -120,7 +120,7 @@ func TestGet(t *testing.T) {
 		call func(*Picker) (any, error)
 
 		expectedValue any
-		expectedErr   func(t *testing.T, err error)
+		errorAsserter tst.ErrorAsserter
 	}{
 		"exists - no cast": {
 			data: map[string]any{"one": "value"},
@@ -129,7 +129,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "value",
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 		"not exists": {
 			data: map[string]any{"one": "value"},
@@ -138,7 +138,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "",
-			expectedErr:   testingx.ExpectedErrorIs(ErrFieldNotFound),
+			errorAsserter: tst.ExpectedErrorIs(ErrFieldNotFound),
 		},
 		"exists - with cast": {
 			data: map[string]any{"one": 123},
@@ -147,7 +147,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "123",
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 		"exists - with cast to alias": {
 			data: map[string]any{"one": "value"},
@@ -156,7 +156,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: stringAlias("value"),
-			expectedErr:   nil,
+			errorAsserter: tst.NoError,
 		},
 	}
 
@@ -164,8 +164,8 @@ func TestGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
 			got, gotErr := tc.call(p)
-			testingx.AssertError(t, tc.expectedErr, gotErr)
-			testingx.AssertEqual(t, got, tc.expectedValue)
+			tc.errorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -212,7 +212,7 @@ func TestMustGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
 			got := tc.call(p.Must())
-			testingx.AssertEqual(t, got, tc.expectedValue)
+			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }

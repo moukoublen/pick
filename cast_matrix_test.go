@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 type CasterTester interface {
@@ -16,13 +16,13 @@ type CasterTester interface {
 	SetInput(i any)
 }
 
-func matrixTestConstructorFn[Output any](c DefaultCaster) func(expected Output, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[Output] {
-	return func(expected Output, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[Output] {
+func matrixTestConstructorFn[Output any](c DefaultCaster) func(expected Output, errorAsserter tst.ErrorAsserter) *casterTestCaseMel[Output] {
+	return func(expected Output, errorAsserter tst.ErrorAsserter) *casterTestCaseMel[Output] {
 		return &casterTestCaseMel[Output]{
 			Caster:                c,
 			Input:                 nil,
 			Expected:              expected,
-			ExpectedErr:           errorAssertFn,
+			ErrorAsserter:         errorAsserter,
 			OverwriteDirectCastFn: nil,
 			OmitCastByDirectFn:    false,
 			OmitCastByKind:        false,
@@ -47,12 +47,12 @@ func TestCasterMatrix(t *testing.T) {
 	type stringAlias string
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected byte, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[byte] {
+	expectByte := func(expected byte, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[byte] {
 		return &casterTestCaseMel[byte]{
 			Caster:                caster,
 			Input:                 nil,
 			Expected:              expected,
-			ExpectedErr:           errorAssertFn,
+			ErrorAsserter:         errorAssertFn,
 			OverwriteDirectCastFn: caster.AsByte,
 			OmitCastByDirectFn:    false,
 			OmitCastByKind:        true,
@@ -64,12 +64,12 @@ func TestCasterMatrix(t *testing.T) {
 	expectInt32 := matrixTestConstructorFn[int32](caster)
 	expectInt64 := matrixTestConstructorFn[int64](caster)
 	expectInt := matrixTestConstructorFn[int](caster)
-	expectUInt8 := func(expected uint8, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[uint8] {
+	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[uint8] {
 		return &casterTestCaseMel[uint8]{
 			Caster:                caster,
 			Input:                 nil,
 			Expected:              expected,
-			ExpectedErr:           errorAssertFn,
+			ErrorAsserter:         errorAssertFn,
 			OverwriteDirectCastFn: caster.AsUint8,
 			OmitCastByDirectFn:    false,
 			OmitCastByKind:        false,
@@ -439,8 +439,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(123, nil),
 				expectString("123", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#016": {
@@ -461,8 +461,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(123, nil),
 				expectString("123", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#017": {
@@ -483,8 +483,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(123.321, nil),
 				expectString("123.321", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#018": {
@@ -505,8 +505,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(23, nil),
 				expectString("23", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#019": {
@@ -527,8 +527,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(0, expectMalformedSyntax),
 				expectString("just string", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: invalid duration")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: invalid duration")),
 			},
 		},
 		"tc#020": {
@@ -549,8 +549,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(0, expectMalformedSyntax),
 				expectString("byte slice", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: invalid duration")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: invalid duration")),
 			},
 		},
 		"tc#021": {
@@ -745,8 +745,8 @@ func TestCasterMatrix(t *testing.T) {
 				expectFloat64(math.MaxFloat64, nil),
 				expectString("1.79769313486231570814527423731704356798070e+308", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, testingx.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), testingx.ExpectedErrorStringContains("time: unknown unit")),
+				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: unknown unit")),
 			},
 		},
 		"tc#030": {
@@ -854,12 +854,12 @@ func TestCasterSliceMatrix(t *testing.T) {
 	caster := NewDefaultCaster()
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected []byte, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[[]byte] {
+	expectByte := func(expected []byte, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[[]byte] {
 		return &casterTestCaseMel[[]byte]{
 			Caster:                caster,
 			Input:                 nil,
 			Expected:              expected,
-			ExpectedErr:           errorAssertFn,
+			ErrorAsserter:         errorAssertFn,
 			OverwriteDirectCastFn: caster.AsByteSlice,
 			OmitCastByDirectFn:    false,
 			OmitCastByKind:        true,
@@ -871,12 +871,12 @@ func TestCasterSliceMatrix(t *testing.T) {
 	expectInt32 := matrixTestConstructorFn[[]int32](caster)
 	expectInt64 := matrixTestConstructorFn[[]int64](caster)
 	expectInt := matrixTestConstructorFn[[]int](caster)
-	expectUInt8 := func(expected []uint8, errorAssertFn func(*testing.T, error)) *casterTestCaseMel[[]uint8] {
+	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[[]uint8] {
 		return &casterTestCaseMel[[]uint8]{
 			Caster:                caster,
 			Input:                 nil,
 			Expected:              expected,
-			ExpectedErr:           errorAssertFn,
+			ErrorAsserter:         errorAssertFn,
 			OverwriteDirectCastFn: caster.AsUint8Slice,
 			OmitCastByDirectFn:    false,
 			OmitCastByKind:        false,
@@ -1178,8 +1178,8 @@ func TestCasterSliceMatrix(t *testing.T) {
 				expectFloat64([]float64{1, 2, 3}, nil),
 				expectString([]string{"1", "2", "3"}, nil),
 				expectBool([]bool(nil), expectMalformedSyntax),
-				expectTime([]time.Time(nil), testingx.ExpectedErrorStringContains("error: parsing time")),
-				expectDuration([]time.Duration(nil), testingx.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime([]time.Time(nil), tst.ExpectedErrorStringContains("error: parsing time")),
+				expectDuration([]time.Duration(nil), tst.ExpectedErrorStringContains("time: missing unit in duration")),
 			},
 		},
 	}
@@ -1228,7 +1228,7 @@ func casterSubBenchmarks[Output any](testCases []any, castFn func(any) (Output, 
 	return func(b *testing.B) {
 		b.Helper()
 		for i, tc := range testCases {
-			name := fmt.Sprintf("%d %s", i, testingx.Format(tc))
+			name := fmt.Sprintf("%d %s", i, tst.Format(tc))
 			b.Run(name, matrixSubBenchmark(tc, castFn))
 		}
 	}

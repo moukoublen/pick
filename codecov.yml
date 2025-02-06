@@ -5,7 +5,7 @@ codecov:
   strict_yaml_branch: default  # only use the latest YAML on stated branch
 
 ignore:
-  - "internal/testingx" # test helpers
+  - "internal/tst" # test helpers
 
 # https://docs.codecov.com/docs/pull-request-comments
 comment:

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestIterMapErrorScenarios(t *testing.T) {
@@ -14,19 +14,19 @@ func TestIterMapErrorScenarios(t *testing.T) {
 	type testCase struct {
 		input                 any
 		inputSingleItemCastFn func(any) (int, error)
-		expectedErr           func(*testing.T, error)
+		errorAsserter         tst.ErrorAsserter
 	}
 
 	testsCases := []testCase{
 		{
 			input:                 []any{1, 2, 3},
 			inputSingleItemCastFn: func(any) (int, error) { return 0, errMock1 },
-			expectedErr:           testingx.ExpectedErrorIs(errMock1),
+			errorAsserter:         tst.ExpectedErrorIs(errMock1),
 		},
 		{
 			input:                 []any{1, 2, 3},
 			inputSingleItemCastFn: func(any) (int, error) { panic("panic") },
-			expectedErr:           testingx.ExpectedErrorStringContains(`recovered panic: "panic"`),
+			errorAsserter:         tst.ExpectedErrorStringContains(`recovered panic: "panic"`),
 		},
 	}
 
@@ -34,7 +34,7 @@ func TestIterMapErrorScenarios(t *testing.T) {
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
 			_, gotErr := Map(tc.input, MapOpFn(tc.inputSingleItemCastFn))
-			testingx.AssertError(t, tc.expectedErr, gotErr)
+			tc.errorAsserter(t, gotErr)
 		})
 	}
 }
@@ -74,8 +74,8 @@ func TestIterForEach(t *testing.T) {
 			t.Helper()
 			exp := expectedCalls[idx]
 
-			testingx.AssertEqual(t, item, exp.Item)
-			testingx.AssertEqual(t, meta, exp.Meta)
+			tst.AssertEqual(t, item, exp.Item)
+			tst.AssertEqual(t, meta, exp.Meta)
 
 			idx++
 			return exp.ReturnError
@@ -88,17 +88,17 @@ func TestIterForEach(t *testing.T) {
 
 	tests := map[string]struct {
 		Input         any
-		ExpectedErr   func(*testing.T, error)
+		ErrorAsserter tst.ErrorAsserter
 		ExpectedCalls []expectedOpCall
 	}{
 		"nil": {
 			Input:         nil,
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{},
 		},
 		"string": {
-			Input:       "abc",
-			ExpectedErr: nil,
+			Input:         "abc",
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{
 				{
 					Meta:        OpMeta{Index: 0, Length: 1},
@@ -108,8 +108,8 @@ func TestIterForEach(t *testing.T) {
 			},
 		},
 		"string error": {
-			Input:       "abc",
-			ExpectedErr: testingx.ExpectedErrorIs(mockError),
+			Input:         "abc",
+			ErrorAsserter: tst.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall{
 				{
 					Meta:        OpMeta{Index: 0, Length: 1},
@@ -119,8 +119,8 @@ func TestIterForEach(t *testing.T) {
 			},
 		},
 		"struct{}": {
-			Input:       struct{}{},
-			ExpectedErr: nil,
+			Input:         struct{}{},
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{
 				{
 					Meta:        OpMeta{Index: 0, Length: 1},
@@ -132,12 +132,12 @@ func TestIterForEach(t *testing.T) {
 
 		"[]any:0": {
 			Input:         []any{},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{},
 		},
 		"[]any:8": {
 			Input:         []any{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]any{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]string:8": {
@@ -151,7 +151,7 @@ func TestIterForEach(t *testing.T) {
 				"abc",
 				"abc",
 			},
-			ExpectedErr: nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]string{
 				"Named must your fear be before banish it you can.",
 				"When you look at the dark side, careful you must be. For the dark side looks back.",
@@ -165,84 +165,84 @@ func TestIterForEach(t *testing.T) {
 		},
 		"[]int8:8": {
 			Input:         []int8{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]int8{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]int16:8": {
 			Input:         []int16{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]int16{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]int32:8": {
 			Input:         []int32{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]int32{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]int64:8": {
 			Input:         []int64{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]int64{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]int:8": {
 			Input:         []int{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]int{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]uint8:8": {
 			Input:         []uint8{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]uint8{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]uint16:8": {
 			Input:         []uint16{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]uint16{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]uint32:8": {
 			Input:         []uint32{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]uint32{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]uint64:8": {
 			Input:         []uint64{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]uint64{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]uint:8": {
 			Input:         []uint{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]uint{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]float32:8": {
 			Input:         []float32{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]float32{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]float64:8": {
 			Input:         []float64{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]float64{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 		"[]bool:8": {
 			Input:         []bool{false, false, false, false, false, false, false, false},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]bool{false, false, false, false, false, false, false, false}),
 		},
 		"[]struct{}:4": {
 			Input:         []struct{}{{}, {}, {}, {}},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]struct{}{{}, {}, {}, {}}),
 		},
 
 		"[8]int8": {
 			Input:         [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: generateExpectedCalls([]int8{1, 2, 3, 4, 5, 6, 7, 8}),
 		},
 
 		"[8]int8 error": {
-			Input:       [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
-			ExpectedErr: testingx.ExpectedErrorIs(mockError),
+			Input:         [8]int8{1, 2, 3, 4, 5, 6, 7, 8},
+			ErrorAsserter: tst.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall{
 				{
 					Meta:        OpMeta{Index: 0, Length: 8},
@@ -259,13 +259,13 @@ func TestIterForEach(t *testing.T) {
 
 		"*string nil": {
 			Input:         (*string)(nil),
-			ExpectedErr:   nil,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{},
 		},
 
 		"*string not nil": {
-			Input:       ptrStr,
-			ExpectedErr: nil,
+			Input:         ptrStr,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{
 				{
 					Meta:        OpMeta{Index: 0, Length: 1},
@@ -276,8 +276,8 @@ func TestIterForEach(t *testing.T) {
 		},
 
 		"**string not nil": {
-			Input:       &ptrStr,
-			ExpectedErr: nil,
+			Input:         &ptrStr,
+			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall{
 				{
 					Meta:        OpMeta{Index: 0, Length: 1},
@@ -291,7 +291,7 @@ func TestIterForEach(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			gotErr := ForEach(tc.Input, mockOp(t, tc.ExpectedCalls))
-			testingx.AssertError(t, tc.ExpectedErr, gotErr)
+			tc.ErrorAsserter(t, gotErr)
 		})
 	}
 }
@@ -426,7 +426,7 @@ func (s implementsAvgInterface) Avg() int {
 	return sum / len(s)
 }
 
-var noLength = testingx.ExpectedErrorIs(ErrNoLength)
+var noLength = tst.ExpectedErrorIs(ErrNoLength)
 
 type (
 	sliceIntAlias []int
@@ -435,154 +435,154 @@ type (
 )
 
 var lenTests = map[string]struct {
-	Input       any
-	ExpectedErr func(*testing.T, error)
-	Expected    int
+	Input         any
+	ErrorAsserter tst.ErrorAsserter
+	Expected      int
 }{
 	"nil any int nil": {
-		Input:       nil,
-		ExpectedErr: noLength,
-		Expected:    -1,
+		Input:         nil,
+		ErrorAsserter: noLength,
+		Expected:      -1,
 	},
 	"slice any": {
-		Input:       []any{1, 2, "3"},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []any{1, 2, "3"},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice map[string]any": {
-		Input:       []map[string]any{{}, {}, {}},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []map[string]any{{}, {}, {}},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice int8": {
-		Input:       []int8{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []int8{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice int16": {
-		Input:       []int16{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []int16{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice int32": {
-		Input:       []int32{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []int32{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice int64": {
-		Input:       []int64{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []int64{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice uint": {
-		Input:       []uint{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []uint{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice uint8": {
-		Input:       []uint8{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []uint8{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice uint16": {
-		Input:       []uint16{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []uint16{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice uint32": {
-		Input:       []uint32{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []uint32{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice uint64": {
-		Input:       []uint64{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []uint64{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice float32": {
-		Input:       []float32{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []float32{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice float64": {
-		Input:       []float32{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []float32{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice bool": {
-		Input:       []bool{true, true, false},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []bool{true, true, false},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice int": {
-		Input:       []int{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []int{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"slice int nil": {
-		Input:       []int(nil),
-		ExpectedErr: nil,
-		Expected:    0,
+		Input:         []int(nil),
+		ErrorAsserter: tst.NoError,
+		Expected:      0,
 	},
 	"array int 4": {
-		Input:       [4]int{1, 2, 3, 4},
-		ExpectedErr: nil,
-		Expected:    4,
+		Input:         [4]int{1, 2, 3, 4},
+		ErrorAsserter: tst.NoError,
+		Expected:      4,
 	},
 	"array int32 3": {
-		Input:       [3]int32{1, 2, 3},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         [3]int32{1, 2, 3},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 	"sliceIntAlias int": {
-		Input:       sliceIntAlias{1, 2},
-		ExpectedErr: nil,
-		Expected:    2,
+		Input:         sliceIntAlias{1, 2},
+		ErrorAsserter: tst.NoError,
+		Expected:      2,
 	},
 	"sliceIntAlias int nil": {
-		Input:       sliceIntAlias(nil),
-		ExpectedErr: nil,
-		Expected:    0,
+		Input:         sliceIntAlias(nil),
+		ErrorAsserter: tst.NoError,
+		Expected:      0,
 	},
 	"arrayIntAlias int": {
-		Input:       arrayIntAlias{1, 2, 3, 4, 5},
-		ExpectedErr: nil,
-		Expected:    5,
+		Input:         arrayIntAlias{1, 2, 3, 4, 5},
+		ErrorAsserter: tst.NoError,
+		Expected:      5,
 	},
 	"struct slice": {
-		Input:       []struct{}{{}, {}, {}, {}, {}},
-		ExpectedErr: nil,
-		Expected:    5,
+		Input:         []struct{}{{}, {}, {}, {}, {}},
+		ErrorAsserter: tst.NoError,
+		Expected:      5,
 	},
 	"string": {
-		Input:       "abcd",
-		ExpectedErr: nil,
-		Expected:    4,
+		Input:         "abcd",
+		ErrorAsserter: tst.NoError,
+		Expected:      4,
 	},
 	"string slice": {
-		Input:       []string{"abcd", "abc", "ab", "a"},
-		ExpectedErr: nil,
-		Expected:    4,
+		Input:         []string{"abcd", "abc", "ab", "a"},
+		ErrorAsserter: tst.NoError,
+		Expected:      4,
 	},
 	"stringAlias": {
-		Input:       stringAlias("abcd"),
-		ExpectedErr: nil,
-		Expected:    4,
+		Input:         stringAlias("abcd"),
+		ErrorAsserter: tst.NoError,
+		Expected:      4,
 	},
 	"string pointer": {
-		Input:       ptr("test"),
-		ExpectedErr: nil,
-		Expected:    4,
+		Input:         ptr("test"),
+		ErrorAsserter: tst.NoError,
+		Expected:      4,
 	},
 	"string pointer nil": {
-		Input:       (*string)(nil),
-		ExpectedErr: noLength,
-		Expected:    -1,
+		Input:         (*string)(nil),
+		ErrorAsserter: noLength,
+		Expected:      -1,
 	},
 	"slice pointer  bool": {
-		Input:       []*bool{ptr(true), ptr(true), ptr(true)},
-		ExpectedErr: nil,
-		Expected:    3,
+		Input:         []*bool{ptr(true), ptr(true), ptr(true)},
+		ErrorAsserter: tst.NoError,
+		Expected:      3,
 	},
 }
 
@@ -590,8 +590,8 @@ func TestLen(t *testing.T) {
 	for name, tc := range lenTests {
 		t.Run(name, func(t *testing.T) {
 			got, gotErr := Len(tc.Input)
-			testingx.AssertError(t, tc.ExpectedErr, gotErr)
-			testingx.AssertEqual(t, got, tc.Expected)
+			tc.ErrorAsserter(t, gotErr)
+			tst.AssertEqual(t, got, tc.Expected)
 		})
 	}
 
@@ -599,8 +599,8 @@ func TestLen(t *testing.T) {
 		var a avgInterface = implementsAvgInterface{1, 2, 3, 4, 5, 6, 7}
 		func(a avgInterface) {
 			got, gotErr := Len(a)
-			testingx.AssertError(t, nil, gotErr)
-			testingx.AssertEqual(t, got, 7)
+			tst.NoError(t, gotErr)
+			tst.AssertEqual(t, got, 7)
 		}(a)
 	})
 }

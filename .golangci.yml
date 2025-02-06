@@ -17,7 +17,6 @@ output:
       path: stderr
   print-issued-lines: true
   print-linter-name: true
-  uniq-by-line: true
 
 linters:
   enable-all: true

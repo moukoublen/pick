@@ -2,6 +2,8 @@ package pick
 
 import (
 	"testing"
+
+	"github.com/moukoublen/pick/internal/tst"
 )
 
 func TestStringCaster(t *testing.T) {
@@ -12,19 +14,19 @@ func TestStringCaster(t *testing.T) {
 	type float32alias float32
 	testCases := []singleCastTestCase[string]{
 		{
-			input:       int32Alias(123456),
-			expected:    "123456",
-			expectedErr: nil,
+			input:         int32Alias(123456),
+			expected:      "123456",
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       stringAlias("abcd"),
-			expected:    "abcd",
-			expectedErr: nil,
+			input:         stringAlias("abcd"),
+			expected:      "abcd",
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       float32alias(12.123),
-			expected:    "12.123",
-			expectedErr: nil,
+			input:         float32alias(12.123),
+			expected:      "12.123",
+			errorAsserter: tst.NoError,
 		},
 	}
 
@@ -37,54 +39,54 @@ func TestStringSliceCaster(t *testing.T) {
 
 	testCases := []singleCastTestCase[[]string]{
 		{
-			input:       "singe string",
-			expected:    []string{"singe string"},
-			expectedErr: nil,
+			input:         "singe string",
+			expected:      []string{"singe string"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       444,
-			expected:    []string{"444"},
-			expectedErr: nil,
+			input:         444,
+			expected:      []string{"444"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       []string{"string", "slice"},
-			expected:    []string{"string", "slice"},
-			expectedErr: nil,
+			input:         []string{"string", "slice"},
+			expected:      []string{"string", "slice"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       [2]string{"string", "array"},
-			expected:    []string{"string", "array"},
-			expectedErr: nil,
+			input:         [2]string{"string", "array"},
+			expected:      []string{"string", "array"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       []any{"slice", "of", 3},
-			expected:    []string{"slice", "of", "3"},
-			expectedErr: nil,
+			input:         []any{"slice", "of", 3},
+			expected:      []string{"slice", "of", "3"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       []any{"slice", int32(12), float64(1.456)},
-			expected:    []string{"slice", "12", "1.456"},
-			expectedErr: nil,
+			input:         []any{"slice", int32(12), float64(1.456)},
+			expected:      []string{"slice", "12", "1.456"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       []int32{1, 2, 3, 4},
-			expected:    []string{"1", "2", "3", "4"},
-			expectedErr: nil,
+			input:         []int32{1, 2, 3, 4},
+			expected:      []string{"1", "2", "3", "4"},
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       []int32(nil),
-			expected:    []string(nil),
-			expectedErr: nil,
+			input:         []int32(nil),
+			expected:      []string(nil),
+			errorAsserter: tst.NoError,
 		},
 		{
-			input:       map[string]string{"": ""},
-			expected:    nil,
-			expectedErr: expectInvalidType,
+			input:         map[string]string{"": ""},
+			expected:      nil,
+			errorAsserter: expectInvalidType,
 		},
 		{
-			input:       []any{"slice", map[string]string{"": ""}, 3},
-			expected:    nil,
-			expectedErr: expectInvalidType,
+			input:         []any{"slice", map[string]string{"": ""}, 3},
+			expected:      nil,
+			errorAsserter: expectInvalidType,
 		},
 	}
 
