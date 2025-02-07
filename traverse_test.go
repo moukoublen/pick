@@ -547,3 +547,106 @@ func TestTraverseError(t *testing.T) { //nolint:thelper
 	tst.ExpectedErrorIs(ErrFieldNotFound)(t, err3)
 	tst.AssertEqual(t, err3.Path(), []Key{Field("one"), Field("two")})
 }
+
+func TestSet(t *testing.T) {
+	dt := DefaultTraverser{
+		keyCaster: NewDefaultCaster(),
+	}
+
+	type Foo struct {
+		F1 int32
+		F2 string
+		F3 struct {
+			I1 int32
+			I2 string
+		}
+	}
+
+	tests := map[string]struct {
+		Destination   any
+		Path          []Key
+		ValueToSet    any
+		ExpectedError tst.ErrorAsserter
+		Expected      any
+	}{
+		"1 level map add new key": {
+			Destination: map[string]string{
+				"one": "a",
+				"two": "b",
+			},
+			Path:          []Key{Field("three")},
+			ValueToSet:    "c",
+			ExpectedError: tst.NoError,
+			Expected: map[string]string{
+				"one":   "a",
+				"two":   "b",
+				"three": "c",
+			},
+		},
+		"2 level map add new key": {
+			Destination: map[string]any{
+				"one":   "a",
+				"two":   "b",
+				"three": map[string]int{"inner": 0},
+			},
+			Path:          []Key{Field("three"), Field("inner2")},
+			ValueToSet:    12,
+			ExpectedError: tst.NoError,
+			Expected: map[string]any{
+				"one": "a",
+				"two": "b",
+				"three": map[string]int{
+					"inner":  0,
+					"inner2": 12,
+				},
+			},
+		},
+		"replace value in slice": {
+			Destination: []string{
+				"one",
+				"two",
+			},
+			Path:          []Key{Index(1)},
+			ValueToSet:    "c",
+			ExpectedError: tst.NoError,
+			Expected: []string{
+				"one",
+				"c",
+			},
+		},
+		"1 level struct set field pointer struct": {
+			Destination: &Foo{
+				F1: 10,
+				F2: "test",
+			},
+			Path:          []Key{Field("F1")},
+			ValueToSet:    12,
+			ExpectedError: tst.NoError,
+			Expected: &Foo{
+				F1: 12,
+				F2: "test",
+			},
+		},
+		"1 level struct set field": {
+			Destination: Foo{
+				F1: 10,
+				F2: "test",
+			},
+			Path:          []Key{Field("F1")},
+			ValueToSet:    12,
+			ExpectedError: tst.NoError,
+			Expected: Foo{
+				F1: 12,
+				F2: "test",
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := dt.Set(tc.Destination, tc.Path, tc.ValueToSet)
+			tc.ExpectedError(t, err)
+			tst.AssertEqual(t, tc.Destination, tc.Expected)
+		})
+	}
+}

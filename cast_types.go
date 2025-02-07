@@ -8,9 +8,9 @@ import (
 // lets use this as global for performance reasons.
 //
 //nolint:gochecknoglobals
-var castFunctionTypes = newDirectCastFunctionsTypes()
+var castFunctionTypes = newBasicTypes()
 
-type directCastFunctionsTypes struct {
+type basicTypes struct {
 	typeOfBool reflect.Type
 	// typeOfByte          reflect.Type // there is no distinguish type for byte. Its only uint8.
 	typeOfInt8      reflect.Type
@@ -49,8 +49,8 @@ type directCastFunctionsTypes struct {
 	basicKindTypeMap map[reflect.Kind]reflect.Type
 }
 
-func newDirectCastFunctionsTypes() directCastFunctionsTypes {
-	return directCastFunctionsTypes{
+func newBasicTypes() basicTypes {
+	return basicTypes{
 		typeOfBool:          reflect.TypeOf(false),
 		typeOfInt8:          reflect.TypeOf(int8(0)),
 		typeOfInt16:         reflect.TypeOf(int16(0)),

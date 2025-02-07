@@ -45,7 +45,7 @@ func (c *casterTestCaseMel[T]) SetInput(i any) {
 
 func (c *casterTestCaseMel[T]) Test(t *testing.T) {
 	t.Helper()
-	tps := newDirectCastFunctionsTypes()
+	tps := newBasicTypes()
 
 	typeOfExpected := reflect.TypeOf(c.Expected)
 
@@ -475,5 +475,11 @@ func TestCastGeneric(t *testing.T) {
 			tc.errorAsserter(t, err)
 			tst.AssertEqual(t, got, tc.expected)
 		})
+	}
+}
+
+func BenchmarkDefaultCasterStruct(b *testing.B) {
+	for range b.N {
+		_ = NewDefaultCaster()
 	}
 }
