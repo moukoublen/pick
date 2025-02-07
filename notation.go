@@ -59,7 +59,7 @@ func (s Key) Any() any {
 		return s.Name
 	}
 
-	return nil
+	return s.Name
 }
 
 func Field(name string) Key {
