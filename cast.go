@@ -170,7 +170,7 @@ func (c DefaultCaster) toSliceByType(input any, asSliceElemType reflect.Type) (a
 	}
 	sliceValue := reflect.MakeSlice(reflect.SliceOf(asSliceElemType), sc, sc)
 
-	err := iter.ForEach(input, func(item any, meta iter.OpMeta) error {
+	err := iter.ForEach(input, func(item any, meta iter.CollectionOpMeta) error {
 		casted, cerr := c.ByType(item, asSliceElemType)
 		if cerr != nil {
 			return cerr

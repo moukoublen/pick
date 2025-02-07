@@ -24,7 +24,7 @@ func Each(p *Picker, selector string, operation func(index int, p *Picker, total
 
 	return iter.ForEach(
 		item,
-		func(item any, meta iter.OpMeta) error {
+		func(item any, meta iter.CollectionOpMeta) error {
 			return operation(meta.Index, p.Wrap(item), meta.Length)
 		},
 	)
@@ -39,7 +39,7 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 
 	return iter.Map(
 		item,
-		func(item any, _ iter.OpMeta) (Output, error) {
+		func(item any, _ iter.CollectionOpMeta) (Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -54,7 +54,7 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 
 	return iter.MapFilter(
 		item,
-		func(item any, _ iter.OpMeta) (Output, bool, error) {
+		func(item any, _ iter.CollectionOpMeta) (Output, bool, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -69,7 +69,7 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 
 	doubleSlice, err := iter.Map(
 		item,
-		func(item any, _ iter.OpMeta) ([]Output, error) {
+		func(item any, _ iter.CollectionOpMeta) ([]Output, error) {
 			return transform(p.Wrap(item))
 		},
 	)
@@ -131,7 +131,7 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 		return
 	}
 
-	err = iter.ForEach(item, func(item any, meta iter.OpMeta) error {
+	err = iter.ForEach(item, func(item any, meta iter.CollectionOpMeta) error {
 		opErr := operation(meta.Index, a.Wrap(item), meta.Length)
 		if opErr != nil {
 			path = append(path, Index(meta.Index))
@@ -173,7 +173,7 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 		return nil
 	}
 
-	sl, err := iter.MapFilter(item, func(item any, meta iter.OpMeta) (Output, bool, error) {
+	sl, err := iter.MapFilter(item, func(item any, meta iter.CollectionOpMeta) (Output, bool, error) {
 		t, keep, opErr := transform(a.Wrap(item))
 		if opErr != nil {
 			path = append(path, Index(meta.Index))

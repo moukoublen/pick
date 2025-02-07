@@ -164,7 +164,7 @@ func (c DefaultCaster) AsTimeSlice(input any) ([]time.Time, error) {
 }
 
 func (c DefaultCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
-	return iter.Map[time.Time](input, func(item any, _ iter.OpMeta) (time.Time, error) {
+	return iter.Map[time.Time](input, func(item any, _ iter.CollectionOpMeta) (time.Time, error) {
 		return c.AsTimeWithConfig(config, item)
 	})
 }
