@@ -11,14 +11,14 @@ func TestOrDefault(t *testing.T) {
 
 	tests := map[string]struct {
 		data any
-		call func(*Picker) (any, error)
+		call func(Picker) (any, error)
 
 		expectedValue any
 		errorAsserter tst.ErrorAsserter
 	}{
 		"exists - no cast": {
 			data: map[string]any{"one": "value"},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := OrDefault(p, "one", "default")
 				return v, err
 			},
@@ -27,7 +27,7 @@ func TestOrDefault(t *testing.T) {
 		},
 		"not exists - return default": {
 			data: map[string]any{"one": "value"},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := OrDefault(p, "two", "default")
 				return v, err
 			},
@@ -36,7 +36,7 @@ func TestOrDefault(t *testing.T) {
 		},
 		"exists - with cast": {
 			data: map[string]any{"one": 123},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := OrDefault(p, "one", "default")
 				return v, err
 			},
@@ -45,7 +45,7 @@ func TestOrDefault(t *testing.T) {
 		},
 		"exists - with cast to alias": {
 			data: map[string]any{"one": "value"},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := OrDefault[stringAlias](p, "one", stringAlias("default"))
 				return v, err
 			},
@@ -117,14 +117,14 @@ func TestGet(t *testing.T) {
 
 	tests := map[string]struct {
 		data any
-		call func(*Picker) (any, error)
+		call func(Picker) (any, error)
 
 		expectedValue any
 		errorAsserter tst.ErrorAsserter
 	}{
 		"exists - no cast": {
 			data: map[string]any{"one": "value"},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := Get[string](p, "one")
 				return v, err
 			},
@@ -133,7 +133,7 @@ func TestGet(t *testing.T) {
 		},
 		"not exists": {
 			data: map[string]any{"one": "value"},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := Get[string](p, "two")
 				return v, err
 			},
@@ -142,7 +142,7 @@ func TestGet(t *testing.T) {
 		},
 		"exists - with cast": {
 			data: map[string]any{"one": 123},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := Get[string](p, "one")
 				return v, err
 			},
@@ -151,7 +151,7 @@ func TestGet(t *testing.T) {
 		},
 		"exists - with cast to alias": {
 			data: map[string]any{"one": "value"},
-			call: func(p *Picker) (any, error) {
+			call: func(p Picker) (any, error) {
 				v, err := Get[stringAlias](p, "one")
 				return v, err
 			},

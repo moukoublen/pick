@@ -603,7 +603,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) ([]string, error) {
-				return Map(p, selector, func(p *Picker) (string, error) { return p.String("id") })
+				return Map(p, selector, func(p Picker) (string, error) { return p.String("id") })
 			},
 			Selector:      "near_earth_objects.2023-01-01",
 			ExpectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
@@ -619,8 +619,8 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(_ string) ([]string, error) {
-				return FlatMap(p, "near_earth_objects.2023-01-01", func(p *Picker) ([]string, error) {
-					return Map(p, "close_approach_data", func(p *Picker) (string, error) {
+				return FlatMap(p, "near_earth_objects.2023-01-01", func(p Picker) ([]string, error) {
+					return Map(p, "close_approach_data", func(p Picker) (string, error) {
 						return p.String("close_approach_date_full")
 					})
 				})
@@ -722,7 +722,7 @@ func TestEach(t *testing.T) {
 
 	t.Run("Each happy path", func(t *testing.T) {
 		t.Parallel()
-		err := Each(p, "near_earth_objects.2023-01-07", func(index int, p *Picker, length int) error {
+		err := Each(p, "near_earth_objects.2023-01-07", func(index int, p Picker, length int) error {
 			tst.AssertEqual(t, length, 17)
 			if index == 4 {
 				s, err := p.String("name")
@@ -736,7 +736,7 @@ func TestEach(t *testing.T) {
 
 	t.Run("Each error", func(t *testing.T) {
 		t.Parallel()
-		err := Each(p, "near_earth_objects.2023-01-07", func(index int, _ *Picker, length int) error {
+		err := Each(p, "near_earth_objects.2023-01-07", func(index int, _ Picker, length int) error {
 			tst.AssertEqual(t, length, 17)
 			if index == 4 {
 				return errors.New("error")
@@ -856,20 +856,20 @@ func TestReadme(t *testing.T) {
 	p2, _ := WrapJSON([]byte(j2))
 
 	{
-		got, err := Map(p2, "items", func(p *Picker) (int16, error) {
+		got, err := Map(p2, "items", func(p Picker) (int16, error) {
 			n, _ := p.Int16("id")
 			return n, nil
 		})
 		assert(got, []int16{34, 35, 36})
 		assert(err, nil)
 
-		got2, err2 := FlatMap(p2, "items", func(p *Picker) ([]int16, error) {
+		got2, err2 := FlatMap(p2, "items", func(p Picker) ([]int16, error) {
 			return p.Int16Slice("array")
 		})
 		assert(got2, []int16{1, 2, 3, 4, 5, 6, 7, 8, 9})
 		assert(err2, nil)
 
-		got3, err3 := MapFilter(p2, "items", func(p *Picker) (int32, bool, error) {
+		got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
 			i, err := p.Int32("id")
 			return i, i%2 == 0, err
 		})

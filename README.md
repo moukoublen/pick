@@ -111,20 +111,20 @@ j2 := `{
 }`
 p2, _ := WrapJSON([]byte(j2))
 
-got, err := Map(p2, "items", func(p *Picker) (int16, error) {
+got, err := Map(p2, "items", func(p Picker) (int16, error) {
     n, _ := p.Int16("id")
     return n, nil
 })
 // got == []int16{34, 35, 36}
 // err == nil
 
-got, err := FlatMap(p2, "items", func(p *Picker) ([]int16, error) {
+got, err := FlatMap(p2, "items", func(p Picker) ([]int16, error) {
     return p.Int16Slice("array")
 })
 // got == []int16{1, 2, 3, 4, 5, 6, 7, 8, 9}
 // err == nil
 
-got3, err3 := MapFilter(p2, "items", func(p *Picker) (int32, bool, error) {
+got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
     i, err := p.Int32("id")
     return i, i%2 == 0, err
 })

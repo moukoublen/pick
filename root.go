@@ -16,7 +16,7 @@ import (
 
 // Each iterates over all elements selected by the given selector and applies the provided operation function to each element.
 // It returns An error if any step in the selection or operation process fails, otherwise nil.
-func Each(p *Picker, selector string, operation func(index int, p *Picker, totalLength int) error) error {
+func Each(p Picker, selector string, operation func(index int, p Picker, totalLength int) error) error {
 	item, err := p.Any(selector)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func Each(p *Picker, selector string, operation func(index int, p *Picker, total
 }
 
 //nolint:ireturn
-func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output, error)) ([]Output, error) {
+func Map[Output any](p Picker, selector string, transform func(Picker) (Output, error)) ([]Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func Map[Output any](p *Picker, selector string, transform func(*Picker) (Output
 }
 
 //nolint:ireturn
-func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (Output, bool, error)) ([]Output, error) {
+func MapFilter[Output any](p Picker, selector string, transform func(Picker) (Output, bool, error)) ([]Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func MapFilter[Output any](p *Picker, selector string, transform func(*Picker) (
 }
 
 //nolint:ireturn
-func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]Output, error)) ([]Output, error) {
+func FlatMap[Output any](p Picker, selector string, transform func(Picker) ([]Output, error)) ([]Output, error) {
 	item, err := p.Any(selector)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func FlatMap[Output any](p *Picker, selector string, transform func(*Picker) ([]
 
 // Path traverses with the provided path and if found,
 // it resolves the cast type from the generic type.
-func Path[Output any](p *Picker, path ...Key) (Output, error) { //nolint:ireturn
+func Path[Output any](p Picker, path ...Key) (Output, error) { //nolint:ireturn
 	item, err := p.Path(path)
 	if err != nil {
 		var o Output
@@ -91,7 +91,7 @@ func Path[Output any](p *Picker, path ...Key) (Output, error) { //nolint:ireturn
 }
 
 // OrDefault will return the default value if any error occurs. If the error is ErrFieldNotFound the error will not be returned.
-func OrDefault[Output any](p *Picker, selector string, defaultValue Output) (Output, error) { //nolint:ireturn
+func OrDefault[Output any](p Picker, selector string, defaultValue Output) (Output, error) { //nolint:ireturn
 	item, err := p.Any(selector)
 	if err != nil {
 		if errors.Is(err, ErrFieldNotFound) {
@@ -106,7 +106,7 @@ func OrDefault[Output any](p *Picker, selector string, defaultValue Output) (Out
 
 // Get parses the selector, traverses with the provided path and if found,
 // it resolves the cast type from the generic type.
-func Get[Output any](p *Picker, selector string) (Output, error) { //nolint:ireturn
+func Get[Output any](p Picker, selector string) (Output, error) { //nolint:ireturn
 	var defaultValue Output
 
 	item, err := p.Any(selector)
@@ -241,7 +241,7 @@ func flatten[Output any](doubleSlice [][]Output) []Output {
 	return outputSlice
 }
 
-func parseSelectorAndTraverse(p *Picker, selector string) (any, []Key, error) {
+func parseSelectorAndTraverse(p Picker, selector string) (any, []Key, error) {
 	path, err := p.notation.Parse(selector)
 	if err != nil {
 		return nil, path, err
