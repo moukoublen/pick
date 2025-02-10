@@ -14,7 +14,8 @@ type FieldOpMeta struct {
 	Length int
 }
 
-var defaultTags = []string{
+// defaultTags TODO: consider make them configurable in the future.
+var defaultTags = []string{ //nolint:gochecknoglobals
 	"json",
 	"config",
 }
