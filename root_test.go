@@ -1,9 +1,11 @@
 package pick
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/tst"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestOrDefault(t *testing.T) {
@@ -215,4 +217,148 @@ func TestMustGet(t *testing.T) {
 			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
+}
+
+func TestEachField(t *testing.T) {
+	mockErr := errors.New("error")
+	type stringAlias string
+
+	type Foo struct {
+		A string
+		B int
+	}
+
+	type M map[string]any
+
+	tests := map[string]struct {
+		data          any
+		selector      string
+		expectedCalls func(*mockOp)
+		errorAsserter tst.ErrorAsserter
+	}{
+		"map[string]any": {
+			data:     map[string]any{"one": "v1", "two": 42},
+			selector: "",
+			expectedCalls: func(mo *mockOp) {
+				mo.
+					ExpectOp(2, "one", "v1", nil).
+					ExpectOp(2, "two", 42, nil)
+			},
+			errorAsserter: tst.NoError,
+		},
+
+		"map[string]any - inner": {
+			data:     map[string]any{"one": map[string]any{"two": map[string]any{"three": 42, "four": "abc"}}},
+			selector: "one.two",
+			expectedCalls: func(mo *mockOp) {
+				mo.
+					ExpectOp(2, "three", 42, nil).
+					ExpectOp(2, "four", "abc", nil)
+			},
+			errorAsserter: tst.NoError,
+		},
+
+		"map[string]any - alias": {
+			data:     M{"one": M{"two": M{"three": 42, "four": "abc"}}},
+			selector: "one.two",
+			expectedCalls: func(mo *mockOp) {
+				mo.
+					ExpectOp(2, "three", 42, nil).
+					ExpectOp(2, "four", "abc", nil)
+			},
+			errorAsserter: tst.NoError,
+		},
+
+		"Foo struct": {
+			data:     Foo{A: "a", B: 42},
+			selector: "",
+			expectedCalls: func(mo *mockOp) {
+				mo.
+					ExpectOp(2, "A", "a", nil).
+					ExpectOp(2, "B", 42, nil)
+			},
+			errorAsserter: tst.NoError,
+		},
+
+		"map[stringAlias]any": {
+			data:     map[stringAlias]any{"first": 10, "second": "abc"},
+			selector: "",
+			expectedCalls: func(mo *mockOp) {
+				mo.
+					ExpectOp(2, "first", 10, nil).
+					ExpectOp(2, "second", "abc", nil)
+			},
+			errorAsserter: tst.NoError,
+		},
+
+		"map[int]int": {
+			data:     map[int]int{100: 10, 200: 20},
+			selector: "",
+			expectedCalls: func(mo *mockOp) {
+				mo.
+					ExpectOp(2, "100", 10, nil).
+					ExpectOp(2, "200", 20, nil)
+			},
+			errorAsserter: tst.NoError,
+		},
+
+		"map[string]any - error": {
+			data: map[string]any{
+				"one":   "v1",
+				"two":   "v2",
+				"three": "v3",
+			},
+			selector: "",
+			expectedCalls: func(mo *mockOp) {
+				maybe := func(op, opMust *mock.Call) {
+					op.Maybe()
+					opMust.Maybe()
+				}
+				mo.
+					ExpectOp(3, "one", "v1", mockErr).
+					ExpectOp(3, "two", "v2", nil, maybe).
+					ExpectOp(3, "three", "v3", nil, maybe)
+			},
+			errorAsserter: tst.ExpectedErrorIs(mockErr),
+		},
+	}
+
+	// func(field string, p Picker, numOfFields int) error
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			p := Wrap(tc.data)
+			m := &mockOp{}
+			m.Test(t)
+			tc.expectedCalls(m)
+			err := EachField(p, tc.selector, m.Operation)
+			tc.errorAsserter(t, err)
+
+			eg := &ErrorsSink{}
+			MustEachField(p.Must(eg), tc.selector, m.OperationMust)
+			tc.errorAsserter(t, eg.Outcome())
+
+			m.AssertExpectations(t)
+		})
+	}
+}
+
+type mockOp struct {
+	mock.Mock
+}
+
+func (m *mockOp) ExpectOp(numOfFields int, field string, item any, returnError error, ext ...func(op, opMust *mock.Call)) *mockOp {
+	c1 := m.On("Operation", field, numOfFields, item).Return(returnError)
+	c2 := m.On("OperationMust", field, numOfFields, item).Return(returnError)
+	for _, f := range ext {
+		f(c1, c2)
+	}
+	return m
+}
+
+func (m *mockOp) Operation(field string, item Picker, numOfFields int) error {
+	return m.Called(field, numOfFields, item.Data()).Error(0)
+}
+
+func (m *mockOp) OperationMust(field string, item SelectorMustAPI, numOfFields int) error {
+	return m.Called(field, numOfFields, item.Data()).Error(0)
 }
