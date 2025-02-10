@@ -2,14 +2,21 @@ package iter
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
 type FieldOpMeta struct {
-	Field  any
+	Name   string
 	Length int
+}
+
+var defaultTags = []string{
+	"json",
+	"config",
 }
 
 func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (rErr error) { //nolint:gocyclo
@@ -43,7 +50,7 @@ func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (
 		// deref
 		el := valueOfInput.Elem()
 		if !el.IsValid() {
-			return rErr
+			return rErr // TODO: explore if it is really possible to get here, or else remove.
 		}
 
 		return ForEachField(el.Interface(), operation)
@@ -54,7 +61,7 @@ func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (
 		for i := range num {
 			fieldVal := valueOfInput.Field(i)
 			fieldType := typeOfInput.Field(i)
-			err := operation(fieldVal.Interface(), FieldOpMeta{Field: fieldType.Name, Length: num})
+			err := operation(fieldVal.Interface(), FieldOpMeta{Name: structFieldName(fieldType, defaultTags), Length: num})
 			if err != nil {
 				return err
 			}
@@ -67,7 +74,7 @@ func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (
 		for itr.Next() {
 			k := itr.Key()
 			v := itr.Value()
-			err := operation(v.Interface(), FieldOpMeta{Field: k.Interface(), Length: num})
+			err := operation(v.Interface(), FieldOpMeta{Name: valueAsString(k), Length: num})
 			if err != nil {
 				return err
 			}
@@ -81,12 +88,47 @@ func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (
 	return rErr
 }
 
-var ErrNoFields = errors.New("type does not have fields")
+// structFieldName returns the first available tag of the requested (e.g. json), or else it falls back to the actual name of the struct field.
+func structFieldName(f reflect.StructField, tags []string) string {
+	for _, t := range tags {
+		tagValue, exists := f.Tag.Lookup(t)
+		if !exists {
+			continue
+		}
+		tagValueParts := strings.Split(tagValue, ",")
+		if len(tagValueParts) > 0 && len(tagValueParts[0]) > 0 {
+			return tagValueParts[0]
+		}
+	}
+
+	return f.Name
+}
+
+// valueAsString is a tiny cast function.
+func valueAsString(v reflect.Value) string {
+	if v.Kind() == reflect.String {
+		if v.Type() != stringType {
+			strVal := v.Convert(stringType)
+			asStr, _ := strVal.Interface().(string)
+			return asStr
+		}
+
+		asStr, _ := v.Interface().(string)
+		return asStr
+	}
+
+	return fmt.Sprintf("%v", v.Interface())
+}
+
+var (
+	stringType  = reflect.TypeOf("") //nolint:gochecknoglobals
+	ErrNoFields = errors.New("type does not have fields")
+)
 
 func forEachMap[V any](m map[string]V, operation func(item any, meta FieldOpMeta) error) error {
 	l := len(m)
 	for k, v := range m {
-		if err := operation(v, FieldOpMeta{Field: k, Length: l}); err != nil {
+		if err := operation(v, FieldOpMeta{Name: k, Length: l}); err != nil {
 			return err
 		}
 	}

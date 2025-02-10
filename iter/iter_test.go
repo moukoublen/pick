@@ -3,6 +3,7 @@ package iter
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/moukoublen/pick/internal/tst"
@@ -57,6 +58,13 @@ func TestIterForEachField(t *testing.T) {
 		B int
 	}
 
+	type FooJSON struct {
+		A string `json:"a"`
+		B int    `json:"b"`
+	}
+
+	type stringAlias string
+
 	tests := map[string]struct {
 		Input         any
 		ErrorAsserter tst.ErrorAsserter
@@ -72,12 +80,12 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Meta:        FieldOpMeta{Name: "one", Length: 2},
 					Item:        1,
 					ReturnError: nil,
 				},
 				{
-					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Meta:        FieldOpMeta{Name: "two", Length: 2},
 					Item:        2,
 					ReturnError: nil,
 				},
@@ -98,12 +106,12 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Meta:        FieldOpMeta{Name: "one", Length: 2},
 					Item:        "1",
 					ReturnError: nil,
 				},
 				{
-					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Meta:        FieldOpMeta{Name: "two", Length: 2},
 					Item:        "2",
 					ReturnError: nil,
 				},
@@ -114,12 +122,12 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Meta:        FieldOpMeta{Name: "one", Length: 2},
 					Item:        1,
 					ReturnError: nil,
 				},
 				{
-					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Meta:        FieldOpMeta{Name: "two", Length: 2},
 					Item:        2,
 					ReturnError: nil,
 				},
@@ -130,12 +138,12 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "one", Length: 2},
+					Meta:        FieldOpMeta{Name: "one", Length: 2},
 					Item:        "1",
 					ReturnError: nil,
 				},
 				{
-					Meta:        FieldOpMeta{Field: "two", Length: 2},
+					Meta:        FieldOpMeta{Name: "two", Length: 2},
 					Item:        "2",
 					ReturnError: nil,
 				},
@@ -151,17 +159,38 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
 		},
+		"map[string]any(nil)": {
+			Input:         map[string]any(nil),
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{},
+		},
 		"struct Foo": {
 			Input:         Foo{A: "a", B: 1},
 			ErrorAsserter: tst.NoError,
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "A", Length: 2},
+					Meta:        FieldOpMeta{Name: "A", Length: 2},
 					Item:        "a",
 					ReturnError: nil,
 				},
 				{
-					Meta:        FieldOpMeta{Field: "B", Length: 2},
+					Meta:        FieldOpMeta{Name: "B", Length: 2},
+					Item:        1,
+					ReturnError: nil,
+				},
+			},
+		},
+		"struct FooJSON": {
+			Input:         FooJSON{A: "a", B: 1},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Name: "a", Length: 2},
+					Item:        "a",
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Name: "b", Length: 2},
 					Item:        1,
 					ReturnError: nil,
 				},
@@ -172,7 +201,7 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "A", Length: 2},
+					Meta:        FieldOpMeta{Name: "A", Length: 2},
 					Item:        "a",
 					ReturnError: mockError,
 				},
@@ -183,7 +212,7 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "one", Length: 1},
+					Meta:        FieldOpMeta{Name: "one", Length: 1},
 					Item:        "1",
 					ReturnError: mockError,
 				},
@@ -194,9 +223,41 @@ func TestIterForEachField(t *testing.T) {
 			ErrorAsserter: tst.ExpectedErrorIs(mockError),
 			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
 				{
-					Meta:        FieldOpMeta{Field: "one", Length: 1},
+					Meta:        FieldOpMeta{Name: "one", Length: 1},
 					Item:        1,
 					ReturnError: mockError,
+				},
+			},
+		},
+		"map[int]int": {
+			Input:         map[int]int{1: 2, 3: 4},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Name: "1", Length: 2},
+					Item:        2,
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Name: "3", Length: 2},
+					Item:        4,
+					ReturnError: nil,
+				},
+			},
+		},
+		"map[stringAlias]int": {
+			Input:         map[stringAlias]int{"a": 2, "b": 4},
+			ErrorAsserter: tst.NoError,
+			ExpectedCalls: []expectedOpCall[FieldOpMeta]{
+				{
+					Meta:        FieldOpMeta{Name: "a", Length: 2},
+					Item:        2,
+					ReturnError: nil,
+				},
+				{
+					Meta:        FieldOpMeta{Name: "b", Length: 2},
+					Item:        4,
+					ReturnError: nil,
 				},
 			},
 		},
@@ -778,6 +839,26 @@ func BenchmarkLen(b *testing.B) {
 		b.Run(name, func(b *testing.B) {
 			for range b.N {
 				_, _ = Len(tc.Input)
+			}
+		})
+	}
+}
+
+func BenchmarkValueAsString(b *testing.B) {
+	type stringAlias string
+
+	benchmarks := map[string]reflect.Value{
+		"int":         reflect.ValueOf(1),
+		"uint64":      reflect.ValueOf(uint64(1)),
+		"string":      reflect.ValueOf("string"),
+		"stringAlias": reflect.ValueOf(stringAlias("string")),
+	}
+
+	b.ResetTimer()
+	for name, input := range benchmarks {
+		b.Run(name, func(b *testing.B) {
+			for range b.N {
+				_ = valueAsString(input)
 			}
 		})
 	}

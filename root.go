@@ -30,6 +30,22 @@ func Each(p Picker, selector string, operation func(index int, p Picker, totalLe
 	)
 }
 
+// EachField iterates over all fields of the object selected by the given selector and applies the provided operation function to each field's value.
+// It returns An error if any step in the selection or operation process fails, otherwise nil.
+func EachField(p Picker, selector string, operation func(field string, p Picker, numOfFields int) error) error {
+	item, err := p.Any(selector)
+	if err != nil {
+		return err
+	}
+
+	return iter.ForEachField(
+		item,
+		func(item any, meta iter.FieldOpMeta) error {
+			return operation(meta.Name, p.Wrap(item), meta.Length)
+		},
+	)
+}
+
 //nolint:ireturn
 func Map[Output any](p Picker, selector string, transform func(Picker) (Output, error)) ([]Output, error) {
 	item, err := p.Any(selector)
@@ -135,6 +151,30 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 		opErr := operation(meta.Index, a.Wrap(item), meta.Length)
 		if opErr != nil {
 			path = append(path, Index(meta.Index))
+			a.gather(a.notation.Format(path...), opErr)
+			path = path[:len(path)-1]
+		}
+		return nil
+	})
+	if err != nil {
+		a.gather(selector, err)
+	}
+}
+
+// MustEachField applies operation function to each field of the object of the given selector.
+// The operation functions receives the name of the field of the element, a SelectorMustAPI
+// and the total length of the slice (or 1 if input is a single element and not a slice).
+func MustEachField(a SelectorMustAPI, selector string, operation func(field string, item SelectorMustAPI, numOfFields int) error) {
+	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
+	if err != nil {
+		a.gather(selector, err)
+		return
+	}
+
+	err = iter.ForEachField(item, func(item any, meta iter.FieldOpMeta) error {
+		opErr := operation(meta.Name, a.Wrap(item), meta.Length)
+		if opErr != nil {
+			path = append(path, Field(meta.Name))
 			a.gather(a.notation.Format(path...), opErr)
 			path = path[:len(path)-1]
 		}

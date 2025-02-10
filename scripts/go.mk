@@ -17,6 +17,7 @@ mod:
 # https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
 # https://pkg.go.dev/cmd/compile
 # https://pkg.go.dev/cmd/link
+# -count=20
 
 .PHONY: test
 test:
