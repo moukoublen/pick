@@ -3,7 +3,9 @@ package pick
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
+	"net/http"
 	"time"
 
 	"github.com/moukoublen/pick/iter"
@@ -25,6 +27,37 @@ func WrapDecoder(decoder interface{ Decode(destination any) error }) (Picker, er
 	}
 
 	return Wrap(m), nil
+}
+
+// WrapJSONRequest reads the JSON request body from an HTTP request and wraps it into a Picker.
+// It ensures proper cleanup of the request body to prevent resource leaks.
+// Important note: After this function is called the body will be drained and closed.
+func WrapJSONRequest(r *http.Request) (p Picker, rErr error) {
+	if r == nil || r.Body == nil || r.Body == http.NoBody {
+		return Wrap(nil), nil
+	}
+
+	defer drainAndClose(r.Body, &rErr)
+
+	return WrapDecoder(json.NewDecoder(r.Body))
+}
+
+// WrapJSONResponse reads the JSON response body from an HTTP response and wraps it into a Picker.
+// It ensures proper cleanup of the response body to prevent resource leaks.
+// Important note: After this function is called the body will be drained and closed.
+func WrapJSONResponse(r *http.Response) (p Picker, rErr error) {
+	if r == nil || r.Body == nil || r.Body == http.NoBody {
+		return Wrap(nil), nil
+	}
+
+	defer drainAndClose(r.Body, &rErr)
+
+	return WrapDecoder(json.NewDecoder(r.Body))
+}
+
+func drainAndClose(b io.ReadCloser, outErr *error) {
+	_, discardErr := io.Copy(io.Discard, b)
+	*outErr = errors.Join(*outErr, discardErr, b.Close())
 }
 
 func Wrap(data any) Picker {

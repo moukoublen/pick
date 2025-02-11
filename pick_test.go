@@ -1,19 +1,24 @@
 package pick
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
 	"io/fs"
 	"math"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 	_ "time/tzdata"
 
 	"github.com/moukoublen/pick/internal/tst"
 	"github.com/moukoublen/pick/internal/tst/testdata"
+	"github.com/stretchr/testify/require"
 )
 
 type PickerTestCase struct {
@@ -927,4 +932,41 @@ func TestReadme(t *testing.T) {
 		)
 		assert(err, nil)
 	}
+}
+
+func TestHTTP(t *testing.T) {
+	t.Run("request", func(t *testing.T) {
+		b := strings.NewReader(`{"one": 1}`)
+		r, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://localhost", b)
+		require.NoError(t, err)
+
+		p, err := WrapJSONRequest(r)
+		require.NoError(t, err)
+		require.Equal(t, 1, p.Must().Int("one"))
+	})
+
+	t.Run("request nil body", func(t *testing.T) {
+		r, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://localhost", http.NoBody)
+		require.NoError(t, err)
+
+		p, err := WrapJSONRequest(r)
+		require.NoError(t, err)
+		require.Nil(t, p.Data())
+	})
+
+	t.Run("response", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		recorder.WriteHeader(http.StatusOK)
+		_, _ = recorder.WriteString(`{"one": "two"}`)
+
+		p, err := WrapJSONResponse(recorder.Result())
+		require.NoError(t, err)
+		require.Equal(t, "two", p.Must().String("one"))
+	})
+
+	t.Run("response nil body", func(t *testing.T) {
+		p, err := WrapJSONResponse(&http.Response{Body: http.NoBody})
+		require.NoError(t, err)
+		require.Nil(t, p.Data())
+	})
 }
