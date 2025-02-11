@@ -10,7 +10,13 @@
 2. Best effort performance using `reflect` as last resort.
 3. Best effort cast aiming to cast and convert between types as much as possible.
 
-### Examples
+## Install
+
+```bash
+go get -u github.com/moukoublen/pick
+```
+
+## Examples
 ```go
 j := `{
     "item": {
@@ -82,7 +88,7 @@ sink.Outcome() != nil // true
 
 ```
 
-**Generics functions**
+#### Generics functions
 ```go
 got, err := Get[int64](p1, "item.three[1]")
 // got == int64(2)
@@ -100,7 +106,7 @@ got := MustPath[float32](m, Field("item"), Field("one"))
 // got == float32(1)
 ```
 
-**`Map` functions**
+#### `Map`/`Each` functions
 ```go
 j2 := `{
     "items": [
@@ -132,14 +138,14 @@ got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
 // err3 == nil
 ```
 
-Functions that operate on/produce multiple elements (using the default and the must API):
-  * [Each](root.go#L13) / [MustEach](root.go#L92)
-  * [Map](root.go#L28) / [MustMap](root.go#L126)
-  * [FlatMap](root.go#L58) / [MustFlatMap](root.go#L158)
-  * [MapFilter](root.go#L43) / [MustMapFilter](root.go#134)
+  * [Each](root.go#L19) / [MustEach](root.go#L143)
+  * [EachField](root.go#L35) / [MustEachField](root.go#L167)
+  * [Map](root.go#L50) / [MustMap](root.go#L201)
+  * [FlatMap](root.go#L80) / [MustFlatMap](root.go#L233)
+  * [MapFilter](root.go#L65) / [MustMapFilter](root.go#209)
 
 
-**Time functions**
+#### Time functions
 ```go
 dateData := map[string]any{
     "time1":     "1977-05-25T22:30:00Z",
