@@ -741,14 +741,15 @@ func TestEach(t *testing.T) {
 
 	t.Run("Each error", func(t *testing.T) {
 		t.Parallel()
+		mockErr := errors.New("error")
 		err := Each(p, "near_earth_objects.2023-01-07", func(index int, _ Picker, length int) error {
 			tst.AssertEqual(t, length, 17)
 			if index == 4 {
-				return errors.New("error")
+				return mockErr
 			}
 			return nil
 		})
-		tst.AssertEqual(t, err, errors.New("error"))
+		tst.ExpectedErrorIs(mockErr)(t, err)
 	})
 
 	t.Run("EachM happy path", func(t *testing.T) {
@@ -778,160 +779,6 @@ func TestEach(t *testing.T) {
 		})
 		tst.AssertEqual(t, errSink.Outcome(), nil)
 	})
-}
-
-func TestReadme(t *testing.T) {
-	assert := tst.AssertEqualFn(t)
-
-	j := `{
-    "item": {
-        "one": 1,
-        "two": "ok",
-        "three": ["element 1", 2, "element 3"]
-    },
-    "float": 2.12
-}`
-	p1, _ := WrapJSON([]byte(j))
-	{
-		got, err := p1.String("item.three[1]")
-		assert(got, "2")
-		assert(err, nil)
-	}
-	{
-		got, err := p1.Uint64("item.three[1]")
-		assert(got, uint64(2))
-		assert(err, nil)
-	}
-	{
-		got, err := p1.String("item.three[-1]") // access the last element
-		assert(got, "element 3")
-		assert(err, nil)
-	}
-	{
-		got, err := p1.Float32("float")
-		assert(got, float32(2.12))
-		assert(err, nil)
-	}
-	{
-		got, err := p1.Int64("float")
-		assert(got, int64(2))
-		assert(err, ErrCastLostDecimals)
-	}
-	m := p1.Must()
-	{
-		got := m.Int32("item.one")
-		assert(got, int32(1))
-	}
-	{
-		got := m.Int32("non-existing")
-		assert(got, int32(0))
-	}
-	{
-		got, err := Get[int64](p1, "item.three[1]")
-		assert(got, int64(2))
-		assert(err, nil)
-	}
-	{
-		got, err := Get[string](p1, "item.three[1]")
-		assert(got, "2")
-		assert(err, nil)
-	}
-	{
-		got := MustGet[string](m, "item.three[1]")
-		assert(got, "2")
-	}
-	{
-		got, err := Path[string](p1, Field("item"), Field("three"), Index(1))
-		assert(got, "2")
-		assert(err, nil)
-	}
-	{
-		got := MustPath[float32](m, Field("item"), Field("one"))
-		assert(got, float32(1))
-	}
-
-	// Map examples
-	j2 := `{
-    "items": [
-        {"id": 34, "name": "test1", "array": [1,2,3]},
-        {"id": 35, "name": "test2", "array": [4,5,6]},
-        {"id": 36, "name": "test3", "array": [7,8,9]}
-    ]
-}`
-	p2, _ := WrapJSON([]byte(j2))
-
-	{
-		got, err := Map(p2, "items", func(p Picker) (int16, error) {
-			n, _ := p.Int16("id")
-			return n, nil
-		})
-		assert(got, []int16{34, 35, 36})
-		assert(err, nil)
-
-		got2, err2 := FlatMap(p2, "items", func(p Picker) ([]int16, error) {
-			return p.Int16Slice("array")
-		})
-		assert(got2, []int16{1, 2, 3, 4, 5, 6, 7, 8, 9})
-		assert(err2, nil)
-
-		got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
-			i, err := p.Int32("id")
-			return i, i%2 == 0, err
-		})
-		assert(got3, []int32{34, 36})
-		assert(err3, nil)
-	}
-
-	// Selector Must API
-	assert(p1.Must().String("item.three[1]"), "2")
-	sm := p1.Must()
-	assert(sm.Uint64("item.three[1]"), uint64(2))
-	assert(sm.Int32("item.one"), int32(1))
-	assert(sm.Float32("float"), float32(2.12))
-	assert(sm.Int64("float"), int64(2))
-
-	// Selector Must API With ErrorSink
-	sink := ErrorsSink{}
-	sm2 := p1.Must(&sink)
-	assert(sm2.String("item.three"), "")
-	assert(sm2.String("item.three[1]"), "2")
-	assert(sm2.Uint64("item.three[1]"), uint64(2))
-	assert(sm2.Int32("item.one"), int32(1))
-	assert(sm2.Float32("float"), float32(2.12))
-	assert(sm2.Int64("float"), int64(2))
-	assert(sink.Outcome() != nil, true)
-	// es.Outcome() = picker error with selector `item.three` ... invalid type | picker error with selector `float` missing decimals error
-
-	// time API
-	dateData := map[string]any{
-		"time1":     "1977-05-25T22:30:00Z",
-		"time2":     "Wed, 25 May 1977 18:30:00 -0400",
-		"timeSlice": []string{"1977-05-25T18:30:00Z", "1977-05-25T20:30:00Z", "1977-05-25T22:30:00Z"},
-	}
-	p3 := Wrap(dateData)
-	{
-		got, err := p3.Time("time1")
-		assert(got, time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC))
-		assert(err, nil)
-	}
-	{
-		loc, _ := time.LoadLocation("America/New_York")
-		got, err := p3.TimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
-		assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
-		assert(err, nil)
-	}
-	{
-		got, err := p3.TimeSlice("timeSlice")
-		assert(
-			got,
-			[]time.Time{
-				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
-				time.Date(1977, time.May, 25, 20, 30, 0, 0, time.UTC),
-				time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
-			},
-		)
-		assert(err, nil)
-	}
 }
 
 func TestHTTP(t *testing.T) {

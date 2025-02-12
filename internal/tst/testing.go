@@ -108,18 +108,45 @@ func AssertEqualFn(t *testing.T) func(subject, expected any) {
 	}
 }
 
+func AssertEqualWithErrorFn(t *testing.T) func(got any, gotErr error) func(expected any, expectedErr error) {
+	t.Helper()
+	return func(got any, gotErr error) func(expected any, expectedErr error) {
+		t.Helper()
+		return func(expected any, expectedErr error) {
+			t.Helper()
+			AssertEqual(t, got, expected)
+			AssertEqual(t, gotErr, expectedErr)
+		}
+	}
+}
+
+func errorCheckFailed(t *testing.T, got, expected error) {
+	t.Helper()
+
+	s := stringBuilder{}
+	s.WriteStringf("error check failed.\n")
+	s.WriteStringf("Expected error: %s\n", Format(expected))
+	s.WriteStringf("Got           : %s", Format(got))
+	t.Error(s.String())
+}
+
 func AssertEqual(t *testing.T, subject, expected any) {
 	t.Helper()
 
 	if expectedErr, is := expected.(error); is {
 		gotErr, _ := subject.(error)
-		if errors.Is(expectedErr, gotErr) {
-			s := stringBuilder{}
-			s.WriteStringf("Expected error mismatch:\n")
-			s.WriteStringf("Expected: %s\n", Format(expectedErr))
-			s.WriteStringf("Got     : %s\n", Format(gotErr))
-			t.Error(s.String())
+
+		switch {
+		case (expectedErr == nil && gotErr != nil) || (expectedErr != nil && gotErr == nil):
+			errorCheckFailed(t, gotErr, expectedErr)
+			return
+		case expectedErr == nil && gotErr == nil:
+			return
+		case !errors.Is(gotErr, expectedErr):
+			errorCheckFailed(t, gotErr, expectedErr)
+			return
 		}
+
 		return
 	}
 
