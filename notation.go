@@ -259,14 +259,16 @@ func (d dotNotationParser) Parse(selector string) ([]Key, error) {
 			continue
 		}
 
-		// <reset> -> <...> or <field separated> -> <...> or <index started> -> <...> : new token starts
+		// <reset> -> <...> or <field separated> -> <...> or <index started> -> <...>
+		//   => new token starts
 		if lastState.oneOf(fsmStateReset, fsmStateFieldSeparated, fsmStateIndexStarted) {
 			tokenStart = i
 			lastState = newState
 			continue
 		}
 
-		// <index> -> <index ended> : new index token
+		// <index> -> <index ended>
+		//   => new index token
 		if lastState == fsmStateIndex && newState == fsmStateIndexEnded {
 			k, err := d.parseIndexToken(selector[tokenStart:i])
 			if err != nil {
@@ -277,7 +279,8 @@ func (d dotNotationParser) Parse(selector string) ([]Key, error) {
 			continue
 		}
 
-		// <field> -> <field separated || index started> : new field token
+		// <field> -> <field separated || index started>
+		//   => new field token
 		if lastState == fsmStateField && newState.oneOf(fsmStateFieldSeparated, fsmStateIndexStarted) {
 			k, err := d.parseFieldToken(selector[tokenStart:i])
 			if err != nil {
@@ -289,6 +292,7 @@ func (d dotNotationParser) Parse(selector string) ([]Key, error) {
 		lastState = newState
 	}
 
+	// ends with <reset || index ended>, valid
 	if lastState.oneOf(fsmStateReset, fsmStateIndexEnded) {
 		return keys, nil
 	}
@@ -330,7 +334,7 @@ func (d dotNotationParser) estimatePathSize(selector string) int {
 
 func (d dotNotationParser) parseIndexToken(token string) (Key, error) {
 	k := Key{Type: KeyTypeIndex}
-	i, err := strconv.ParseInt(token, 10, 64)
+	i, err := strconv.Atoi(token)
 	if err != nil {
 		return Key{}, errors.Join(ErrInvalidSelectorFormatForName, err)
 	}

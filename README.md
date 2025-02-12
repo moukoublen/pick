@@ -147,12 +147,9 @@ As an `API` we define a set of functions like this `Bool(T) Output` for all basi
 p1.Must().String("item.three[1]") // == "2"
 sm := p1.Must()
 sm.Uint64("item.three[1]") // == uint64(2)
-sm.Int32("item.one")       // == int32(1)
-sm.Float32("float")        // == float32(2.12)
-sm.Int64("float")          // == int64(2)
 ```
 
-Optionally an `ErrorGatherer` could be provided to `.Mast()` initializer to receive and handle each error produced by must operations.
+Optionally an `ErrorGatherer` could be provided to `.Must()` initializer to receive and handle each error produced by must operations.
 
 A default implementation of `ErrorGatherer` is the `ErrorsSink`, which gathers all errors into a single one.
 
