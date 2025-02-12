@@ -24,86 +24,45 @@ j := `{
         "two": "ok",
         "three": ["element 1", 2, "element 3"]
     },
-    "float": 2.12
+    "float": 2.12,
+    "floatDec": 2
 }`
 
 p1, _ := WrapJSON([]byte(j))
+got, err := p1.String("item.three[1]")  // "2", nil
+got, err := p1.Uint64("item.three[1]")  // uint64(2), nil
+got, err := p1.String("item.three[-1]") // "element 3", nil | (access the last element)element
+got, err := p1.Float32("float")         // float32(2.12), nil
+got, err := p1.Int64("float")           // int64(2), ErrCastLostDecimals
+got, err := p1.Int64("floatDec")        // int64(2), nil
+got, err := p1.Int32("non-existing")    // 0, ErrFieldNotFound
 
-got, err := p1.String("item.three[1]")
-// got == "2"
-
-got, err := p1.Uint64("item.three[1]")
-// got == uint64(2)
-
-got, err := p1.String("item.three[-1]") // access the last element
-// got == "element 3"
-
-got, err := p1.Float32("float")
-// got == float32(2.12)
-
-got, err := p1.Int64("float")
-// got == int64(2)
-// err is ErrCastLostDecimals
-
-got, err := p1.Int32("non-existing")
-// got == int32(0)
-// err is ErrFieldNotFound
-
-m := p1.Must()
-
-got := m.Int32("item.one")
-// got == int32(1)
-
-got := m.Int32("non-existing")
-// got == int32(0)
+// Must API
+got := p1.Must().Int32("item.one")  // int32(1)
+got := p1.Must().Int32("none")      // int32(0)
 
 // Must API with errors sink
 sink := ErrorsSink{}
 sm2 := p1.Must(&sink)
-
-got = sm2.String("item.three[1]")
-// got == "2"
-
-got = sm2.Uint64("item.three[1]")
-// got == uint64(2)
-
-got == sm2.Int32("item.one")
-// got == int32(1)
-
-sm2.Float32("float")
-// got == float32(2.12)
-
-got = sm2.Int64("float")
-// got == int64(2)
-
-got = sm2.String("item.three")
-// got == ""
-
-sink.Outcome() != nil // true
-// e := sink.Outcome().(interface{ Unwrap() []error })
-// e.Unwrap() == []error{
-//  picker error with selector `float` ... missing decimals error
-//  picker error with selector `item.three` ... invalid type
-//}
-
+got := sm2.String("item.three[1]") // "2"
+got := sm2.Uint64("item.three[1]") // uint64(2)
+got := sm2.Int32("item.one")       // int32(1)
+got := sm2.Float32("float")        // float32(2.12)
+got := sm2.Int64("float")          // int64(2) | error lost decimals
+got := sm2.String("item.three")    // ""       | error field not found
+err := sink.Outcome()              // joined error
 ```
 
 #### Generics functions
 ```go
-got, err := Get[int64](p1, "item.three[1]")
-// got == int64(2)
+got, err := Get[int64](p1, "item.three[1]")  // (int64(2), nil)
+got, err := Get[string](p1, "item.three[1]") // ("2", nil)
 
-got, err := Get[string](p1, "item.three[1]")
-// got == "2"
+m := p1.Must()
+got := MustGet[string](m, "item.three[1]") // "2"
 
-got := MustGet[string](m, "item.three[1]")
-// got == "2"
-
-got, err := Path[string](p1, Field("item"), Field("three"), Index(1))
-// got == "2"
-
-got := MustPath[float32](m, Field("item"), Field("one"))
-// got == float32(1)
+got, err := Path[string](p1, Field("item"), Field("three"), Index(1)) // ("2", nil)
+got := MustPath[float32](m, Field("item"), Field("one")          // float32(1)
 ```
 
 #### `Map`/`Each` functions
@@ -120,22 +79,16 @@ p2, _ := WrapJSON([]byte(j2))
 got, err := Map(p2, "items", func(p Picker) (int16, error) {
     n, _ := p.Int16("id")
     return n, nil
-})
-// got == []int16{34, 35, 36}
-// err == nil
+}) // ( []int16{34, 35, 36}, nil )
 
 got, err := FlatMap(p2, "items", func(p Picker) ([]int16, error) {
     return p.Int16Slice("array")
-})
-// got == []int16{1, 2, 3, 4, 5, 6, 7, 8, 9}
-// err == nil
+}) // ( []int16{1, 2, 3, 4, 5, 6, 7, 8, 9}, nil )
 
 got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
     i, err := p.Int32("id")
     return i, i%2 == 0, err
-})
-// got3 == []int32{34, 36}
-// err3 == nil
+}) // ( []int32{34, 36}, nil )
 ```
 
   * [Each](root.go#L19) / [MustEach](root.go#L143)
@@ -143,35 +96,6 @@ got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
   * [Map](root.go#L50) / [MustMap](root.go#L201)
   * [FlatMap](root.go#L80) / [MustFlatMap](root.go#L233)
   * [MapFilter](root.go#L65) / [MustMapFilter](root.go#209)
-
-
-#### Time functions
-```go
-dateData := map[string]any{
-    "time1":     "1977-05-25T22:30:00Z",
-    "time2":     "Wed, 25 May 1977 18:30:00 -0400",
-    "timeSlice": []string{"1977-05-25T18:30:00Z", "1977-05-25T20:30:00Z", "1977-05-25T22:30:00Z"},
-}
-
-p3 := Wrap(dateData)
-
-got, err := p3.Time("time1")
-// got == time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC)
-// err == nil
-
-loc, _ := time.LoadLocation("America/New_York")
-got, err := p3.TimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
-// got == time.Date(1977, time.May, 25, 18, 30, 0, 0, loc)
-// err == nil
-
-got, err := p3.TimeSlice("timeSlice")
-// got == []time.Time{
-//     time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
-//     time.Date(1977, time.May, 25, 20, 30, 0, 0, time.UTC),
-//     time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
-// },
-// err == nil
-```
 
 
 ### API
