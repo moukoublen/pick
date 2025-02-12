@@ -65,7 +65,7 @@ got, err := Path[string](p1, Field("item"), Field("three"), Index(1)) // ("2", n
 got := MustPath[float32](m, Field("item"), Field("one")          // float32(1)
 ```
 
-#### `Map`/`Each` functions
+#### `Map` functions
 ```go
 j2 := `{
     "items": [
@@ -89,6 +89,34 @@ got3, err3 := MapFilter(p2, "items", func(p Picker) (int32, bool, error) {
     i, err := p.Int32("id")
     return i, i%2 == 0, err
 }) // ( []int32{34, 36}, nil )
+```
+
+#### `Each`/`EachField` functions
+```go
+j := `{
+    "2023-01-01": [1,2,3],
+    "2023-01-02": [1,2,3,4],
+    "2023-01-03": [1,2,3,4,5]
+}`
+p, _ := WrapJSON([]byte(j))
+
+lens := map[string]int{}
+err := EachField(p, "", func(field string, value Picker, numOfFields int) error {
+    l, _ := value.Len("")
+    lens[field] = l
+    return nil
+}) // nil
+// lens == map[string]int{"2023-01-01": 3, "2023-01-02": 4, "2023-01-03": 5})
+
+
+sumEvenIndex := 0
+err = Each(p, "2023-01-03", func(index int, item Picker, totalLength int) error {
+    if index%2 == 0 {
+        sumEvenIndex += item.Must().Int("")
+    }
+    return nil
+}) // nil
+// sumEvenIndex == 6
 ```
 
   * [Each](root.go#L19) / [MustEach](root.go#L143)

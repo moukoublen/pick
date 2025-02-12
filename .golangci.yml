@@ -127,3 +127,10 @@ linters-settings:
   gofumpt:
     module-path: github.com/moukoublen/pick
     extra-rules: true
+
+  # https://golangci-lint.run/usage/linters/#revive
+  # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
+  revive:
+    rules:
+      - name: unused-parameter
+        disabled: true

@@ -98,6 +98,36 @@ func TestReadme(t *testing.T) {
 		assert(err3, nil)
 	})
 
+	t.Run("each and each field function", func(t *testing.T) {
+		assert := tst.AssertEqualFn(t)
+
+		j := `{
+				"2023-01-01": [0,1,2],
+				"2023-01-02": [0,1,2,3],
+				"2023-01-03": [0,1,2,3,4]
+		}`
+		p, _ := WrapJSON([]byte(j))
+
+		lens := map[string]int{}
+		err := EachField(p, "", func(field string, value Picker, numOfFields int) error {
+			l, _ := value.Len("")
+			lens[field] = l
+			return nil
+		})
+		tst.NoError(t, err)
+		assert(lens, map[string]int{"2023-01-01": 3, "2023-01-02": 4, "2023-01-03": 5})
+
+		sumEvenIndex := 0
+		err = Each(p, "2023-01-03", func(index int, item Picker, totalLength int) error {
+			if index%2 == 0 {
+				sumEvenIndex += item.Must().Int("")
+			}
+			return nil
+		})
+		assert(sumEvenIndex, 6)
+		tst.NoError(t, err)
+	})
+
 	// time API
 	t.Run("time", func(t *testing.T) {
 		assert := tst.AssertEqualFn(t)

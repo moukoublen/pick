@@ -16,7 +16,7 @@ import (
 
 // Each iterates over all elements selected by the given selector and applies the provided operation function to each element.
 // It returns An error if any step in the selection or operation process fails, otherwise nil.
-func Each(p Picker, selector string, operation func(index int, p Picker, totalLength int) error) error {
+func Each(p Picker, selector string, operation func(index int, item Picker, totalLength int) error) error {
 	item, err := p.Any(selector)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func Each(p Picker, selector string, operation func(index int, p Picker, totalLe
 
 // EachField iterates over all fields of the object selected by the given selector and applies the provided operation function to each field's value.
 // It returns An error if any step in the selection or operation process fails, otherwise nil.
-func EachField(p Picker, selector string, operation func(field string, p Picker, numOfFields int) error) error {
+func EachField(p Picker, selector string, operation func(field string, value Picker, numOfFields int) error) error {
 	item, err := p.Any(selector)
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 // MustEachField applies operation function to each field of the object of the given selector.
 // The operation functions receives the name of the field of the element, a SelectorMustAPI
 // and the total length of the slice (or 1 if input is a single element and not a slice).
-func MustEachField(a SelectorMustAPI, selector string, operation func(field string, item SelectorMustAPI, numOfFields int) error) {
+func MustEachField(a SelectorMustAPI, selector string, operation func(field string, value SelectorMustAPI, numOfFields int) error) {
 	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
 	if err != nil {
 		a.gather(selector, err)
