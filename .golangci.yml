@@ -5,7 +5,7 @@
 
 run:
   concurrency: 0
-  go: '1.22'
+  go: '1.23'
   timeout: 10m
   issues-exit-code: 1
   tests: true
@@ -21,7 +21,7 @@ output:
 linters:
   enable-all: true
   disable:
-    - exportloopref # deprecated
+    - tenv # deprecated
     - nlreturn
     - wsl
     - lll
