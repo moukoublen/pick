@@ -338,7 +338,7 @@ func (d dotNotationParser) parseIndexToken(token string) (Key, error) {
 	if err != nil {
 		return Key{}, errors.Join(ErrInvalidSelectorFormatForName, err)
 	}
-	k.Index = int(i)
+	k.Index = i
 
 	return k, nil
 }

@@ -69,7 +69,8 @@ staticcheck: $(TOOLS_BIN)/staticcheck
 GOLANGCI-LINT_MOD:=github.com/golangci/golangci-lint
 GOLANGCI-LINT_VER:=$(call go_mod_ver,$(GOLANGCI-LINT_MOD))
 $(TOOLS_BIN)/golangci-lint: $(TOOLS_DB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_VER).ver
-	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) $(GOLANGCI-LINT_VER)
+	$(call go_install,golangci-lint,$(GOLANGCI-LINT_MOD)/cmd/golangci-lint,$(GOLANGCI-LINT_VER))
+#@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) $(GOLANGCI-LINT_VER)
 
 .PHONY: golangci-lint
 golangci-lint: $(TOOLS_BIN)/golangci-lint
