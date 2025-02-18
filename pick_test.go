@@ -64,7 +64,7 @@ func TestWithMixedTypesMap(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Int,
+			AccessFn:      p.Relaxed().Int,
 			Selector:      "sliceOfAnyComplex[0]",
 			ExpectedValue: int(2),
 			ErrorAsserter: tst.NoError,
@@ -142,7 +142,7 @@ func TestWithMixedTypesMap(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Uint64Slice,
+			AccessFn:      p.Relaxed().Uint64Slice,
 			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []uint64{10, 11, 12, 13, 14},
 			ErrorAsserter: tst.NoError,
@@ -154,7 +154,7 @@ func TestWithMixedTypesMap(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().StringSlice,
+			AccessFn:      p.Relaxed().StringSlice,
 			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []string{"10", "11", "12", "13", "14"},
 			ErrorAsserter: tst.NoError,
@@ -187,7 +187,7 @@ func TestWithMixedTypesMapUsingBoolAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Bool,
+			AccessFn:      p.Relaxed().Bool,
 			Selector:      "pointerMapStringAny.fieldBool",
 			ExpectedValue: true,
 			ErrorAsserter: tst.NoError,
@@ -200,7 +200,7 @@ func TestWithMixedTypesMapUsingBoolAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().BoolSlice,
+			AccessFn:      p.Relaxed().BoolSlice,
 			Selector:      "sliceOfAnyComplex[5]",
 			ExpectedValue: []bool{true, true, true, false, true, true},
 			ErrorAsserter: tst.NoError,
@@ -227,7 +227,7 @@ func TestWithMixedTypesMapUsingStringAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().String,
+			AccessFn:      p.Relaxed().String,
 			Selector:      "sliceOfAnyComplex[1]",
 			ExpectedValue: "stringElement",
 			ErrorAsserter: tst.NoError,
@@ -240,7 +240,7 @@ func TestWithMixedTypesMapUsingStringAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().StringSlice,
+			AccessFn:      p.Relaxed().StringSlice,
 			Selector:      "sliceOfAnyComplex[6]",
 			ExpectedValue: []string{"abc", "def", "ghi"},
 			ErrorAsserter: tst.NoError,
@@ -267,7 +267,7 @@ func TestWithMixedTypesMapUsingInt64(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Int64,
+			AccessFn:      p.Relaxed().Int64,
 			Selector:      "sliceOfAnyComplex[0]",
 			ExpectedValue: int64(2),
 			ErrorAsserter: tst.NoError,
@@ -280,7 +280,7 @@ func TestWithMixedTypesMapUsingInt64(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Int64Slice,
+			AccessFn:      p.Relaxed().Int64Slice,
 			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []int64{10, 11, 12, 13, 14},
 			ErrorAsserter: tst.NoError,
@@ -307,7 +307,7 @@ func TestUsingMixedTypesMapUsingFloat64API(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Float64,
+			AccessFn:      p.Relaxed().Float64,
 			Selector:      "pointerMapStringAny.float64Slice[3]",
 			ExpectedValue: float64(0.4),
 			ErrorAsserter: tst.NoError,
@@ -320,7 +320,7 @@ func TestUsingMixedTypesMapUsingFloat64API(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Float64Slice,
+			AccessFn:      p.Relaxed().Float64Slice,
 			Selector:      "pointerMapStringAny.float64Slice",
 			ExpectedValue: []float64{0.1, 0.2, 0.3, 0.4},
 			ErrorAsserter: tst.NoError,
@@ -347,7 +347,7 @@ func TestWithMixedTypesMapUsingFloat32API(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Float32,
+			AccessFn:      p.Relaxed().Float32,
 			Selector:      "pointerMapStringAny.float64Slice[3]",
 			ExpectedValue: float32(0.4),
 			ErrorAsserter: tst.NoError,
@@ -360,7 +360,7 @@ func TestWithMixedTypesMapUsingFloat32API(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Float32Slice,
+			AccessFn:      p.Relaxed().Float32Slice,
 			Selector:      "pointerMapStringAny.float64Slice",
 			ExpectedValue: []float32{0.1, 0.2, 0.3, 0.4},
 			ErrorAsserter: tst.NoError,
@@ -387,7 +387,7 @@ func TestWithMixedTypesMapUsingByteAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Byte,
+			AccessFn:      p.Relaxed().Byte,
 			Selector:      "sliceOfAnyComplex[7]",
 			ExpectedValue: byte(math.MaxUint8),
 			ErrorAsserter: tst.NoError,
@@ -400,7 +400,7 @@ func TestWithMixedTypesMapUsingByteAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().ByteSlice,
+			AccessFn:      p.Relaxed().ByteSlice,
 			Selector:      "pointerMapStringAny.int32Slice",
 			ExpectedValue: []byte{10, 11, 12, 13, 14},
 			ErrorAsserter: tst.NoError,
@@ -427,7 +427,7 @@ func TestWithMixedTypesMapUsingTimeAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Time,
+			AccessFn:      p.Relaxed().Time,
 			Selector:      "times.timeRFC3339Nano",
 			ExpectedValue: time.Date(1977, time.May, 25, 22, 30, 0, 0, time.UTC),
 			ErrorAsserter: tst.NoError,
@@ -444,7 +444,7 @@ func TestWithMixedTypesMapUsingTimeAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn: p.Must().TimeSlice,
+			AccessFn: p.Relaxed().TimeSlice,
 			Selector: "times.timeUnixSecondsSlice",
 			ExpectedValue: []time.Time{
 				time.Date(1977, time.May, 25, 18, 30, 0, 0, time.UTC),
@@ -475,7 +475,7 @@ func TestWithMixedTypesMapUsingDurationAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().Duration,
+			AccessFn:      p.Relaxed().Duration,
 			Selector:      "durations.single",
 			ExpectedValue: time.Duration(4) * time.Second,
 			ErrorAsserter: tst.NoError,
@@ -488,7 +488,7 @@ func TestWithMixedTypesMapUsingDurationAPI(t *testing.T) {
 			ErrorAsserter: tst.NoError,
 		},
 		{
-			AccessFn:      p.Must().DurationSlice,
+			AccessFn:      p.Relaxed().DurationSlice,
 			Selector:      "durations.slice",
 			ExpectedValue: []time.Duration{5 * time.Second, 6 * time.Second, 7 * time.Second},
 			ErrorAsserter: tst.NoError,
@@ -616,7 +616,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) []string {
-				return MustMap(p.Must(), selector, func(a SelectorMustAPI) (string, error) { return a.String("id"), nil })
+				return RelaxedMap(p.Relaxed(), selector, func(a RelaxedAPI) (string, error) { return a.String("id"), nil })
 			},
 			Selector:      "near_earth_objects.2023-01-01",
 			ExpectedValue: []string{"2154347", "2385186", "2453309", "3683468", "3703782", "3720918", "3767936", "3792438", "3824981", "3836251", "3837605", "3959234", "3986848", "54104550", "54105994", "54166175", "54202993", "54290862", "54335607", "54337027", "54337425", "54340039", "54341664"},
@@ -636,8 +636,8 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(_ string) []string {
-				return MustFlatMap(p.Must(), "near_earth_objects.2023-01-01", func(a SelectorMustAPI) ([]string, error) {
-					return MustMap(a, "close_approach_data", func(a SelectorMustAPI) (string, error) {
+				return RelaxedFlatMap(p.Relaxed(), "near_earth_objects.2023-01-01", func(a RelaxedAPI) ([]string, error) {
+					return RelaxedMap(a, "close_approach_data", func(a RelaxedAPI) (string, error) {
 						return a.String("close_approach_date_full"), nil
 					}), nil
 				})
@@ -654,7 +654,7 @@ func TestNasaDataFile(t *testing.T) {
 	}
 }
 
-func TestMapMust(t *testing.T) {
+func TestMapRelaxed(t *testing.T) {
 	t.Parallel()
 	file := loadTestData(t, "nasa.json")
 	p, pErr := WrapReaderJSON(file)
@@ -670,7 +670,7 @@ func TestMapMust(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		itemsSlice := MustMap(p.Must(errSink), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		itemsSlice := RelaxedMap(p.Relaxed(errSink), "near_earth_objects.2023-01-07", func(sm RelaxedAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("is_sentry_object"),
@@ -701,7 +701,7 @@ func TestMapMust(t *testing.T) {
 	t.Run("gather errors", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		_ = MustMap(p.Must(errSink), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) (Item, error) {
+		_ = RelaxedMap(p.Relaxed(errSink), "near_earth_objects.2023-01-07", func(sm RelaxedAPI) (Item, error) {
 			return Item{
 				Name:   sm.String("name"),
 				Sentry: sm.Bool("wrong.path"),
@@ -755,7 +755,7 @@ func TestEach(t *testing.T) {
 	t.Run("EachM happy path", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		MustEach(p.Must(errSink), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+		RelaxedEach(p.Relaxed(errSink), "near_earth_objects.2023-01-07", func(index int, a RelaxedAPI, length int) error {
 			tst.AssertEqual(t, length, 17)
 			if index == 4 {
 				s := a.String("name")
@@ -769,7 +769,7 @@ func TestEach(t *testing.T) {
 	t.Run("EachM error", func(t *testing.T) {
 		t.Parallel()
 		errSink := &ErrorsSink{}
-		MustEach(p.Must(errSink), "near_earth_objects.2023-01-07", func(index int, a SelectorMustAPI, length int) error {
+		RelaxedEach(p.Relaxed(errSink), "near_earth_objects.2023-01-07", func(index int, a RelaxedAPI, length int) error {
 			tst.AssertEqual(t, length, 17)
 			if index == 4 {
 				s := a.String("name")
@@ -789,7 +789,7 @@ func TestHTTP(t *testing.T) {
 
 		p, err := WrapJSONRequest(r)
 		require.NoError(t, err)
-		require.Equal(t, 1, p.Must().Int("one"))
+		require.Equal(t, 1, p.Relaxed().Int("one"))
 	})
 
 	t.Run("request nil body", func(t *testing.T) {
@@ -808,7 +808,7 @@ func TestHTTP(t *testing.T) {
 
 		p, err := WrapJSONResponse(recorder.Result())
 		require.NoError(t, err)
-		require.Equal(t, "two", p.Must().String("one"))
+		require.Equal(t, "two", p.Relaxed().String("one"))
 	})
 
 	t.Run("response nil body", func(t *testing.T) {

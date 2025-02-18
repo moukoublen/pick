@@ -32,15 +32,15 @@ func TestReadme(t *testing.T) {
 		assert2(p1.Int("non-existing"))(0, ErrFieldNotFound)
 	})
 
-	// Must API
-	t.Run("basic must api", func(t *testing.T) {
+	// Relaxed API
+	t.Run("basic Relaxed api", func(t *testing.T) {
 		assert := tst.AssertEqualFn(t)
 
-		assert(p1.Must().Int32("item.one"), int32(1))
-		assert(p1.Must().Int32("non-existing"), int32(0))
+		assert(p1.Relaxed().Int32("item.one"), int32(1))
+		assert(p1.Relaxed().Int32("non-existing"), int32(0))
 
 		sink := &ErrorsSink{}
-		m := p1.Must(sink)
+		m := p1.Relaxed(sink)
 		assert(m.String("item.three"), "")
 		assert(m.String("item.three[1]"), "2")
 		assert(m.Uint64("item.three[1]"), uint64(2))
@@ -58,11 +58,11 @@ func TestReadme(t *testing.T) {
 		assert2(Get[int64](p1, "item.three[1]"))(int64(2), nil)
 		assert2(Get[string](p1, "item.three[1]"))("2", nil)
 
-		m := p1.Must()
-		assert(MustGet[string](m, "item.three[1]"), "2")
+		m := p1.Relaxed()
+		assert(RelaxedGet[string](m, "item.three[1]"), "2")
 
 		assert2(Path[string](p1, Field("item"), Field("three"), Index(1)))("2", nil)
-		assert(MustPath[float32](m, Field("item"), Field("one")), float32(1))
+		assert(RelaxedPath[float32](m, Field("item"), Field("one")), float32(1))
 	})
 
 	t.Run("map examples", func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestReadme(t *testing.T) {
 		sumEvenIndex := 0
 		err = Each(p, "2023-01-03", func(index int, item Picker, totalLength int) error {
 			if index%2 == 0 {
-				sumEvenIndex += item.Must().Int("")
+				sumEvenIndex += item.Relaxed().Int("")
 			}
 			return nil
 		})
