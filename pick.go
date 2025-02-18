@@ -83,8 +83,8 @@ func NewPicker(data any, t Traverser, c Caster, n Notation) Picker {
 
 func (p Picker) Data() any { return p.data }
 
-func (p Picker) Must(onErr ...ErrorGatherer) SelectorMustAPI {
-	return SelectorMustAPI{Picker: p, errorGatherers: onErr}
+func (p Picker) Silent(onErr ...ErrorGatherer) SilentAPI {
+	return SilentAPI{Picker: p, errorGatherers: onErr}
 }
 
 func (p Picker) Any(selector string) (any, error) {
@@ -114,7 +114,7 @@ func (p Picker) Len(selector string) (int, error) {
 	return iter.Len(a)
 }
 
-// Default Selector API (embedded into Picker)
+// Default API (embedded into Picker)
 
 func (p Picker) Each(selector string, operation func(index int, p Picker, length int) error) error {
 	return Each(p, selector, operation)
@@ -285,185 +285,185 @@ func (p Picker) Wrap(data any) Picker {
 	return NewPicker(data, p.traverser, p.Caster, p.notation)
 }
 
-// Selector Must API
+// Silent API
 
-type SelectorMustAPI struct {
+type SilentAPI struct {
 	Picker
 	errorGatherers []ErrorGatherer
 }
 
-func (a SelectorMustAPI) gather(selector string, err error) {
+func (a SilentAPI) gather(selector string, err error) {
 	for _, eg := range a.errorGatherers {
 		eg.GatherSelector(selector, err)
 	}
 }
 
-func (a SelectorMustAPI) Each(selector string, operation func(index int, item SelectorMustAPI, length int) error) {
-	MustEach(a, selector, operation)
+func (a SilentAPI) Each(selector string, operation func(index int, item SilentAPI, length int) error) {
+	SilentEach(a, selector, operation)
 }
 
-func (a SelectorMustAPI) Bool(selector string) bool {
-	return pickSelectorMust(a, selector, a.Caster.AsBool)
+func (a SilentAPI) Bool(selector string) bool {
+	return pickSilent(a, selector, a.Caster.AsBool)
 }
 
-func (a SelectorMustAPI) BoolSlice(selector string) []bool {
-	return pickSelectorMust(a, selector, a.Caster.AsBoolSlice)
+func (a SilentAPI) BoolSlice(selector string) []bool {
+	return pickSilent(a, selector, a.Caster.AsBoolSlice)
 }
 
-func (a SelectorMustAPI) Byte(selector string) byte {
-	return pickSelectorMust(a, selector, a.Caster.AsByte)
+func (a SilentAPI) Byte(selector string) byte {
+	return pickSilent(a, selector, a.Caster.AsByte)
 }
 
-func (a SelectorMustAPI) ByteSlice(selector string) []byte {
-	return pickSelectorMust(a, selector, a.Caster.AsByteSlice)
+func (a SilentAPI) ByteSlice(selector string) []byte {
+	return pickSilent(a, selector, a.Caster.AsByteSlice)
 }
 
-func (a SelectorMustAPI) Float32(selector string) float32 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat32)
+func (a SilentAPI) Float32(selector string) float32 {
+	return pickSilent(a, selector, a.Caster.AsFloat32)
 }
 
-func (a SelectorMustAPI) Float32Slice(selector string) []float32 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat32Slice)
+func (a SilentAPI) Float32Slice(selector string) []float32 {
+	return pickSilent(a, selector, a.Caster.AsFloat32Slice)
 }
 
-func (a SelectorMustAPI) Float64(selector string) float64 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat64)
+func (a SilentAPI) Float64(selector string) float64 {
+	return pickSilent(a, selector, a.Caster.AsFloat64)
 }
 
-func (a SelectorMustAPI) Float64Slice(selector string) []float64 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat64Slice)
+func (a SilentAPI) Float64Slice(selector string) []float64 {
+	return pickSilent(a, selector, a.Caster.AsFloat64Slice)
 }
 
-func (a SelectorMustAPI) Int(selector string) int {
-	return pickSelectorMust(a, selector, a.Caster.AsInt)
+func (a SilentAPI) Int(selector string) int {
+	return pickSilent(a, selector, a.Caster.AsInt)
 }
 
-func (a SelectorMustAPI) IntSlice(selector string) []int {
-	return pickSelectorMust(a, selector, a.Caster.AsIntSlice)
+func (a SilentAPI) IntSlice(selector string) []int {
+	return pickSilent(a, selector, a.Caster.AsIntSlice)
 }
 
-func (a SelectorMustAPI) Int8(selector string) int8 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt8)
+func (a SilentAPI) Int8(selector string) int8 {
+	return pickSilent(a, selector, a.Caster.AsInt8)
 }
 
-func (a SelectorMustAPI) Int8Slice(selector string) []int8 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt8Slice)
+func (a SilentAPI) Int8Slice(selector string) []int8 {
+	return pickSilent(a, selector, a.Caster.AsInt8Slice)
 }
 
-func (a SelectorMustAPI) Int16(selector string) int16 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt16)
+func (a SilentAPI) Int16(selector string) int16 {
+	return pickSilent(a, selector, a.Caster.AsInt16)
 }
 
-func (a SelectorMustAPI) Int16Slice(selector string) []int16 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt16Slice)
+func (a SilentAPI) Int16Slice(selector string) []int16 {
+	return pickSilent(a, selector, a.Caster.AsInt16Slice)
 }
 
-func (a SelectorMustAPI) Int32(selector string) int32 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt32)
+func (a SilentAPI) Int32(selector string) int32 {
+	return pickSilent(a, selector, a.Caster.AsInt32)
 }
 
-func (a SelectorMustAPI) Int32Slice(selector string) []int32 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt32Slice)
+func (a SilentAPI) Int32Slice(selector string) []int32 {
+	return pickSilent(a, selector, a.Caster.AsInt32Slice)
 }
 
-func (a SelectorMustAPI) Int64(selector string) int64 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt64)
+func (a SilentAPI) Int64(selector string) int64 {
+	return pickSilent(a, selector, a.Caster.AsInt64)
 }
 
-func (a SelectorMustAPI) Int64Slice(selector string) []int64 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt64Slice)
+func (a SilentAPI) Int64Slice(selector string) []int64 {
+	return pickSilent(a, selector, a.Caster.AsInt64Slice)
 }
 
-func (a SelectorMustAPI) Uint(selector string) uint {
-	return pickSelectorMust(a, selector, a.Caster.AsUint)
+func (a SilentAPI) Uint(selector string) uint {
+	return pickSilent(a, selector, a.Caster.AsUint)
 }
 
-func (a SelectorMustAPI) UintSlice(selector string) []uint {
-	return pickSelectorMust(a, selector, a.Caster.AsUintSlice)
+func (a SilentAPI) UintSlice(selector string) []uint {
+	return pickSilent(a, selector, a.Caster.AsUintSlice)
 }
 
-func (a SelectorMustAPI) Uint8(selector string) uint8 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint8)
+func (a SilentAPI) Uint8(selector string) uint8 {
+	return pickSilent(a, selector, a.Caster.AsUint8)
 }
 
-func (a SelectorMustAPI) Uint8Slice(selector string) []uint8 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint8Slice)
+func (a SilentAPI) Uint8Slice(selector string) []uint8 {
+	return pickSilent(a, selector, a.Caster.AsUint8Slice)
 }
 
-func (a SelectorMustAPI) Uint16(selector string) uint16 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint16)
+func (a SilentAPI) Uint16(selector string) uint16 {
+	return pickSilent(a, selector, a.Caster.AsUint16)
 }
 
-func (a SelectorMustAPI) Uint16Slice(selector string) []uint16 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint16Slice)
+func (a SilentAPI) Uint16Slice(selector string) []uint16 {
+	return pickSilent(a, selector, a.Caster.AsUint16Slice)
 }
 
-func (a SelectorMustAPI) Uint32(selector string) uint32 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint32)
+func (a SilentAPI) Uint32(selector string) uint32 {
+	return pickSilent(a, selector, a.Caster.AsUint32)
 }
 
-func (a SelectorMustAPI) Uint32Slice(selector string) []uint32 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint32Slice)
+func (a SilentAPI) Uint32Slice(selector string) []uint32 {
+	return pickSilent(a, selector, a.Caster.AsUint32Slice)
 }
 
-func (a SelectorMustAPI) Uint64(selector string) uint64 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint64)
+func (a SilentAPI) Uint64(selector string) uint64 {
+	return pickSilent(a, selector, a.Caster.AsUint64)
 }
 
-func (a SelectorMustAPI) Uint64Slice(selector string) []uint64 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint64Slice)
+func (a SilentAPI) Uint64Slice(selector string) []uint64 {
+	return pickSilent(a, selector, a.Caster.AsUint64Slice)
 }
 
-func (a SelectorMustAPI) String(selector string) string {
-	return pickSelectorMust(a, selector, a.Caster.AsString)
+func (a SilentAPI) String(selector string) string {
+	return pickSilent(a, selector, a.Caster.AsString)
 }
 
-func (a SelectorMustAPI) StringSlice(selector string) []string {
-	return pickSelectorMust(a, selector, a.Caster.AsStringSlice)
+func (a SilentAPI) StringSlice(selector string) []string {
+	return pickSilent(a, selector, a.Caster.AsStringSlice)
 }
 
-func (a SelectorMustAPI) Time(selector string) time.Time {
-	return pickSelectorMust(a, selector, a.Caster.AsTime)
+func (a SilentAPI) Time(selector string) time.Time {
+	return pickSilent(a, selector, a.Caster.AsTime)
 }
 
-func (a SelectorMustAPI) TimeWithConfig(config TimeCastConfig, selector string) time.Time {
-	return pickSelectorMust(a, selector, func(input any) (time.Time, error) {
+func (a SilentAPI) TimeWithConfig(config TimeCastConfig, selector string) time.Time {
+	return pickSilent(a, selector, func(input any) (time.Time, error) {
 		return a.Caster.AsTimeWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) TimeSlice(selector string) []time.Time {
-	return pickSelectorMust(a, selector, a.Caster.AsTimeSlice)
+func (a SilentAPI) TimeSlice(selector string) []time.Time {
+	return pickSilent(a, selector, a.Caster.AsTimeSlice)
 }
 
-func (a SelectorMustAPI) TimeSliceWithConfig(config TimeCastConfig, selector string) []time.Time {
-	return pickSelectorMust(a, selector, func(input any) ([]time.Time, error) {
+func (a SilentAPI) TimeSliceWithConfig(config TimeCastConfig, selector string) []time.Time {
+	return pickSilent(a, selector, func(input any) ([]time.Time, error) {
 		return a.Caster.AsTimeSliceWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) Duration(selector string) time.Duration {
-	return pickSelectorMust(a, selector, a.Caster.AsDuration)
+func (a SilentAPI) Duration(selector string) time.Duration {
+	return pickSilent(a, selector, a.Caster.AsDuration)
 }
 
-func (a SelectorMustAPI) DurationWithConfig(config DurationCastConfig, selector string) time.Duration {
-	return pickSelectorMust(a, selector, func(input any) (time.Duration, error) {
+func (a SilentAPI) DurationWithConfig(config DurationCastConfig, selector string) time.Duration {
+	return pickSilent(a, selector, func(input any) (time.Duration, error) {
 		return a.Caster.AsDurationWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) DurationSlice(selector string) []time.Duration {
-	return pickSelectorMust(a, selector, a.Caster.AsDurationSlice)
+func (a SilentAPI) DurationSlice(selector string) []time.Duration {
+	return pickSilent(a, selector, a.Caster.AsDurationSlice)
 }
 
-func (a SelectorMustAPI) DurationSliceWithConfig(config DurationCastConfig, selector string) []time.Duration {
-	return pickSelectorMust(a, selector, func(input any) ([]time.Duration, error) {
+func (a SilentAPI) DurationSliceWithConfig(config DurationCastConfig, selector string) []time.Duration {
+	return pickSilent(a, selector, func(input any) ([]time.Duration, error) {
 		return a.Caster.AsDurationSliceWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) Wrap(data any) SelectorMustAPI {
-	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.errorGatherers...)
+func (a SilentAPI) Wrap(data any) SilentAPI {
+	return NewPicker(data, a.traverser, a.Caster, a.notation).Silent(a.errorGatherers...)
 }
 
 //nolint:ireturn
@@ -478,7 +478,7 @@ func pickSelector[Output any](p Picker, selector string, castFn func(any) (Outpu
 }
 
 //nolint:ireturn
-func pickSelectorMust[Output any](a SelectorMustAPI, selector string, castFn func(any) (Output, error)) Output {
+func pickSilent[Output any](a SilentAPI, selector string, castFn func(any) (Output, error)) Output {
 	casted, err := pickSelector(a.Picker, selector, castFn)
 	if err != nil {
 		a.gather(selector, err)
