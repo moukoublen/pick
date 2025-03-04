@@ -7,7 +7,7 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-func (c DefaultCaster) AsBool(input any) (bool, error) {
+func (c DefaultConverter) AsBool(input any) (bool, error) {
 	switch origin := input.(type) {
 	case int:
 		return origin != 0, nil
@@ -39,13 +39,13 @@ func (c DefaultCaster) AsBool(input any) (bool, error) {
 	case string:
 		b, err := strconv.ParseBool(origin)
 		if err != nil {
-			return false, newCastError(err, input)
+			return false, newConvertError(err, input)
 		}
 		return b, nil
 	case json.Number:
 		n, err := origin.Float64()
 		if err != nil {
-			return false, newCastError(err, input)
+			return false, newConvertError(err, input)
 		}
 		return c.AsBool(n)
 	case []byte:
@@ -58,8 +58,8 @@ func (c DefaultCaster) AsBool(input any) (bool, error) {
 		return false, nil
 
 	default:
-		// try to cast to basic (in case input is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
+		// try to convert to basic (in case input is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
 			return c.AsBool(basic)
 		}
 
@@ -67,6 +67,6 @@ func (c DefaultCaster) AsBool(input any) (bool, error) {
 	}
 }
 
-func (c DefaultCaster) AsBoolSlice(input any) ([]bool, error) {
+func (c DefaultConverter) AsBoolSlice(input any) ([]bool, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsBool))
 }

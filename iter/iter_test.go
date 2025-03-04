@@ -279,28 +279,28 @@ func TestIterMapErrorScenarios(t *testing.T) {
 	errMock1 := errors.New("mock error")
 
 	type testCase struct {
-		input                 any
-		inputSingleItemCastFn func(any) (int, error)
-		errorAsserter         tst.ErrorAsserter
+		input                    any
+		inputSingleItemConvertFn func(any) (int, error)
+		errorAsserter            tst.ErrorAsserter
 	}
 
 	testsCases := []testCase{
 		{
-			input:                 []any{1, 2, 3},
-			inputSingleItemCastFn: func(any) (int, error) { return 0, errMock1 },
-			errorAsserter:         tst.ExpectedErrorIs(errMock1),
+			input:                    []any{1, 2, 3},
+			inputSingleItemConvertFn: func(any) (int, error) { return 0, errMock1 },
+			errorAsserter:            tst.ExpectedErrorIs(errMock1),
 		},
 		{
-			input:                 []any{1, 2, 3},
-			inputSingleItemCastFn: func(any) (int, error) { panic("panic") },
-			errorAsserter:         tst.ExpectedErrorStringContains(`recovered panic: "panic"`),
+			input:                    []any{1, 2, 3},
+			inputSingleItemConvertFn: func(any) (int, error) { panic("panic") },
+			errorAsserter:            tst.ExpectedErrorStringContains(`recovered panic: "panic"`),
 		},
 	}
 
 	for idx, tc := range testsCases {
 		name := fmt.Sprintf("test_%d_(%v)", idx, tc.input)
 		t.Run(name, func(t *testing.T) {
-			_, gotErr := Map(tc.input, MapOpFn(tc.inputSingleItemCastFn))
+			_, gotErr := Map(tc.input, MapOpFn(tc.inputSingleItemConvertFn))
 			tc.errorAsserter(t, gotErr)
 		})
 	}

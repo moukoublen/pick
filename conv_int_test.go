@@ -11,7 +11,7 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-func TestInt64CastValid(t *testing.T) {
+func TestInt64ConvertValid(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
@@ -123,7 +123,7 @@ func TestInt64CastValid(t *testing.T) {
 				fmt.Sprintf("%d to %s", tc.Origin, to.String()),
 				func(t *testing.T) {
 					t.Parallel()
-					got := int64CastValid(tc.Origin, to)
+					got := int64ConvertValid(tc.Origin, to)
 					if got != tc.Expected {
 						t.Errorf("expected %#v got %#v", tc.Expected, got)
 					}
@@ -133,7 +133,7 @@ func TestInt64CastValid(t *testing.T) {
 	}
 }
 
-func TestUint64CastValid(t *testing.T) {
+func TestUint64ConvertValid(t *testing.T) {
 	t.Parallel()
 
 	type testCase struct {
@@ -228,7 +228,7 @@ func TestUint64CastValid(t *testing.T) {
 				fmt.Sprintf("%d to %s", tc.Origin, to.String()),
 				func(t *testing.T) {
 					t.Parallel()
-					got := uint64CastValid(tc.Origin, to)
+					got := uint64ConvertValid(tc.Origin, to)
 					if got != tc.Expected {
 						t.Errorf("expected %#v got %#v", tc.Expected, got)
 					}
@@ -238,8 +238,8 @@ func TestUint64CastValid(t *testing.T) {
 	}
 }
 
-func BenchmarkIntCaster(b *testing.B) {
-	ic := NewDefaultCaster()
+func BenchmarkIntConverter(b *testing.B) {
+	ic := NewDefaultConverter()
 
 	tests := []any{
 		int8(123),
@@ -279,24 +279,24 @@ func BenchmarkIntCaster(b *testing.B) {
 
 	for idx, tc := range tests {
 		input := fmt.Sprintf("%d:%s", idx, tst.Format(tc))
-		b.Run("caster{int8}   "+input, benchmarkIntegerCaster(ic.int8Caster.cast, tc))
-		b.Run("caster{int16}  "+input, benchmarkIntegerCaster(ic.int16Caster.cast, tc))
-		b.Run("caster{int32}  "+input, benchmarkIntegerCaster(ic.int32Caster.cast, tc))
-		b.Run("caster{int64}  "+input, benchmarkIntegerCaster(ic.int64Caster.cast, tc))
-		b.Run("caster{int}    "+input, benchmarkIntegerCaster(ic.intCaster.cast, tc))
-		b.Run("caster{uint8}  "+input, benchmarkIntegerCaster(ic.uint8Caster.cast, tc))
-		b.Run("caster{uint16} "+input, benchmarkIntegerCaster(ic.uint16Caster.cast, tc))
-		b.Run("caster{uint32} "+input, benchmarkIntegerCaster(ic.uint32Caster.cast, tc))
-		b.Run("caster{uint64} "+input, benchmarkIntegerCaster(ic.uint64Caster.cast, tc))
-		b.Run("caster{uint}   "+input, benchmarkIntegerCaster(ic.uintCaster.cast, tc))
+		b.Run("converter{int8}   "+input, benchmarkIntegerConverter(ic.int8Converter.convert, tc))
+		b.Run("converter{int16}  "+input, benchmarkIntegerConverter(ic.int16Converter.convert, tc))
+		b.Run("converter{int32}  "+input, benchmarkIntegerConverter(ic.int32Converter.convert, tc))
+		b.Run("converter{int64}  "+input, benchmarkIntegerConverter(ic.int64Converter.convert, tc))
+		b.Run("converter{int}    "+input, benchmarkIntegerConverter(ic.intConverter.convert, tc))
+		b.Run("converter{uint8}  "+input, benchmarkIntegerConverter(ic.uint8Converter.convert, tc))
+		b.Run("converter{uint16} "+input, benchmarkIntegerConverter(ic.uint16Converter.convert, tc))
+		b.Run("converter{uint32} "+input, benchmarkIntegerConverter(ic.uint32Converter.convert, tc))
+		b.Run("converter{uint64} "+input, benchmarkIntegerConverter(ic.uint64Converter.convert, tc))
+		b.Run("converter{uint}   "+input, benchmarkIntegerConverter(ic.uintConverter.convert, tc))
 	}
 }
 
-func benchmarkIntegerCaster[T Integer](caster func(any) (T, error), input any) func(*testing.B) {
+func benchmarkIntegerConverter[T Integer](converter func(any) (T, error), input any) func(*testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
 		for range b.N {
-			_, _ = caster(input)
+			_, _ = converter(input)
 		}
 	}
 }

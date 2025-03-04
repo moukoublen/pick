@@ -8,10 +8,10 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-func TestTimeCaster(t *testing.T) {
+func TestTimeConverter(t *testing.T) {
 	t.Parallel()
 
-	caster := NewDefaultCaster()
+	converter := NewDefaultConverter()
 
 	tzPlus4, _ := time.LoadLocation("Etc/GMT-4")
 	tzMinus7, _ := time.LoadLocation("Etc/GMT+7")
@@ -20,7 +20,7 @@ func TestTimeCaster(t *testing.T) {
 
 	type int64Alias int64
 	type stringAlias string
-	testCases := []singleCastTestCase[time.Time]{
+	testCases := []singleConvertTestCase[time.Time]{
 		{
 			input:         int64Alias(1700000000),
 			expected:      time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
@@ -30,16 +30,16 @@ func TestTimeCaster(t *testing.T) {
 			input:         int64(1700000000 * 1000),
 			expected:      time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Time, error) {
-				return caster.AsTimeWithConfig(TimeCastConfig{NumberFormat: TimeCastNumberFormatUnixMilli}, input)
+			directConvertFn: func(input any) (time.Time, error) {
+				return converter.AsTimeWithConfig(TimeConvertConfig{NumberFormat: TimeConvertNumberFormatUnixMilli}, input)
 			},
 		},
 		{
 			input:         int64(1700000000 * 1000 * 1000),
 			expected:      time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Time, error) {
-				return caster.AsTimeWithConfig(TimeCastConfig{NumberFormat: TimeCastNumberFormatUnixMicro}, input)
+			directConvertFn: func(input any) (time.Time, error) {
+				return converter.AsTimeWithConfig(TimeConvertConfig{NumberFormat: TimeConvertNumberFormatUnixMicro}, input)
 			},
 		},
 		{
@@ -81,45 +81,45 @@ func TestTimeCaster(t *testing.T) {
 			input:         "1700000000000",
 			expected:      time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC),
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Time, error) {
-				return caster.AsTimeWithConfig(TimeCastConfig{PraseStringAsNumber: true, NumberFormat: TimeCastNumberFormatUnixMilli}, input)
+			directConvertFn: func(input any) (time.Time, error) {
+				return converter.AsTimeWithConfig(TimeConvertConfig{PraseStringAsNumber: true, NumberFormat: TimeConvertNumberFormatUnixMilli}, input)
 			},
 		},
 		{
 			input:         "Mon, 02 Jan 2006 15:04:05 -0700",
 			expected:      time.Date(2006, time.January, 2, 15, 4, 5, 0, tzMinus7),
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Time, error) {
-				return caster.AsTimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, input)
+			directConvertFn: func(input any) (time.Time, error) {
+				return converter.AsTimeWithConfig(TimeConvertConfig{StringFormat: time.RFC1123Z}, input)
 			},
 		},
 		{
 			input:         "Mon Jan 2 15:04:05 2016",
 			expected:      time.Date(2016, time.January, 2, 15, 4, 5, 0, tzAthens),
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Time, error) {
-				return caster.AsTimeWithConfig(TimeCastConfig{StringFormat: time.ANSIC, ParseInLocation: tzAthens}, input)
+			directConvertFn: func(input any) (time.Time, error) {
+				return converter.AsTimeWithConfig(TimeConvertConfig{StringFormat: time.ANSIC, ParseInLocation: tzAthens}, input)
 			},
 		},
 	}
 
-	runSingleCastTestCases[time.Time](t, testCases, caster.AsTime)
+	runSingleConvertTestCases[time.Time](t, testCases, converter.AsTime)
 }
 
-func TestTimeSliceCaster(t *testing.T) {
+func TestTimeSliceConverter(t *testing.T) {
 	t.Parallel()
-	caster := NewDefaultCaster()
+	converter := NewDefaultConverter()
 
 	tzPlus4, _ := time.LoadLocation("Etc/GMT-4")
 	tzPlus8, _ := time.LoadLocation("Etc/GMT-8")
 
-	testCases := []singleCastTestCase[[]time.Time]{
+	testCases := []singleConvertTestCase[[]time.Time]{
 		{
 			input:         int64(1700000000 * 1000),
 			expected:      []time.Time{time.Date(2023, time.November, 14, 22, 13, 20, 0, time.UTC)},
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) ([]time.Time, error) {
-				return caster.AsTimeSliceWithConfig(TimeCastConfig{NumberFormat: TimeCastNumberFormatUnixMilli}, input)
+			directConvertFn: func(input any) ([]time.Time, error) {
+				return converter.AsTimeSliceWithConfig(TimeConvertConfig{NumberFormat: TimeConvertNumberFormatUnixMilli}, input)
 			},
 		},
 		{
@@ -159,5 +159,5 @@ func TestTimeSliceCaster(t *testing.T) {
 		},
 	}
 
-	runSingleCastTestCases(t, testCases, caster.AsTimeSlice)
+	runSingleConvertTestCases(t, testCases, converter.AsTimeSlice)
 }

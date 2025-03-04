@@ -7,10 +7,10 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-func TestByteCasterSlice(t *testing.T) {
+func TestByteConverterSlice(t *testing.T) {
 	t.Parallel()
 
-	testCases := []singleCastTestCase[[]byte]{
+	testCases := []singleConvertTestCase[[]byte]{
 		{
 			input:         byte(12),
 			expected:      []byte{12},
@@ -33,6 +33,6 @@ func TestByteCasterSlice(t *testing.T) {
 		},
 	}
 
-	caster := NewDefaultCaster()
-	runSingleCastTestCases[[]byte](t, testCases, caster.AsByteSlice)
+	converter := NewDefaultConverter()
+	runSingleConvertTestCases[[]byte](t, testCases, converter.AsByteSlice)
 }

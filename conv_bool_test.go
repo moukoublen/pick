@@ -6,10 +6,10 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-func TestBoolCaster(t *testing.T) {
+func TestBoolConverter(t *testing.T) {
 	t.Parallel()
 
-	testCases := []singleCastTestCase[bool]{
+	testCases := []singleConvertTestCase[bool]{
 		{
 			input:         "true",
 			expected:      true,
@@ -22,6 +22,6 @@ func TestBoolCaster(t *testing.T) {
 		},
 	}
 
-	caster := NewDefaultCaster()
-	runSingleCastTestCases[bool](t, testCases, caster.AsBool)
+	converter := NewDefaultConverter()
+	runSingleConvertTestCases[bool](t, testCases, converter.AsBool)
 }

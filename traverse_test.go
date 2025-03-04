@@ -150,14 +150,14 @@ func TestDefaultTraverser(t *testing.T) {
 			errorAsserter: tst.NoError,
 		},
 
-		"mixed access level 2 with cast": {
+		"mixed access level 2 with convert": {
 			input:         []any{"one", map[string]any{"4": "value"}},
 			keys:          []Key{Index(1), Index(4)},
 			expected:      "value",
 			errorAsserter: tst.NoError,
 		},
 
-		"mixed access level 2 with cast 2": {
+		"mixed access level 2 with convert 2": {
 			input:         map[string]any{"one": []string{"s0", "s1", "s2"}},
 			keys:          []Key{Field("one"), Field("1")},
 			expected:      "s1",
@@ -306,7 +306,7 @@ func TestDefaultTraverser(t *testing.T) {
 	}
 
 	dt := DefaultTraverser{
-		keyCaster: NewDefaultCaster(),
+		keyConverter: NewDefaultConverter(),
 	}
 
 	for name, tc := range tests {
@@ -519,7 +519,7 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 	}
 
 	dt := DefaultTraverser{
-		keyCaster: NewDefaultCaster(),
+		keyConverter: NewDefaultConverter(),
 	}
 
 	for name, tc := range tests {

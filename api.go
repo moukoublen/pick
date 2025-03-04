@@ -18,20 +18,20 @@ type ErrorGatherer interface {
 	GatherSelector(selector string, err error)
 }
 
-type Caster interface {
-	signedIntegerCaster
-	unsignedIntegerCaster
-	floatCaster
-	stringCaster
-	boolCaster
-	byteCaster
-	timeCaster
-	durationCaster
+type Converter interface {
+	signedIntegerConverter
+	unsignedIntegerConverter
+	floatConverter
+	stringConverter
+	boolConverter
+	byteConverter
+	timeConverter
+	durationConverter
 	As(input any, asKind reflect.Kind) (any, error)
 	ByType(input any, asType reflect.Type) (any, error)
 }
 
-type signedIntegerCaster interface {
+type signedIntegerConverter interface {
 	AsInt(item any) (int, error)
 	AsInt8(item any) (int8, error)
 	AsInt16(item any) (int16, error)
@@ -45,7 +45,7 @@ type signedIntegerCaster interface {
 	AsInt64Slice(item any) ([]int64, error)
 }
 
-type unsignedIntegerCaster interface {
+type unsignedIntegerConverter interface {
 	AsUint(item any) (uint, error)
 	AsUint8(item any) (uint8, error)
 	AsUint16(item any) (uint16, error)
@@ -59,38 +59,38 @@ type unsignedIntegerCaster interface {
 	AsUint64Slice(item any) ([]uint64, error)
 }
 
-type floatCaster interface {
+type floatConverter interface {
 	AsFloat32(item any) (float32, error)
 	AsFloat64(item any) (float64, error)
 	AsFloat32Slice(item any) ([]float32, error)
 	AsFloat64Slice(item any) ([]float64, error)
 }
 
-type stringCaster interface {
+type stringConverter interface {
 	AsString(item any) (string, error)
 	AsStringSlice(item any) ([]string, error)
 }
 
-type boolCaster interface {
+type boolConverter interface {
 	AsBool(item any) (bool, error)
 	AsBoolSlice(input any) ([]bool, error)
 }
 
-type byteCaster interface {
+type byteConverter interface {
 	AsByte(item any) (byte, error)
 	AsByteSlice(input any) ([]byte, error)
 }
 
-type timeCaster interface {
+type timeConverter interface {
 	AsTime(input any) (time.Time, error)
-	AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error)
+	AsTimeWithConfig(config TimeConvertConfig, input any) (time.Time, error)
 	AsTimeSlice(input any) ([]time.Time, error)
-	AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error)
+	AsTimeSliceWithConfig(config TimeConvertConfig, input any) ([]time.Time, error)
 }
 
-type durationCaster interface {
+type durationConverter interface {
 	AsDuration(input any) (time.Duration, error)
-	AsDurationWithConfig(config DurationCastConfig, input any) (time.Duration, error)
+	AsDurationWithConfig(config DurationConvertConfig, input any) (time.Duration, error)
 	AsDurationSlice(input any) ([]time.Duration, error)
-	AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error)
+	AsDurationSliceWithConfig(config DurationConvertConfig, input any) ([]time.Duration, error)
 }

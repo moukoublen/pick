@@ -94,7 +94,7 @@ func FlatMap[Output any](p Picker, selector string, transform func(Picker) ([]Ou
 }
 
 // Path traverses with the provided path and if found,
-// it resolves the cast type from the generic type.
+// it resolves the convert type from the generic type.
 func Path[Output any](p Picker, path ...Key) (Output, error) { //nolint:ireturn
 	item, err := p.Path(path)
 	if err != nil {
@@ -103,7 +103,7 @@ func Path[Output any](p Picker, path ...Key) (Output, error) { //nolint:ireturn
 	}
 
 	var defaultValue Output
-	return castAs(p.Caster, item, defaultValue)
+	return convertAs(p.Converter, item, defaultValue)
 }
 
 // OrDefault will return the default value if any error occurs. If the error is ErrFieldNotFound the error will not be returned.
@@ -117,11 +117,11 @@ func OrDefault[Output any](p Picker, selector string, defaultValue Output) (Outp
 		return defaultValue, err
 	}
 
-	return castAs(p.Caster, item, defaultValue)
+	return convertAs(p.Converter, item, defaultValue)
 }
 
 // Get parses the selector, traverses with the provided path and if found,
-// it resolves the cast type from the generic type.
+// it resolves the convert type from the generic type.
 func Get[Output any](p Picker, selector string) (Output, error) { //nolint:ireturn
 	var defaultValue Output
 
@@ -130,7 +130,7 @@ func Get[Output any](p Picker, selector string) (Output, error) { //nolint:iretu
 		return defaultValue, err
 	}
 
-	return castAs(p.Caster, item, defaultValue)
+	return convertAs(p.Converter, item, defaultValue)
 }
 
 //
@@ -237,12 +237,12 @@ func RelaxedFlatMap[Output any](a RelaxedAPI, selector string, transform func(Re
 
 // RelaxedPath is the version of [Path] that uses SelectorRelaxedAPI.
 func RelaxedPath[Output any](a RelaxedAPI, path ...Key) Output { //nolint:ireturn
-	casted, err := Path[Output](a.Picker, path...)
+	converted, err := Path[Output](a.Picker, path...)
 	if err != nil {
 		selector := DotNotation{}.Format(path...)
 		a.gather(selector, err)
 	}
-	return casted
+	return converted
 }
 
 // RelaxedOrDefault will return the default value if any error occurs. Version of [OrDefault] that uses SelectorRelaxedAPI.
@@ -255,7 +255,7 @@ func RelaxedOrDefault[Output any](a RelaxedAPI, selector string, defaultValue Ou
 	return item
 }
 
-// RelaxedGet resolves the cast type from the generic type. Version of [Get] that uses SelectorRelaxedAPI.
+// RelaxedGet resolves the convert type from the generic type. Version of [Get] that uses SelectorRelaxedAPI.
 func RelaxedGet[Output any](a RelaxedAPI, selector string) Output { //nolint:ireturn
 	item, err := Get[Output](a.Picker, selector)
 	if err != nil {
@@ -291,15 +291,15 @@ func parseSelectorAndTraverse(p Picker, selector string) (any, []Key, error) {
 	return item, path, err
 }
 
-func castAs[Output any](caster Caster, data any, defaultValue Output) (Output, error) { //nolint:ireturn
-	c, err := caster.ByType(data, reflect.TypeOf(defaultValue))
+func convertAs[Output any](converter Converter, data any, defaultValue Output) (Output, error) { //nolint:ireturn
+	c, err := converter.ByType(data, reflect.TypeOf(defaultValue))
 	if err != nil {
 		return defaultValue, err
 	}
 
 	asOutput, is := c.(Output)
 	if !is {
-		return defaultValue, fmt.Errorf("casted value cannot be asserted to type: %w", ErrCastInvalidType) // this is not possible
+		return defaultValue, fmt.Errorf("converted value cannot be asserted to type: %w", ErrConvertInvalidType) // this is not possible
 	}
 
 	return asOutput, nil

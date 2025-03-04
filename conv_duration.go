@@ -9,10 +9,10 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-type DurationCastNumberFormat int
+type DurationConvertNumberFormat int
 
 const (
-	DurationNumberNanoseconds DurationCastNumberFormat = iota // default value
+	DurationNumberNanoseconds DurationConvertNumberFormat = iota // default value
 	DurationNumberMilliseconds
 	DurationNumberMicroseconds
 	DurationNumberSeconds
@@ -20,15 +20,15 @@ const (
 	DurationNumberHours
 )
 
-type DurationCastConfig struct {
-	DurationCastNumberFormat DurationCastNumberFormat
+type DurationConvertConfig struct {
+	DurationConvertNumberFormat DurationConvertNumberFormat
 }
 
-func (c DefaultCaster) AsDuration(input any) (time.Duration, error) {
-	return c.AsDurationWithConfig(DurationCastConfig{}, input)
+func (c DefaultConverter) AsDuration(input any) (time.Duration, error) {
+	return c.AsDurationWithConfig(DurationConvertConfig{}, input)
 }
 
-func (c DefaultCaster) AsDurationWithConfig(config DurationCastConfig, input any) (time.Duration, error) {
+func (c DefaultConverter) AsDurationWithConfig(config DurationConvertConfig, input any) (time.Duration, error) {
 	switch origin := input.(type) {
 	case int:
 		return c.durationFromInt64(config, int64(origin))
@@ -60,21 +60,21 @@ func (c DefaultCaster) AsDurationWithConfig(config DurationCastConfig, input any
 	case float32:
 		return c.AsDurationWithConfig(config, float64(origin))
 	case float64:
-		casted, err := float64ToInt64(origin)
-		d, _ := c.AsDurationWithConfig(config, casted) // best effort
+		converted, err := float64ToInt64(origin)
+		d, _ := c.AsDurationWithConfig(config, converted) // best effort
 		return d, err
 
 	case string:
 		d, err := time.ParseDuration(origin)
 		if err != nil {
-			return 0, newCastError(err, origin)
+			return 0, newConvertError(err, origin)
 		}
 		return d, nil
 
 	case json.Number:
 		n, err := origin.Int64()
 		if err != nil {
-			return time.Duration(0), newCastError(err, fmt.Errorf("error converting json number to number: %w", err))
+			return time.Duration(0), newConvertError(err, fmt.Errorf("error converting json number to number: %w", err))
 		}
 		return c.AsDurationWithConfig(config, n)
 
@@ -82,7 +82,7 @@ func (c DefaultCaster) AsDurationWithConfig(config DurationCastConfig, input any
 		return c.AsDurationWithConfig(config, string(origin))
 
 	case bool:
-		return time.Duration(0), newCastError(ErrCastInvalidType, input)
+		return time.Duration(0), newConvertError(ErrConvertInvalidType, input)
 
 	case nil:
 		return time.Duration(0), nil
@@ -91,8 +91,8 @@ func (c DefaultCaster) AsDurationWithConfig(config DurationCastConfig, input any
 		return origin, nil
 
 	default:
-		// try to cast to basic (in case input is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
+		// try to convert to basic (in case input is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
 			return c.AsDurationWithConfig(config, basic)
 		}
 
@@ -100,18 +100,18 @@ func (c DefaultCaster) AsDurationWithConfig(config DurationCastConfig, input any
 	}
 }
 
-func (c DefaultCaster) durationFromInt64(config DurationCastConfig, origin int64) (time.Duration, error) {
+func (c DefaultConverter) durationFromInt64(config DurationConvertConfig, origin int64) (time.Duration, error) {
 	limitCheck := func(d time.Duration) error {
 		if origin >= (math.MinInt64/int64(d)) && origin <= (math.MaxInt64/int64(d)) {
 			return nil
 		}
-		return newCastError(ErrCastOverFlow, origin)
+		return newConvertError(ErrConvertOverFlow, origin)
 	}
 
 	var dr time.Duration
 	var err error
 
-	switch config.DurationCastNumberFormat {
+	switch config.DurationConvertNumberFormat {
 	case DurationNumberSeconds:
 		dr = time.Duration(origin) * time.Second
 		err = limitCheck(time.Second)
@@ -131,16 +131,16 @@ func (c DefaultCaster) durationFromInt64(config DurationCastConfig, origin int64
 		dr = time.Duration(origin) * time.Hour
 		err = limitCheck(time.Hour)
 	default:
-		return dr, newCastError(ErrCastInvalidType, origin)
+		return dr, newConvertError(ErrConvertInvalidType, origin)
 	}
 	return dr, err
 }
 
-func (c DefaultCaster) AsDurationSlice(input any) ([]time.Duration, error) {
-	return c.AsDurationSliceWithConfig(DurationCastConfig{}, input)
+func (c DefaultConverter) AsDurationSlice(input any) ([]time.Duration, error) {
+	return c.AsDurationSliceWithConfig(DurationConvertConfig{}, input)
 }
 
-func (c DefaultCaster) AsDurationSliceWithConfig(config DurationCastConfig, input any) ([]time.Duration, error) {
+func (c DefaultConverter) AsDurationSliceWithConfig(config DurationConvertConfig, input any) ([]time.Duration, error) {
 	return iter.Map(input, func(item any, _ iter.CollectionOpMeta) (time.Duration, error) {
 		return c.AsDurationWithConfig(config, item)
 	})

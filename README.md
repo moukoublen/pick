@@ -4,11 +4,11 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/moukoublen/pick)](https://goreportcard.com/report/github.com/moukoublen/pick)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/moukoublen/pick)](https://pkg.go.dev/github.com/moukoublen/pick)
 
-**Pick** is a go package to access (using dot and array notation) and cast any kind of data, using best effort performance and best effort cast. It is an alternative to [stretchr/objx](https://github.com/stretchr/objx) aiming to provide three main things:
+**Pick** is a go package to access (using dot and array notation) and convert any kind of data, using best effort performance and best effort convert. It is an alternative to [stretchr/objx](https://github.com/stretchr/objx) aiming to provide three main things:
 
-1. Modular approach regarding the caster, traverser and selector format
+1. Modular approach regarding the converter, traverser and selector format
 2. Best effort performance using `reflect` as last resort.
-3. Best effort cast aiming to cast and convert between types as much as possible.
+3. Best effort convert aiming to convert and convert between types as much as possible.
 
 ## Install
 
@@ -33,7 +33,7 @@ got, err := p1.String("item.three[1]")  // "2", nil
 got, err := p1.Uint64("item.three[1]")  // uint64(2), nil
 got, err := p1.String("item.three[-1]") // "element 3", nil | (access the last element)element
 got, err := p1.Float32("float")         // float32(2.12), nil
-got, err := p1.Int64("float")           // int64(2), ErrCastLostDecimals
+got, err := p1.Int64("float")           // int64(2), ErrConvertLostDecimals
 got, err := p1.Int64("floatDec")        // int64(2), nil
 got, err := p1.Int32("non-existing")    // 0, ErrFieldNotFound
 
