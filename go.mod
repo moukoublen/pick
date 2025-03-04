@@ -4,7 +4,7 @@ go 1.23
 
 // Test dependencies. They will not be pushed downstream as indirect ones.
 require (
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/stretchr/testify v1.10.0
 )
 
