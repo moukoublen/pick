@@ -8,7 +8,7 @@
 
 1. Modular approach regarding the converter, traverser and selector format
 2. Best effort performance using `reflect` as last resort.
-3. Best effort convert aiming to convert and convert between types as much as possible.
+3. Best effort convert aiming to cast and convert between types as much as possible.
 
 ## Install
 
