@@ -7,38 +7,38 @@ import (
 )
 
 var (
-	ErrCastOverFlow      = errors.New("overflow error")
-	ErrCastLostDecimals  = errors.New("missing decimals error")
-	ErrCastInvalidType   = errors.New("invalid type")
-	ErrCastInvalidSyntax = errors.New("invalid syntax")
+	ErrConvertOverFlow      = errors.New("overflow error")
+	ErrConvertLostDecimals  = errors.New("missing decimals error")
+	ErrConvertInvalidType   = errors.New("invalid type")
+	ErrConvertInvalidSyntax = errors.New("invalid syntax")
 )
 
-type CastError struct {
+type ConvertError struct {
 	inner         error
 	originalValue any
 }
 
-func (c *CastError) Error() string {
+func (c *ConvertError) Error() string {
 	innerStr := ""
 	if c.inner != nil {
 		innerStr = c.inner.Error()
 	}
 
-	return fmt.Sprintf("cast error, original value %T(%v), error: %s", c.originalValue, c.originalValue, innerStr)
+	return fmt.Sprintf("convert error, original value %T(%v), error: %s", c.originalValue, c.originalValue, innerStr)
 }
 
-func (c *CastError) Unwrap() error {
+func (c *ConvertError) Unwrap() error {
 	return c.inner
 }
 
-func newCastError(inner error, originalValue any) *CastError {
+func newConvertError(inner error, originalValue any) *ConvertError {
 	if errors.Is(inner, strconv.ErrRange) {
-		inner = ErrCastOverFlow
+		inner = ErrConvertOverFlow
 	} else if errors.Is(inner, strconv.ErrSyntax) {
-		inner = ErrCastInvalidSyntax
+		inner = ErrConvertInvalidSyntax
 	}
 
-	return &CastError{
+	return &ConvertError{
 		inner:         inner,
 		originalValue: originalValue,
 	}

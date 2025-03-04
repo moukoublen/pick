@@ -10,41 +10,41 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-type TimeCastNumberFormat int
+type TimeConvertNumberFormat int
 
 const (
-	TimeCastNumberFormatUnix TimeCastNumberFormat = iota
-	TimeCastNumberFormatUnixMilli
-	TimeCastNumberFormatUnixMicro
+	TimeConvertNumberFormatUnix TimeConvertNumberFormat = iota
+	TimeConvertNumberFormatUnixMilli
+	TimeConvertNumberFormatUnixMicro
 )
 
-type TimeCastByteSliceFormat int
+type TimeConvertByteSliceFormat int
 
 const (
-	TimeCastByteSliceFormatString TimeCastByteSliceFormat = iota
-	TimeCastByteSliceFormatBinary
+	TimeConvertByteSliceFormatString TimeConvertByteSliceFormat = iota
+	TimeConvertByteSliceFormatBinary
 )
 
-type TimeCastConfig struct {
+type TimeConvertConfig struct {
 	ParseInLocation     *time.Location
 	StringFormat        string
 	PraseStringAsNumber bool
-	NumberFormat        TimeCastNumberFormat
-	ByteSliceFormat     TimeCastByteSliceFormat
+	NumberFormat        TimeConvertNumberFormat
+	ByteSliceFormat     TimeConvertByteSliceFormat
 }
 
-func (cnf TimeCastConfig) getStringFormat() string {
+func (cnf TimeConvertConfig) getStringFormat() string {
 	if cnf.StringFormat == "" {
 		return time.RFC3339Nano
 	}
 	return cnf.StringFormat
 }
 
-func (c DefaultCaster) AsTime(input any) (time.Time, error) {
-	return c.AsTimeWithConfig(TimeCastConfig{}, input)
+func (c DefaultConverter) AsTime(input any) (time.Time, error) {
+	return c.AsTimeWithConfig(TimeConvertConfig{}, input)
 }
 
-func (c DefaultCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.Time, error) {
+func (c DefaultConverter) AsTimeWithConfig(config TimeConvertConfig, input any) (time.Time, error) {
 	switch origin := input.(type) {
 	case int:
 		return c.timeFromInt64(config, int64(origin))
@@ -76,8 +76,8 @@ func (c DefaultCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.
 	case float32:
 		return c.AsTimeWithConfig(config, float64(origin))
 	case float64:
-		casted, err := float64ToInt64(origin)
-		tm, _ := c.AsTimeWithConfig(config, casted) // best effort
+		converted, err := float64ToInt64(origin)
+		tm, _ := c.AsTimeWithConfig(config, converted) // best effort
 		return tm, err
 
 	case string:
@@ -86,7 +86,7 @@ func (c DefaultCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.
 	case json.Number:
 		n, err := origin.Int64()
 		if err != nil {
-			return time.Time{}, newCastError(err, fmt.Errorf("error converting json number to number: %w", err))
+			return time.Time{}, newConvertError(err, fmt.Errorf("error converting json number to number: %w", err))
 		}
 		return c.AsTimeWithConfig(config, n)
 
@@ -94,14 +94,14 @@ func (c DefaultCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.
 		return c.timeFromByteSlice(config, origin)
 
 	case bool:
-		return time.Time{}, newCastError(ErrCastInvalidType, input)
+		return time.Time{}, newConvertError(ErrConvertInvalidType, input)
 
 	case nil:
 		return time.Time{}, nil
 
 	default:
-		// try to cast to basic (in case input is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
+		// try to convert to basic (in case input is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
 			return c.AsTimeWithConfig(config, basic)
 		}
 
@@ -109,26 +109,26 @@ func (c DefaultCaster) AsTimeWithConfig(config TimeCastConfig, input any) (time.
 	}
 }
 
-func (c DefaultCaster) timeFromInt64(config TimeCastConfig, origin int64) (time.Time, error) {
+func (c DefaultConverter) timeFromInt64(config TimeConvertConfig, origin int64) (time.Time, error) {
 	var tm time.Time
 	switch config.NumberFormat {
-	case TimeCastNumberFormatUnix:
+	case TimeConvertNumberFormatUnix:
 		tm = time.Unix(origin, 0).UTC()
-	case TimeCastNumberFormatUnixMilli:
+	case TimeConvertNumberFormatUnixMilli:
 		tm = time.UnixMilli(origin).UTC()
-	case TimeCastNumberFormatUnixMicro:
+	case TimeConvertNumberFormatUnixMicro:
 		tm = time.UnixMicro(origin).UTC()
 	default:
-		return tm, newCastError(ErrCastInvalidType, origin)
+		return tm, newConvertError(ErrConvertInvalidType, origin)
 	}
 	return tm, nil
 }
 
-func (c DefaultCaster) timeFromString(config TimeCastConfig, origin string) (time.Time, error) {
+func (c DefaultConverter) timeFromString(config TimeConvertConfig, origin string) (time.Time, error) {
 	if config.PraseStringAsNumber {
 		n, err := strconv.ParseInt(origin, 10, 64)
 		if err != nil {
-			return time.Time{}, newCastError(err, fmt.Errorf("error converting string to number: %w", err))
+			return time.Time{}, newConvertError(err, fmt.Errorf("error converting string to number: %w", err))
 		}
 		return c.AsTimeWithConfig(config, n)
 	}
@@ -140,33 +140,33 @@ func (c DefaultCaster) timeFromString(config TimeCastConfig, origin string) (tim
 		tm, err = time.Parse(config.getStringFormat(), origin)
 	}
 	if err != nil {
-		return time.Time{}, newCastError(err, origin)
+		return time.Time{}, newConvertError(err, origin)
 	}
 	return tm, nil
 }
 
-func (c DefaultCaster) timeFromByteSlice(config TimeCastConfig, origin []byte) (time.Time, error) {
+func (c DefaultConverter) timeFromByteSlice(config TimeConvertConfig, origin []byte) (time.Time, error) {
 	switch config.ByteSliceFormat {
-	case TimeCastByteSliceFormatBinary:
+	case TimeConvertByteSliceFormatBinary:
 		tm := time.Time{}
 		err := tm.UnmarshalBinary(origin)
 		if err != nil {
-			return tm, newCastError(err, origin)
+			return tm, newConvertError(err, origin)
 		}
-	case TimeCastByteSliceFormatString:
+	case TimeConvertByteSliceFormatString:
 		return c.AsTimeWithConfig(config, string(origin))
 	}
-	return time.Time{}, newCastError(ErrCastInvalidType, origin)
+	return time.Time{}, newConvertError(ErrConvertInvalidType, origin)
 }
 
-func (c DefaultCaster) AsTimeSlice(input any) ([]time.Time, error) {
-	return c.AsTimeSliceWithConfig(TimeCastConfig{}, input)
+func (c DefaultConverter) AsTimeSlice(input any) ([]time.Time, error) {
+	return c.AsTimeSliceWithConfig(TimeConvertConfig{}, input)
 }
 
-func (c DefaultCaster) AsTimeSliceWithConfig(config TimeCastConfig, input any) ([]time.Time, error) {
+func (c DefaultConverter) AsTimeSliceWithConfig(config TimeConvertConfig, input any) ([]time.Time, error) {
 	return iter.Map[time.Time](input, func(item any, _ iter.CollectionOpMeta) (time.Time, error) {
 		return c.AsTimeWithConfig(config, item)
 	})
 }
 
-var ErrTimeCastConfig = errors.New("invalid time caster config")
+var ErrTimeConvertConfig = errors.New("invalid time converter config")

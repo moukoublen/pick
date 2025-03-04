@@ -27,7 +27,7 @@ func TestReadme(t *testing.T) {
 		assert2(p1.Uint64("item.three[1]"))(uint64(2), nil)
 		assert2(p1.String("item.three[-1]"))("element 3", nil) // | (access the last element)
 		assert2(p1.Float32("float"))(float32(2.12), nil)
-		assert2(p1.Int64("float"))(int64(2), ErrCastLostDecimals)
+		assert2(p1.Int64("float"))(int64(2), ErrConvertLostDecimals)
 		assert2(p1.Int64("floatDec"))(int64(2), nil)
 		assert2(p1.Int("non-existing"))(0, ErrFieldNotFound)
 	})
@@ -145,7 +145,7 @@ func TestReadme(t *testing.T) {
 		}
 		{
 			loc, _ := time.LoadLocation("America/New_York")
-			got, err := p3.TimeWithConfig(TimeCastConfig{StringFormat: time.RFC1123Z}, "time2")
+			got, err := p3.TimeWithConfig(TimeConvertConfig{StringFormat: time.RFC1123Z}, "time2")
 			assert(got, time.Date(1977, time.May, 25, 18, 30, 0, 0, loc))
 			assert(err, nil)
 		}
@@ -164,10 +164,10 @@ func TestReadme(t *testing.T) {
 	})
 }
 
-func TestReadmeCast(t *testing.T) {
+func TestReadmeConvert(t *testing.T) {
 	eq := tst.AssertEqualFn(t)
 
-	c := NewDefaultCaster()
+	c := NewDefaultConverter()
 
 	{
 		got, err := c.AsInt8(int32(10))
@@ -184,13 +184,13 @@ func TestReadmeCast(t *testing.T) {
 	{
 		got, err := c.AsInt8(128)
 		eq(got, int8(-128))
-		eq(errors.Is(err, ErrCastOverFlow), true)
+		eq(errors.Is(err, ErrConvertOverFlow), true)
 	}
 
 	{
 		got, err := c.AsInt8(10.12)
 		eq(got, int8(10))
-		eq(errors.Is(err, ErrCastLostDecimals), true)
+		eq(errors.Is(err, ErrConvertLostDecimals), true)
 	}
 
 	{

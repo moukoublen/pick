@@ -10,93 +10,93 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-func (c DefaultCaster) AsInt(input any) (int, error) {
-	return c.intCaster.cast(input)
+func (c DefaultConverter) AsInt(input any) (int, error) {
+	return c.intConverter.convert(input)
 }
 
-func (c DefaultCaster) AsInt8(input any) (int8, error) {
-	return c.int8Caster.cast(input)
+func (c DefaultConverter) AsInt8(input any) (int8, error) {
+	return c.int8Converter.convert(input)
 }
 
-func (c DefaultCaster) AsInt16(input any) (int16, error) {
-	return c.int16Caster.cast(input)
+func (c DefaultConverter) AsInt16(input any) (int16, error) {
+	return c.int16Converter.convert(input)
 }
 
-func (c DefaultCaster) AsInt32(input any) (int32, error) {
-	return c.int32Caster.cast(input)
+func (c DefaultConverter) AsInt32(input any) (int32, error) {
+	return c.int32Converter.convert(input)
 }
 
-func (c DefaultCaster) AsInt64(input any) (int64, error) {
-	return c.int64Caster.cast(input)
+func (c DefaultConverter) AsInt64(input any) (int64, error) {
+	return c.int64Converter.convert(input)
 }
 
-func (c DefaultCaster) AsUint(input any) (uint, error) {
-	return c.uintCaster.cast(input)
+func (c DefaultConverter) AsUint(input any) (uint, error) {
+	return c.uintConverter.convert(input)
 }
 
-func (c DefaultCaster) AsUint8(input any) (uint8, error) {
-	return c.uint8Caster.cast(input)
+func (c DefaultConverter) AsUint8(input any) (uint8, error) {
+	return c.uint8Converter.convert(input)
 }
 
-func (c DefaultCaster) AsUint16(input any) (uint16, error) {
-	return c.uint16Caster.cast(input)
+func (c DefaultConverter) AsUint16(input any) (uint16, error) {
+	return c.uint16Converter.convert(input)
 }
 
-func (c DefaultCaster) AsUint32(input any) (uint32, error) {
-	return c.uint32Caster.cast(input)
+func (c DefaultConverter) AsUint32(input any) (uint32, error) {
+	return c.uint32Converter.convert(input)
 }
 
-func (c DefaultCaster) AsUint64(input any) (uint64, error) {
-	return c.uint64Caster.cast(input)
+func (c DefaultConverter) AsUint64(input any) (uint64, error) {
+	return c.uint64Converter.convert(input)
 }
 
-func (c DefaultCaster) AsIntSlice(input any) ([]int, error) {
+func (c DefaultConverter) AsIntSlice(input any) ([]int, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsInt))
 }
 
-func (c DefaultCaster) AsInt8Slice(input any) ([]int8, error) {
+func (c DefaultConverter) AsInt8Slice(input any) ([]int8, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsInt8))
 }
 
-func (c DefaultCaster) AsInt16Slice(input any) ([]int16, error) {
+func (c DefaultConverter) AsInt16Slice(input any) ([]int16, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsInt16))
 }
 
-func (c DefaultCaster) AsInt32Slice(input any) ([]int32, error) {
+func (c DefaultConverter) AsInt32Slice(input any) ([]int32, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsInt32))
 }
 
-func (c DefaultCaster) AsInt64Slice(input any) ([]int64, error) {
+func (c DefaultConverter) AsInt64Slice(input any) ([]int64, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsInt64))
 }
 
-func (c DefaultCaster) AsUintSlice(input any) ([]uint, error) {
+func (c DefaultConverter) AsUintSlice(input any) ([]uint, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsUint))
 }
 
-func (c DefaultCaster) AsUint8Slice(input any) ([]uint8, error) {
+func (c DefaultConverter) AsUint8Slice(input any) ([]uint8, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsUint8))
 }
 
-func (c DefaultCaster) AsUint16Slice(input any) ([]uint16, error) {
+func (c DefaultConverter) AsUint16Slice(input any) ([]uint16, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsUint16))
 }
 
-func (c DefaultCaster) AsUint32Slice(input any) ([]uint32, error) {
+func (c DefaultConverter) AsUint32Slice(input any) ([]uint32, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsUint32))
 }
 
-func (c DefaultCaster) AsUint64Slice(input any) ([]uint64, error) {
+func (c DefaultConverter) AsUint64Slice(input any) ([]uint64, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsUint64))
 }
 
-type intCast[T Integer] struct {
+type intConvert[T Integer] struct {
 	signed bool
 	kind   reflect.Kind
 }
 
-func newIntCast[T Integer]() intCast[T] {
-	ic := intCast[T]{}
+func newIntConvert[T Integer]() intConvert[T] {
+	ic := intConvert[T]{}
 	var t T
 	ic.kind = reflect.TypeOf(t).Kind()
 	ic.signed = ic.kind >= reflect.Int && ic.kind <= reflect.Int64
@@ -105,39 +105,39 @@ func newIntCast[T Integer]() intCast[T] {
 }
 
 //nolint:ireturn
-func (ic intCast[T]) fromInt64(origin int64) (T, error) {
+func (ic intConvert[T]) fromInt64(origin int64) (T, error) {
 	t := T(origin)
-	if !int64CastValid(origin, ic.kind) {
-		return t, newCastError(ErrCastOverFlow, origin)
+	if !int64ConvertValid(origin, ic.kind) {
+		return t, newConvertError(ErrConvertOverFlow, origin)
 	}
 	return t, nil
 }
 
 //nolint:ireturn
-func (ic intCast[T]) fromUint64(origin uint64) (T, error) {
+func (ic intConvert[T]) fromUint64(origin uint64) (T, error) {
 	t := T(origin)
-	if !uint64CastValid(origin, ic.kind) {
-		return t, newCastError(ErrCastOverFlow, origin)
+	if !uint64ConvertValid(origin, ic.kind) {
+		return t, newConvertError(ErrConvertOverFlow, origin)
 	}
 	return t, nil
 }
 
 //nolint:ireturn
-func (ic intCast[T]) fromFloat64(origin float64) (T, error) {
-	casted, err := float64ToInt64(origin)
+func (ic intConvert[T]) fromFloat64(origin float64) (T, error) {
+	converted, err := float64ToInt64(origin)
 	if err != nil {
-		return T(casted), err
+		return T(converted), err
 	}
 
-	return ic.fromInt64(casted)
+	return ic.fromInt64(converted)
 }
 
 //nolint:ireturn
-func (ic intCast[T]) fromString(origin string) (T, error) {
+func (ic intConvert[T]) fromString(origin string) (T, error) {
 	if strings.ContainsAny(origin, ".e") {
 		v, err := strconv.ParseFloat(origin, 64)
 		if err != nil {
-			return T(v), newCastError(err, origin)
+			return T(v), newConvertError(err, origin)
 		}
 
 		return ic.fromFloat64(v)
@@ -146,7 +146,7 @@ func (ic intCast[T]) fromString(origin string) (T, error) {
 	if ic.signed {
 		v, err := strconv.ParseInt(origin, 10, 64)
 		if err != nil {
-			return T(v), newCastError(err, origin)
+			return T(v), newConvertError(err, origin)
 		}
 
 		return ic.fromInt64(v)
@@ -154,14 +154,14 @@ func (ic intCast[T]) fromString(origin string) (T, error) {
 
 	v, err := strconv.ParseUint(origin, 10, 64)
 	if err != nil {
-		return T(v), newCastError(err, origin)
+		return T(v), newConvertError(err, origin)
 	}
 
 	return ic.fromUint64(v)
 }
 
 //nolint:ireturn
-func (ic intCast[T]) fromBool(origin bool) T {
+func (ic intConvert[T]) fromBool(origin bool) T {
 	if origin {
 		return 1
 	}
@@ -170,7 +170,7 @@ func (ic intCast[T]) fromBool(origin bool) T {
 }
 
 //nolint:ireturn
-func (ic intCast[T]) cast(input any) (T, error) {
+func (ic intConvert[T]) convert(input any) (T, error) {
 	switch origin := input.(type) {
 	case int:
 		return ic.fromInt64(int64(origin))
@@ -213,9 +213,9 @@ func (ic intCast[T]) cast(input any) (T, error) {
 		return 0, nil
 
 	default:
-		// try to cast to basic (in case input is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
-			return ic.cast(basic)
+		// try to convert to basic (in case input is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
+			return ic.convert(basic)
 		}
 
 		return tryReflectConvert[T](input)
@@ -241,10 +241,10 @@ const (
 )
 
 //
-// Casts range checks
+// Converts range checks
 //
 
-func int64CastValid(origin int64, to reflect.Kind) bool {
+func int64ConvertValid(origin int64, to reflect.Kind) bool {
 	switch to {
 	case reflect.Int:
 		return origin >= math.MinInt && origin <= math.MaxInt
@@ -276,7 +276,7 @@ func int64CastValid(origin int64, to reflect.Kind) bool {
 	}
 }
 
-func uint64CastValid(origin uint64, to reflect.Kind) bool {
+func uint64ConvertValid(origin uint64, to reflect.Kind) bool {
 	switch to {
 	case reflect.Int:
 		return origin <= math.MaxInt
@@ -313,18 +313,18 @@ func floatIsWhole(num float64) bool {
 }
 
 func float64ToInt64(origin float64) (int64, error) {
-	casted := int64(origin)
+	converted := int64(origin)
 
 	if origin > math.MaxInt64 {
-		return casted, newCastError(ErrCastOverFlow, origin)
+		return converted, newConvertError(ErrConvertOverFlow, origin)
 	}
 	if origin < math.MinInt64 {
-		return casted, newCastError(ErrCastOverFlow, origin)
+		return converted, newConvertError(ErrConvertOverFlow, origin)
 	}
 
 	if !floatIsWhole(origin) {
-		return casted, newCastError(ErrCastLostDecimals, origin)
+		return converted, newConvertError(ErrConvertLostDecimals, origin)
 	}
 
-	return casted, nil
+	return converted, nil
 }

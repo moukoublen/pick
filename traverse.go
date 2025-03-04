@@ -9,20 +9,20 @@ import (
 	"github.com/moukoublen/pick/internal/errorsx"
 )
 
-type KeyCaster interface {
+type KeyConverter interface {
 	ByType(input any, asType reflect.Type) (any, error)
 	AsInt(item any) (int, error)
 }
 
 type DefaultTraverser struct {
-	keyCaster           KeyCaster
+	keyConverter        KeyConverter
 	nilVal              reflect.Value
 	skipItemDereference bool
 }
 
-func NewDefaultTraverser(keyCaster KeyCaster) DefaultTraverser {
+func NewDefaultTraverser(keyConverter KeyConverter) DefaultTraverser {
 	return DefaultTraverser{
-		keyCaster:           keyCaster,
+		keyConverter:        keyConverter,
 		skipItemDereference: false,
 		nilVal:              reflect.Value{},
 	}
@@ -132,9 +132,9 @@ func (d DefaultTraverser) getValueFromMap(typeOfItem reflect.Type, _ reflect.Kin
 		k := strconv.Itoa(key.Index)
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(k))
 	default:
-		key, err := d.keyCaster.ByType(key.Any(), typeOfItem.Key())
+		key, err := d.keyConverter.ByType(key.Any(), typeOfItem.Key())
 		if err != nil {
-			return d.nilVal, errors.Join(ErrKeyCast, err)
+			return d.nilVal, errors.Join(ErrKeyConvert, err)
 		}
 		resultValue = valueOfItem.MapIndex(reflect.ValueOf(key))
 	}
@@ -152,9 +152,9 @@ func (d DefaultTraverser) getValueFromSlice(item any, key Key) (returnValue refl
 	case KeyTypeIndex:
 		index = key.Index
 	case KeyTypeField:
-		i, er := d.keyCaster.AsInt(key.Name)
+		i, er := d.keyConverter.AsInt(key.Name)
 		if er != nil {
-			return d.nilVal, errors.Join(ErrKeyCast, er)
+			return d.nilVal, errors.Join(ErrKeyConvert, er)
 		}
 		index = i
 	default:
@@ -279,6 +279,6 @@ func (t *TraverseError) Path() []Key {
 var (
 	ErrFieldNotFound   = errors.New("field not found")
 	ErrIndexOutOfRange = fmt.Errorf("%w: index out of range", ErrFieldNotFound)
-	ErrKeyCast         = errors.New("key cast error")
+	ErrKeyConvert      = errors.New("key convert error")
 	ErrKeyUnknown      = errors.New("key type unknown")
 )

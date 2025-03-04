@@ -11,27 +11,27 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-type CasterTester interface {
+type ConverterTester interface {
 	Test(t *testing.T)
 	SetInput(i any)
 }
 
-func matrixTestConstructorFn[Output any](c DefaultCaster) func(expected Output, errorAsserter tst.ErrorAsserter) *casterTestCaseMel[Output] {
-	return func(expected Output, errorAsserter tst.ErrorAsserter) *casterTestCaseMel[Output] {
-		return &casterTestCaseMel[Output]{
-			Caster:                c,
-			Input:                 nil,
-			Expected:              expected,
-			ErrorAsserter:         errorAsserter,
-			OverwriteDirectCastFn: nil,
-			OmitCastByDirectFn:    false,
-			OmitCastByKind:        false,
-			OmitCastByType:        false,
+func matrixTestConstructorFn[Output any](c DefaultConverter) func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCaseMel[Output] {
+	return func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCaseMel[Output] {
+		return &converterTestCaseMel[Output]{
+			Converter:                c,
+			Input:                    nil,
+			Expected:                 expected,
+			ErrorAsserter:            errorAsserter,
+			OverwriteDirectConvertFn: nil,
+			OmitConvertByDirectFn:    false,
+			OmitConvertByKind:        false,
+			OmitConvertByType:        false,
 		}
 	}
 }
 
-func splitBasedOnArch[Output any](for32bit, for64bit *casterTestCaseMel[Output]) *casterTestCaseMel[Output] {
+func splitBasedOnArch[Output any](for32bit, for64bit *converterTestCaseMel[Output]) *converterTestCaseMel[Output] {
 	switch runtime.GOARCH {
 	case "arm", "386":
 		return for32bit
@@ -41,59 +41,59 @@ func splitBasedOnArch[Output any](for32bit, for64bit *casterTestCaseMel[Output])
 }
 
 //nolint:maintidx
-func TestCasterMatrix(t *testing.T) {
-	caster := NewDefaultCaster()
+func TestConverterMatrix(t *testing.T) {
+	converter := NewDefaultConverter()
 
 	type stringAlias string
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected byte, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[byte] {
-		return &casterTestCaseMel[byte]{
-			Caster:                caster,
-			Input:                 nil,
-			Expected:              expected,
-			ErrorAsserter:         errorAssertFn,
-			OverwriteDirectCastFn: caster.AsByte,
-			OmitCastByDirectFn:    false,
-			OmitCastByKind:        true,
-			OmitCastByType:        true,
+	expectByte := func(expected byte, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[byte] {
+		return &converterTestCaseMel[byte]{
+			Converter:                converter,
+			Input:                    nil,
+			Expected:                 expected,
+			ErrorAsserter:            errorAssertFn,
+			OverwriteDirectConvertFn: converter.AsByte,
+			OmitConvertByDirectFn:    false,
+			OmitConvertByKind:        true,
+			OmitConvertByType:        true,
 		}
 	}
-	expectInt8 := matrixTestConstructorFn[int8](caster)
-	expectInt16 := matrixTestConstructorFn[int16](caster)
-	expectInt32 := matrixTestConstructorFn[int32](caster)
-	expectInt64 := matrixTestConstructorFn[int64](caster)
-	expectInt := matrixTestConstructorFn[int](caster)
-	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[uint8] {
-		return &casterTestCaseMel[uint8]{
-			Caster:                caster,
-			Input:                 nil,
-			Expected:              expected,
-			ErrorAsserter:         errorAssertFn,
-			OverwriteDirectCastFn: caster.AsUint8,
-			OmitCastByDirectFn:    false,
-			OmitCastByKind:        false,
-			OmitCastByType:        false,
+	expectInt8 := matrixTestConstructorFn[int8](converter)
+	expectInt16 := matrixTestConstructorFn[int16](converter)
+	expectInt32 := matrixTestConstructorFn[int32](converter)
+	expectInt64 := matrixTestConstructorFn[int64](converter)
+	expectInt := matrixTestConstructorFn[int](converter)
+	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[uint8] {
+		return &converterTestCaseMel[uint8]{
+			Converter:                converter,
+			Input:                    nil,
+			Expected:                 expected,
+			ErrorAsserter:            errorAssertFn,
+			OverwriteDirectConvertFn: converter.AsUint8,
+			OmitConvertByDirectFn:    false,
+			OmitConvertByKind:        false,
+			OmitConvertByType:        false,
 		}
 	}
-	expectUint16 := matrixTestConstructorFn[uint16](caster)
-	expectUint32 := matrixTestConstructorFn[uint32](caster)
-	expectUint64 := matrixTestConstructorFn[uint64](caster)
-	expectUint := matrixTestConstructorFn[uint](caster)
-	expectFloat32 := matrixTestConstructorFn[float32](caster)
-	expectFloat64 := matrixTestConstructorFn[float64](caster)
-	expectString := matrixTestConstructorFn[string](caster)
-	expectBool := matrixTestConstructorFn[bool](caster)
-	expectTime := matrixTestConstructorFn[time.Time](caster)
-	expectDuration := matrixTestConstructorFn[time.Duration](caster)
+	expectUint16 := matrixTestConstructorFn[uint16](converter)
+	expectUint32 := matrixTestConstructorFn[uint32](converter)
+	expectUint64 := matrixTestConstructorFn[uint64](converter)
+	expectUint := matrixTestConstructorFn[uint](converter)
+	expectFloat32 := matrixTestConstructorFn[float32](converter)
+	expectFloat64 := matrixTestConstructorFn[float64](converter)
+	expectString := matrixTestConstructorFn[string](converter)
+	expectBool := matrixTestConstructorFn[bool](converter)
+	expectTime := matrixTestConstructorFn[time.Time](converter)
+	expectDuration := matrixTestConstructorFn[time.Duration](converter)
 
 	testCases := map[string]struct {
 		Input     any
-		Asserters []CasterTester
+		Asserters []ConverterTester
 	}{
 		"tc#000": {
 			Input: nil,
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, nil),
 				expectInt8(0, nil),
 				expectInt16(0, nil),
@@ -115,7 +115,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#001": {
 			Input: int8(12),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(12, nil),
 				expectInt8(12, nil),
 				expectInt16(12, nil),
@@ -137,7 +137,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#002": {
 			Input: int8(math.MaxInt8),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(127, nil),
 				expectInt8(127, nil),
 				expectInt16(127, nil),
@@ -159,7 +159,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#003": {
 			Input: int8(math.MinInt8),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0x80, expectOverFlowError),
 				expectInt8(-128, nil),
 				expectInt16(-128, nil),
@@ -181,7 +181,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#004": {
 			Input: int16(math.MaxInt16),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(255, expectOverFlowError),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(32767, nil),
@@ -203,7 +203,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#005": {
 			Input: int16(math.MinInt16),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectOverFlowError),
 				expectInt8(0, expectOverFlowError),
 				expectInt16(-32768, nil),
@@ -225,7 +225,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#006": {
 			Input: int32(math.MaxInt32),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(255, expectOverFlowError),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(-1, expectOverFlowError),
@@ -247,7 +247,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#007": {
 			Input: int32(math.MinInt32),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectOverFlowError),
 				expectInt8(0, expectOverFlowError),
 				expectInt16(0, expectOverFlowError),
@@ -269,7 +269,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#008": {
 			Input: int64(math.MaxInt64),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(255, expectOverFlowError),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(-1, expectOverFlowError),
@@ -291,7 +291,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#009": {
 			Input: int64(math.MinInt64),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectOverFlowError),
 				expectInt8(0, expectOverFlowError),
 				expectInt16(0, expectOverFlowError),
@@ -313,7 +313,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#010": {
 			Input: uint8(math.MaxUint8),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(math.MaxUint8, nil),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(math.MaxUint8, nil),
@@ -335,7 +335,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#011": {
 			Input: uint16(math.MaxUint16),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(255, expectOverFlowError),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(-1, expectOverFlowError),
@@ -357,7 +357,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#012": {
 			Input: uint32(math.MaxUint32),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(255, expectOverFlowError),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(-1, expectOverFlowError),
@@ -379,7 +379,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#013": {
 			Input: uint64(math.MaxUint64),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(255, expectOverFlowError),
 				expectInt8(-1, expectOverFlowError),
 				expectInt16(-1, expectOverFlowError),
@@ -401,7 +401,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#014": {
 			Input: byte(12),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(12, nil),
 				expectInt8(12, nil),
 				expectInt16(12, nil),
@@ -423,7 +423,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#015": {
 			Input: "123",
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(123, nil),
 				expectInt16(123, nil),
@@ -445,7 +445,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#016": {
 			Input: []byte("123"),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(123, nil),
 				expectInt16(123, nil),
@@ -467,7 +467,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#017": {
 			Input: "123.321",
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(123, expectLostDecimals),
 				expectInt16(123, expectLostDecimals),
@@ -489,7 +489,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#018": {
 			Input: stringAlias("23"),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(23, nil),
 				expectInt16(23, nil),
@@ -511,7 +511,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#019": {
 			Input: "just string",
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(0, expectMalformedSyntax),
 				expectInt16(0, expectMalformedSyntax),
@@ -533,7 +533,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#020": {
 			Input: []byte("byte slice"),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(0, expectMalformedSyntax),
 				expectInt16(0, expectMalformedSyntax),
@@ -555,7 +555,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#021": {
 			Input: float32(123),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(123, nil),
 				expectInt8(123, nil),
 				expectInt16(123, nil),
@@ -577,7 +577,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#022": {
 			Input: float64(123),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(123, nil),
 				expectInt8(123, nil),
 				expectInt16(123, nil),
@@ -598,7 +598,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#023": {
 			Input: float64(123.12),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(123, expectLostDecimals),
 				expectInt8(123, expectLostDecimals),
 				expectInt16(123, expectLostDecimals),
@@ -619,7 +619,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#024": {
 			Input: float64(math.MaxFloat64),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectOverFlowError),
 				expectInt8(0, expectOverFlowError),
 				expectInt16(0, expectOverFlowError),
@@ -641,7 +641,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#025": {
 			Input: struct{}{},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(0, expectInvalidType),
 				expectInt16(0, expectInvalidType),
@@ -663,7 +663,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#026": {
 			Input: json.RawMessage(`{"a":"b"}`),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(0, expectInvalidType),
 				expectInt16(0, expectInvalidType),
@@ -685,7 +685,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#027": {
 			Input: json.Number("123"),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(123, nil),
 				expectInt8(123, nil),
 				expectInt16(123, nil),
@@ -707,7 +707,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#028": {
 			Input: json.Number("56782"),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(206, expectOverFlowError),
 				expectInt8(-50, expectOverFlowError),
 				expectInt16(-8754, expectOverFlowError),
@@ -729,7 +729,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#029": {
 			Input: "1.79769313486231570814527423731704356798070e+308",
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, expectInvalidType),
 				expectInt8(0, expectOverFlowError),
 				expectInt16(0, expectOverFlowError),
@@ -751,7 +751,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#030": {
 			Input: true,
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(1, nil),
 				expectInt8(1, nil),
 				expectInt16(1, nil),
@@ -773,7 +773,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#031": {
 			Input: false,
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(0, nil),
 				expectInt8(0, nil),
 				expectInt16(0, nil),
@@ -795,7 +795,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#032": {
 			Input: int(12),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(12, nil),
 				expectInt8(12, nil),
 				expectInt16(12, nil),
@@ -817,7 +817,7 @@ func TestCasterMatrix(t *testing.T) {
 		},
 		"tc#033": {
 			Input: uint(12),
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte(12, nil),
 				expectInt8(12, nil),
 				expectInt16(12, nil),
@@ -850,51 +850,51 @@ func TestCasterMatrix(t *testing.T) {
 	}
 }
 
-func TestCasterSliceMatrix(t *testing.T) {
-	caster := NewDefaultCaster()
+func TestConverterSliceMatrix(t *testing.T) {
+	converter := NewDefaultConverter()
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected []byte, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[[]byte] {
-		return &casterTestCaseMel[[]byte]{
-			Caster:                caster,
-			Input:                 nil,
-			Expected:              expected,
-			ErrorAsserter:         errorAssertFn,
-			OverwriteDirectCastFn: caster.AsByteSlice,
-			OmitCastByDirectFn:    false,
-			OmitCastByKind:        true,
-			OmitCastByType:        true,
+	expectByte := func(expected []byte, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[[]byte] {
+		return &converterTestCaseMel[[]byte]{
+			Converter:                converter,
+			Input:                    nil,
+			Expected:                 expected,
+			ErrorAsserter:            errorAssertFn,
+			OverwriteDirectConvertFn: converter.AsByteSlice,
+			OmitConvertByDirectFn:    false,
+			OmitConvertByKind:        true,
+			OmitConvertByType:        true,
 		}
 	}
-	expectInt8 := matrixTestConstructorFn[[]int8](caster)
-	expectInt16 := matrixTestConstructorFn[[]int16](caster)
-	expectInt32 := matrixTestConstructorFn[[]int32](caster)
-	expectInt64 := matrixTestConstructorFn[[]int64](caster)
-	expectInt := matrixTestConstructorFn[[]int](caster)
-	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAsserter) *casterTestCaseMel[[]uint8] {
-		return &casterTestCaseMel[[]uint8]{
-			Caster:                caster,
-			Input:                 nil,
-			Expected:              expected,
-			ErrorAsserter:         errorAssertFn,
-			OverwriteDirectCastFn: caster.AsUint8Slice,
-			OmitCastByDirectFn:    false,
-			OmitCastByKind:        false,
-			OmitCastByType:        false,
+	expectInt8 := matrixTestConstructorFn[[]int8](converter)
+	expectInt16 := matrixTestConstructorFn[[]int16](converter)
+	expectInt32 := matrixTestConstructorFn[[]int32](converter)
+	expectInt64 := matrixTestConstructorFn[[]int64](converter)
+	expectInt := matrixTestConstructorFn[[]int](converter)
+	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[[]uint8] {
+		return &converterTestCaseMel[[]uint8]{
+			Converter:                converter,
+			Input:                    nil,
+			Expected:                 expected,
+			ErrorAsserter:            errorAssertFn,
+			OverwriteDirectConvertFn: converter.AsUint8Slice,
+			OmitConvertByDirectFn:    false,
+			OmitConvertByKind:        false,
+			OmitConvertByType:        false,
 		}
 	}
-	expectUint16 := matrixTestConstructorFn[[]uint16](caster)
-	expectUint32 := matrixTestConstructorFn[[]uint32](caster)
-	expectUint64 := matrixTestConstructorFn[[]uint64](caster)
-	expectUint := matrixTestConstructorFn[[]uint](caster)
-	expectFloat32 := matrixTestConstructorFn[[]float32](caster)
-	expectFloat64 := matrixTestConstructorFn[[]float64](caster)
-	expectString := matrixTestConstructorFn[[]string](caster)
-	expectBool := matrixTestConstructorFn[[]bool](caster)
-	expectTime := matrixTestConstructorFn[[]time.Time](caster)
-	expectDuration := matrixTestConstructorFn[[]time.Duration](caster)
+	expectUint16 := matrixTestConstructorFn[[]uint16](converter)
+	expectUint32 := matrixTestConstructorFn[[]uint32](converter)
+	expectUint64 := matrixTestConstructorFn[[]uint64](converter)
+	expectUint := matrixTestConstructorFn[[]uint](converter)
+	expectFloat32 := matrixTestConstructorFn[[]float32](converter)
+	expectFloat64 := matrixTestConstructorFn[[]float64](converter)
+	expectString := matrixTestConstructorFn[[]string](converter)
+	expectBool := matrixTestConstructorFn[[]bool](converter)
+	expectTime := matrixTestConstructorFn[[]time.Time](converter)
+	expectDuration := matrixTestConstructorFn[[]time.Duration](converter)
 
-	_ = []CasterTester{
+	_ = []ConverterTester{
 		expectByte([]byte{}, nil),
 		expectInt8([]int8{}, nil),
 		expectInt16([]int16{}, nil),
@@ -916,11 +916,11 @@ func TestCasterSliceMatrix(t *testing.T) {
 
 	testCases := map[string]struct {
 		Input     any
-		Asserters []CasterTester
+		Asserters []ConverterTester
 	}{
 		"tc#000": {
 			Input: nil,
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte(nil), nil),
 				expectInt8([]int8(nil), nil),
 				expectInt16([]int16(nil), nil),
@@ -942,7 +942,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#001": {
 			Input: []int8{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -964,7 +964,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#002": {
 			Input: []int16{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -986,7 +986,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#003": {
 			Input: []int32{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1008,7 +1008,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#004": {
 			Input: []int64{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1030,7 +1030,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#005": {
 			Input: []int{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1052,7 +1052,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#006": {
 			Input: []uint8{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1074,7 +1074,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#007": {
 			Input: []uint16{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1096,7 +1096,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#008": {
 			Input: []uint32{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1118,7 +1118,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#009": {
 			Input: []uint64{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1140,7 +1140,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#010": {
 			Input: []uint{1, 2, 3},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte{1, 2, 3}, nil),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1162,7 +1162,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 		},
 		"tc#011": {
 			Input: []string{"1", "2", "3"},
-			Asserters: []CasterTester{
+			Asserters: []ConverterTester{
 				expectByte([]byte(nil), expectInvalidType),
 				expectInt8([]int8{1, 2, 3}, nil),
 				expectInt16([]int16{1, 2, 3}, nil),
@@ -1195,7 +1195,7 @@ func TestCasterSliceMatrix(t *testing.T) {
 	}
 }
 
-func BenchmarkCasterSlice(b *testing.B) {
+func BenchmarkConverterSlice(b *testing.B) {
 	testCases := []any{
 		[]any{"abc", "def"},
 		[]string{"abc", "def"},
@@ -1205,40 +1205,40 @@ func BenchmarkCasterSlice(b *testing.B) {
 		[]string{"1", "2", "3", "4"},
 	}
 
-	c := NewDefaultCaster()
+	c := NewDefaultConverter()
 
-	b.Run("AsBoolSlice", casterSubBenchmarks(testCases, c.AsBoolSlice))
-	b.Run("AsByteSlice", casterSubBenchmarks(testCases, c.AsByteSlice))
-	b.Run("AsFloat32Slice", casterSubBenchmarks(testCases, c.AsFloat32Slice))
-	b.Run("AsFloat64Slice", casterSubBenchmarks(testCases, c.AsFloat64Slice))
-	b.Run("AsIntSlice", casterSubBenchmarks(testCases, c.AsIntSlice))
-	b.Run("AsInt8Slice", casterSubBenchmarks(testCases, c.AsInt8Slice))
-	b.Run("AsInt16Slice", casterSubBenchmarks(testCases, c.AsInt16Slice))
-	b.Run("AsInt32Slice", casterSubBenchmarks(testCases, c.AsInt32Slice))
-	b.Run("AsInt64Slice", casterSubBenchmarks(testCases, c.AsInt64Slice))
-	b.Run("AsUintSlice", casterSubBenchmarks(testCases, c.AsUintSlice))
-	b.Run("AsUint8Slice", casterSubBenchmarks(testCases, c.AsUint8Slice))
-	b.Run("AsUint16Slice", casterSubBenchmarks(testCases, c.AsUint16Slice))
-	b.Run("AsUint32Slice", casterSubBenchmarks(testCases, c.AsUint32Slice))
-	b.Run("AsUint64Slice", casterSubBenchmarks(testCases, c.AsUint64Slice))
-	b.Run("AsStringSlice", casterSubBenchmarks(testCases, c.AsStringSlice))
+	b.Run("AsBoolSlice", converterSubBenchmarks(testCases, c.AsBoolSlice))
+	b.Run("AsByteSlice", converterSubBenchmarks(testCases, c.AsByteSlice))
+	b.Run("AsFloat32Slice", converterSubBenchmarks(testCases, c.AsFloat32Slice))
+	b.Run("AsFloat64Slice", converterSubBenchmarks(testCases, c.AsFloat64Slice))
+	b.Run("AsIntSlice", converterSubBenchmarks(testCases, c.AsIntSlice))
+	b.Run("AsInt8Slice", converterSubBenchmarks(testCases, c.AsInt8Slice))
+	b.Run("AsInt16Slice", converterSubBenchmarks(testCases, c.AsInt16Slice))
+	b.Run("AsInt32Slice", converterSubBenchmarks(testCases, c.AsInt32Slice))
+	b.Run("AsInt64Slice", converterSubBenchmarks(testCases, c.AsInt64Slice))
+	b.Run("AsUintSlice", converterSubBenchmarks(testCases, c.AsUintSlice))
+	b.Run("AsUint8Slice", converterSubBenchmarks(testCases, c.AsUint8Slice))
+	b.Run("AsUint16Slice", converterSubBenchmarks(testCases, c.AsUint16Slice))
+	b.Run("AsUint32Slice", converterSubBenchmarks(testCases, c.AsUint32Slice))
+	b.Run("AsUint64Slice", converterSubBenchmarks(testCases, c.AsUint64Slice))
+	b.Run("AsStringSlice", converterSubBenchmarks(testCases, c.AsStringSlice))
 }
 
-func casterSubBenchmarks[Output any](testCases []any, castFn func(any) (Output, error)) func(b *testing.B) {
+func converterSubBenchmarks[Output any](testCases []any, convertFn func(any) (Output, error)) func(b *testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
 		for i, tc := range testCases {
 			name := fmt.Sprintf("%d %s", i, tst.Format(tc))
-			b.Run(name, matrixSubBenchmark(tc, castFn))
+			b.Run(name, matrixSubBenchmark(tc, convertFn))
 		}
 	}
 }
 
-func matrixSubBenchmark[Output any](input any, castFn func(any) (Output, error)) func(b *testing.B) {
+func matrixSubBenchmark[Output any](input any, convertFn func(any) (Output, error)) func(b *testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
 		for range b.N {
-			_, err := castFn(input)
+			_, err := convertFn(input)
 			if err != nil {
 				b.Skipf("skipped because of error %s", err.Error())
 			}

@@ -8,38 +8,38 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-type DefaultCaster struct {
-	directCastFunctionsTypes directCastFunctionsTypes
-	intCaster                intCast[int]
-	int8Caster               intCast[int8]
-	int16Caster              intCast[int16]
-	int32Caster              intCast[int32]
-	int64Caster              intCast[int64]
-	uintCaster               intCast[uint]
-	uint8Caster              intCast[uint8]
-	uint16Caster             intCast[uint16]
-	uint32Caster             intCast[uint32]
-	uint64Caster             intCast[uint64]
+type DefaultConverter struct {
+	directConvertFunctionsTypes directConvertFunctionsTypes
+	intConverter                intConvert[int]
+	int8Converter               intConvert[int8]
+	int16Converter              intConvert[int16]
+	int32Converter              intConvert[int32]
+	int64Converter              intConvert[int64]
+	uintConverter               intConvert[uint]
+	uint8Converter              intConvert[uint8]
+	uint16Converter             intConvert[uint16]
+	uint32Converter             intConvert[uint32]
+	uint64Converter             intConvert[uint64]
 }
 
-func NewDefaultCaster() DefaultCaster {
-	return DefaultCaster{
-		directCastFunctionsTypes: castFunctionTypes,
-		intCaster:                newIntCast[int](),
-		int8Caster:               newIntCast[int8](),
-		int16Caster:              newIntCast[int16](),
-		int32Caster:              newIntCast[int32](),
-		int64Caster:              newIntCast[int64](),
-		uintCaster:               newIntCast[uint](),
-		uint8Caster:              newIntCast[uint8](),
-		uint16Caster:             newIntCast[uint16](),
-		uint32Caster:             newIntCast[uint32](),
-		uint64Caster:             newIntCast[uint64](),
+func NewDefaultConverter() DefaultConverter {
+	return DefaultConverter{
+		directConvertFunctionsTypes: convertFunctionTypes,
+		intConverter:                newIntConvert[int](),
+		int8Converter:               newIntConvert[int8](),
+		int16Converter:              newIntConvert[int16](),
+		int32Converter:              newIntConvert[int32](),
+		int64Converter:              newIntConvert[int64](),
+		uintConverter:               newIntConvert[uint](),
+		uint8Converter:              newIntConvert[uint8](),
+		uint16Converter:             newIntConvert[uint16](),
+		uint32Converter:             newIntConvert[uint32](),
+		uint64Converter:             newIntConvert[uint64](),
 	}
 }
 
-// ByType attempts to cast the `input` to the type defined by `asType`. It returns error if the cast fails.
-// It first attempts to cast using a quick flow (performance wise) when the target type is a basic type, without using reflect.
+// ByType attempts to convert the `input` to the type defined by `asType`. It returns error if the convert fails.
+// It first attempts to convert using a quick flow (performance wise) when the target type is a basic type, without using reflect.
 // Then it tries to handle basic type aliases.
 // And then it falls back to reflect usage depending on the target type.
 // If no error is returned then it is safe to use type assertion in the returned value, to the type given in `asType`.
@@ -47,84 +47,84 @@ func NewDefaultCaster() DefaultCaster {
 //
 //	i, err := c.ByType("123", reflect.TypeOf(int64(0)))
 //	i.(int64) // safe
-func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
+func (c DefaultConverter) ByType(input any, asType reflect.Type) (any, error) {
 	// if target type is a basic type.
 	switch asType {
-	case c.directCastFunctionsTypes.typeOfBool:
+	case c.directConvertFunctionsTypes.typeOfBool:
 		return c.AsBool(input)
-	// case c.directCastFunctionsTypes.typeOfByte: // there is no distinguish type for byte. Its only uint8.
+	// case c.directConvertFunctionsTypes.typeOfByte: // there is no distinguish type for byte. Its only uint8.
 	// 	return c.AsByte(input)
-	case c.directCastFunctionsTypes.typeOfInt8:
+	case c.directConvertFunctionsTypes.typeOfInt8:
 		return c.AsInt8(input)
-	case c.directCastFunctionsTypes.typeOfInt16:
+	case c.directConvertFunctionsTypes.typeOfInt16:
 		return c.AsInt16(input)
-	case c.directCastFunctionsTypes.typeOfInt32:
+	case c.directConvertFunctionsTypes.typeOfInt32:
 		return c.AsInt32(input)
-	case c.directCastFunctionsTypes.typeOfInt64:
+	case c.directConvertFunctionsTypes.typeOfInt64:
 		return c.AsInt64(input)
-	case c.directCastFunctionsTypes.typeOfInt:
+	case c.directConvertFunctionsTypes.typeOfInt:
 		return c.AsInt(input)
-	case c.directCastFunctionsTypes.typeOfUint8:
+	case c.directConvertFunctionsTypes.typeOfUint8:
 		return c.AsUint8(input)
-	case c.directCastFunctionsTypes.typeOfUint16:
+	case c.directConvertFunctionsTypes.typeOfUint16:
 		return c.AsUint16(input)
-	case c.directCastFunctionsTypes.typeOfUint32:
+	case c.directConvertFunctionsTypes.typeOfUint32:
 		return c.AsUint32(input)
-	case c.directCastFunctionsTypes.typeOfUint64:
+	case c.directConvertFunctionsTypes.typeOfUint64:
 		return c.AsUint64(input)
-	case c.directCastFunctionsTypes.typeOfUint:
+	case c.directConvertFunctionsTypes.typeOfUint:
 		return c.AsUint(input)
-	case c.directCastFunctionsTypes.typeOfFloat32:
+	case c.directConvertFunctionsTypes.typeOfFloat32:
 		return c.AsFloat32(input)
-	case c.directCastFunctionsTypes.typeOfFloat64:
+	case c.directConvertFunctionsTypes.typeOfFloat64:
 		return c.AsFloat64(input)
-	case c.directCastFunctionsTypes.typeOfString:
+	case c.directConvertFunctionsTypes.typeOfString:
 		return c.AsString(input)
-	case c.directCastFunctionsTypes.typeOfTime:
+	case c.directConvertFunctionsTypes.typeOfTime:
 		return c.AsTime(input)
-	case c.directCastFunctionsTypes.typeOfDuration:
+	case c.directConvertFunctionsTypes.typeOfDuration:
 		return c.AsDuration(input)
 
-	case c.directCastFunctionsTypes.typeOfSliceBool:
+	case c.directConvertFunctionsTypes.typeOfSliceBool:
 		return c.AsBoolSlice(input)
-	// case c.directCastFunctionsTypes.typeOfSliceByte: // there is no distinguish type for byte. Its only uint8.
+	// case c.directConvertFunctionsTypes.typeOfSliceByte: // there is no distinguish type for byte. Its only uint8.
 	// 	return c.AsByteSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt8:
+	case c.directConvertFunctionsTypes.typeOfSliceInt8:
 		return c.AsInt8Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt16:
+	case c.directConvertFunctionsTypes.typeOfSliceInt16:
 		return c.AsInt16Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt32:
+	case c.directConvertFunctionsTypes.typeOfSliceInt32:
 		return c.AsInt32Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt64:
+	case c.directConvertFunctionsTypes.typeOfSliceInt64:
 		return c.AsInt64Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceInt:
+	case c.directConvertFunctionsTypes.typeOfSliceInt:
 		return c.AsIntSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint8:
+	case c.directConvertFunctionsTypes.typeOfSliceUint8:
 		return c.AsUint8Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint16:
+	case c.directConvertFunctionsTypes.typeOfSliceUint16:
 		return c.AsUint16Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint32:
+	case c.directConvertFunctionsTypes.typeOfSliceUint32:
 		return c.AsUint32Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint64:
+	case c.directConvertFunctionsTypes.typeOfSliceUint64:
 		return c.AsUint64Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceUint:
+	case c.directConvertFunctionsTypes.typeOfSliceUint:
 		return c.AsUintSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceFloat32:
+	case c.directConvertFunctionsTypes.typeOfSliceFloat32:
 		return c.AsFloat32Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceFloat64:
+	case c.directConvertFunctionsTypes.typeOfSliceFloat64:
 		return c.AsFloat64Slice(input)
-	case c.directCastFunctionsTypes.typeOfSliceString:
+	case c.directConvertFunctionsTypes.typeOfSliceString:
 		return c.AsStringSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceTime:
+	case c.directConvertFunctionsTypes.typeOfSliceTime:
 		return c.AsTimeSlice(input)
-	case c.directCastFunctionsTypes.typeOfSliceDuration:
+	case c.directConvertFunctionsTypes.typeOfSliceDuration:
 		return c.AsDurationSlice(input)
 	}
 
 	asKind := asType.Kind()
 
 	// if target type is a basic type alias (e.g. type myString string).
-	if _, isBasicKind := c.directCastFunctionsTypes.basicKindTypeMap[asKind]; isBasicKind {
+	if _, isBasicKind := c.directConvertFunctionsTypes.basicKindTypeMap[asKind]; isBasicKind {
 		v, err := c.As(input, asKind)
 		if err != nil {
 			return nil, err
@@ -132,7 +132,7 @@ func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
 
 		val := reflect.ValueOf(v)
 		if !val.CanConvert(asType) {
-			return nil, ErrCastInvalidType
+			return nil, ErrConvertInvalidType
 		}
 		return val.Convert(asType).Interface(), nil
 	}
@@ -154,13 +154,13 @@ func (c DefaultCaster) ByType(input any, asType reflect.Type) (any, error) {
 	// fallback attempt to reflect convert
 	val := reflect.ValueOf(input)
 	if !val.CanConvert(asType) {
-		return nil, ErrCastInvalidType
+		return nil, ErrConvertInvalidType
 	}
 
 	return val.Convert(asType).Interface(), nil
 }
 
-func (c DefaultCaster) toSliceByType(input any, asSliceElemType reflect.Type) (any, error) {
+func (c DefaultConverter) toSliceByType(input any, asSliceElemType reflect.Type) (any, error) {
 	inputValue := reflect.ValueOf(input)
 
 	sc := 1
@@ -171,13 +171,13 @@ func (c DefaultCaster) toSliceByType(input any, asSliceElemType reflect.Type) (a
 	sliceValue := reflect.MakeSlice(reflect.SliceOf(asSliceElemType), sc, sc)
 
 	err := iter.ForEach(input, func(item any, meta iter.CollectionOpMeta) error {
-		casted, cerr := c.ByType(item, asSliceElemType)
+		converted, cerr := c.ByType(item, asSliceElemType)
 		if cerr != nil {
 			return cerr
 		}
 
-		castedValue := reflect.ValueOf(casted)
-		sliceValue.Index(meta.Index).Set(castedValue)
+		convertedValue := reflect.ValueOf(converted)
+		sliceValue.Index(meta.Index).Set(convertedValue)
 		return nil
 	})
 	if err != nil {
@@ -187,20 +187,20 @@ func (c DefaultCaster) toSliceByType(input any, asSliceElemType reflect.Type) (a
 	return sliceValue.Interface(), nil
 }
 
-// toMapByType can cast to map if the input is either slice, array or map of any type.
-func (c DefaultCaster) toMapByType(input any, keyType, valueType reflect.Type) (any, error) { //nolint:revive
+// toMapByType can convert to map if the input is either slice, array or map of any type.
+func (c DefaultConverter) toMapByType(input any, keyType, valueType reflect.Type) (any, error) { //nolint:revive
 	// TODO: implement.
-	return nil, ErrCastInvalidType
+	return nil, ErrConvertInvalidType
 }
 
-func (c DefaultCaster) toPointerByType(input any, pointerTargetType reflect.Type) (any, error) { //nolint:revive
+func (c DefaultConverter) toPointerByType(input any, pointerTargetType reflect.Type) (any, error) { //nolint:revive
 	// pointerValue := reflect.New(pointerTargetType)
 
 	// TODO: implement.
-	return nil, ErrCastInvalidType
+	return nil, ErrConvertInvalidType
 }
 
-func (c DefaultCaster) As(input any, asKind reflect.Kind) (any, error) {
+func (c DefaultConverter) As(input any, asKind reflect.Kind) (any, error) {
 	//nolint:exhaustive
 	switch asKind {
 	case reflect.Float32:
@@ -233,22 +233,22 @@ func (c DefaultCaster) As(input any, asKind reflect.Kind) (any, error) {
 		return c.AsString(input)
 	}
 
-	return nil, newCastError(ErrCastInvalidType, input)
+	return nil, newConvertError(ErrConvertInvalidType, input)
 }
 
-// tryCastToBasicType checks input's Kind to identify if it can be casted as a basic type.
-// If it can, it casts it and returns it.
-// If not, it returns `ErrCannotBeCastedToBasic`.
-func tryCastToBasicType(input any) (any, error) {
+// tryConvertToBasicType checks input's Kind to identify if it can be converted as a basic type.
+// If it can, it converts it and returns it.
+// If not, it returns `ErrCannotBeConvertedToBasic`.
+func tryConvertToBasicType(input any) (any, error) {
 	if input == nil {
-		return nil, newCastError(ErrCannotBeCastedToBasic, input)
+		return nil, newConvertError(ErrCannotConvertToBasic, input)
 	}
 
 	t := reflect.TypeOf(input)
 	k := t.Kind()
 
 	if t.String() == k.String() {
-		return input, newCastError(ErrAlreadyBasicType, input)
+		return input, newConvertError(ErrAlreadyBasicType, input)
 	}
 
 	switch k {
@@ -282,7 +282,7 @@ func tryCastToBasicType(input any) (any, error) {
 		return tryReflectConvert[string](input)
 	}
 
-	return nil, newCastError(ErrCannotBeCastedToBasic, input)
+	return nil, newConvertError(ErrCannotConvertToBasic, input)
 }
 
 //nolint:ireturn
@@ -290,7 +290,7 @@ func tryReflectConvert[Out any](input any) (output Out, err error) {
 	defer errorsx.RecoverPanicToError(&err)
 
 	if input == nil {
-		return output, newCastError(ErrCastInvalidType, input)
+		return output, newConvertError(ErrConvertInvalidType, input)
 	}
 
 	typeOfInput := reflect.TypeOf(input)
@@ -299,7 +299,7 @@ func tryReflectConvert[Out any](input any) (output Out, err error) {
 	typeOfOutput := reflect.TypeOf(output)
 
 	if !typeOfInput.ConvertibleTo(typeOfOutput) {
-		return output, newCastError(ErrCastInvalidType, input)
+		return output, newConvertError(ErrConvertInvalidType, input)
 	}
 
 	convertedValue := valueOfInput.Convert(typeOfOutput)
@@ -309,30 +309,30 @@ func tryReflectConvert[Out any](input any) (output Out, err error) {
 }
 
 var (
-	ErrCannotBeCastedToBasic = errors.New("value cannot be casted to basic type")
-	ErrAlreadyBasicType      = errors.New("value is already basic type")
+	ErrCannotConvertToBasic = errors.New("value cannot be converted to basic type")
+	ErrAlreadyBasicType     = errors.New("value is already basic type")
 )
 
 //nolint:gochecknoglobals
-var defaultCasterGlobal = NewDefaultCaster()
+var defaultConverterGlobal = NewDefaultConverter()
 
-// Cast attempts to convert the input value to the specified (generic) Output type.
-// It returns the converted value of type Output and an error if the casting fails.
+// Convert attempts to convert the input value to the specified (generic) Output type.
+// It returns the converted value of type Output and an error if the converting fails.
 // e.g.
 //
-//	Cast[string](123) // "123", nil
-func Cast[Output any](input any) (Output, error) { //nolint:ireturn
+//	Convert[string](123) // "123", nil
+func Convert[Output any](input any) (Output, error) { //nolint:ireturn
 	var o Output
 
-	n, err := defaultCasterGlobal.ByType(input, reflect.TypeOf(o))
+	n, err := defaultConverterGlobal.ByType(input, reflect.TypeOf(o))
 	if err != nil {
 		return o, err
 	}
 
-	casted, is := n.(Output)
+	converted, is := n.(Output)
 	if !is {
-		return o, newCastError(ErrCastInvalidType, input)
+		return o, newConvertError(ErrConvertInvalidType, input)
 	}
 
-	return casted, nil
+	return converted, nil
 }

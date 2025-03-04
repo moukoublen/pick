@@ -105,7 +105,7 @@ func structFieldName(f reflect.StructField, tags []string) string {
 	return f.Name
 }
 
-// valueAsString is a tiny cast function.
+// valueAsString is a tiny convert function.
 func valueAsString(v reflect.Value) string {
 	if v.Kind() == reflect.String {
 		if v.Type() != stringType {
@@ -251,8 +251,8 @@ func Map[T any](input any, operation func(item any, meta CollectionOpMeta) (T, e
 	}
 
 	return MapFilter(input, func(item any, meta CollectionOpMeta) (T, bool, error) {
-		casted, err := operation(item, meta)
-		return casted, true, err
+		converted, err := operation(item, meta)
+		return converted, true, err
 	})
 }
 
@@ -265,14 +265,14 @@ func Map[T any](input any, operation func(item any, meta CollectionOpMeta) (T, e
 //
 // It returns a slice containing all included transformed elements, or an error if any operation fails.
 func MapFilter[T any](input any, operation func(item any, meta CollectionOpMeta) (T, bool, error)) ([]T, error) {
-	var castedSlice []T
+	var convertedSlice []T
 
 	if input == nil {
-		return castedSlice, nil
+		return convertedSlice, nil
 	}
 
 	err := ForEach(input, func(item any, meta CollectionOpMeta) error {
-		casted, keep, err := operation(item, meta)
+		converted, keep, err := operation(item, meta)
 		switch {
 		case err != nil:
 			return err
@@ -280,11 +280,11 @@ func MapFilter[T any](input any, operation func(item any, meta CollectionOpMeta)
 			return nil
 		default:
 			if meta.Index == 0 && meta.Length > 0 {
-				castedSlice = make([]T, 0, meta.Length)
+				convertedSlice = make([]T, 0, meta.Length)
 			} else if meta.Length == 0 {
 				return nil
 			}
-			castedSlice = append(castedSlice, casted)
+			convertedSlice = append(convertedSlice, converted)
 			return nil
 		}
 	})
@@ -292,7 +292,7 @@ func MapFilter[T any](input any, operation func(item any, meta CollectionOpMeta)
 		return nil, err
 	}
 
-	return castedSlice, nil
+	return convertedSlice, nil
 }
 
 func MapOpFn[T any](fn func(item any) (T, error)) func(item any, meta CollectionOpMeta) (T, error) {

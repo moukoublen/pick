@@ -8,7 +8,7 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-func (c DefaultCaster) AsFloat64(input any) (float64, error) {
+func (c DefaultConverter) AsFloat64(input any) (float64, error) {
 	switch origin := input.(type) {
 	case int:
 		return float64(origin), nil
@@ -40,7 +40,7 @@ func (c DefaultCaster) AsFloat64(input any) (float64, error) {
 	case string:
 		v, err := strconv.ParseFloat(origin, 64)
 		if err != nil {
-			return v, newCastError(err, origin)
+			return v, newConvertError(err, origin)
 		}
 		return v, nil
 	case json.Number:
@@ -58,8 +58,8 @@ func (c DefaultCaster) AsFloat64(input any) (float64, error) {
 		return 0, nil
 
 	default:
-		// try to cast to basic (in case is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
+		// try to convert to basic (in case is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
 			return c.AsFloat64(basic)
 		}
 
@@ -67,7 +67,7 @@ func (c DefaultCaster) AsFloat64(input any) (float64, error) {
 	}
 }
 
-func (c DefaultCaster) AsFloat32(input any) (float32, error) {
+func (c DefaultConverter) AsFloat32(input any) (float32, error) {
 	switch origin := input.(type) {
 	case int:
 		return float32(origin), nil
@@ -95,14 +95,14 @@ func (c DefaultCaster) AsFloat32(input any) (float32, error) {
 		return origin, nil
 	case float64:
 		if origin > float64(math.MaxFloat32) || origin < (-float64(math.MaxFloat32)) {
-			return float32(origin), newCastError(ErrCastOverFlow, input)
+			return float32(origin), newConvertError(ErrConvertOverFlow, input)
 		}
 		return float32(origin), nil
 
 	case string:
 		v, err := strconv.ParseFloat(origin, 32)
 		if err != nil {
-			return float32(v), newCastError(err, origin)
+			return float32(v), newConvertError(err, origin)
 		}
 		return float32(v), nil
 	case json.Number:
@@ -120,8 +120,8 @@ func (c DefaultCaster) AsFloat32(input any) (float32, error) {
 		return 0, nil
 
 	default:
-		// try to cast to basic (in case input is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
+		// try to convert to basic (in case input is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
 			return c.AsFloat32(basic)
 		}
 
@@ -129,10 +129,10 @@ func (c DefaultCaster) AsFloat32(input any) (float32, error) {
 	}
 }
 
-func (c DefaultCaster) AsFloat32Slice(input any) ([]float32, error) {
+func (c DefaultConverter) AsFloat32Slice(input any) ([]float32, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsFloat32))
 }
 
-func (c DefaultCaster) AsFloat64Slice(input any) ([]float64, error) {
+func (c DefaultConverter) AsFloat64Slice(input any) ([]float64, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsFloat64))
 }

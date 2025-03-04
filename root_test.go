@@ -18,7 +18,7 @@ func TestOrDefault(t *testing.T) {
 		expectedValue any
 		errorAsserter tst.ErrorAsserter
 	}{
-		"exists - no cast": {
+		"exists - no convert": {
 			data: map[string]any{"one": "value"},
 			call: func(p Picker) (any, error) {
 				v, err := OrDefault(p, "one", "default")
@@ -36,7 +36,7 @@ func TestOrDefault(t *testing.T) {
 			expectedValue: "default",
 			errorAsserter: tst.NoError,
 		},
-		"exists - with cast": {
+		"exists - with convert": {
 			data: map[string]any{"one": 123},
 			call: func(p Picker) (any, error) {
 				v, err := OrDefault(p, "one", "default")
@@ -45,7 +45,7 @@ func TestOrDefault(t *testing.T) {
 			expectedValue: "123",
 			errorAsserter: tst.NoError,
 		},
-		"exists - with cast to alias": {
+		"exists - with convert to alias": {
 			data: map[string]any{"one": "value"},
 			call: func(p Picker) (any, error) {
 				v, err := OrDefault[stringAlias](p, "one", stringAlias("default"))
@@ -75,7 +75,7 @@ func TestRelaxedOrDefault(t *testing.T) {
 
 		expectedValue any
 	}{
-		"exists - no cast": {
+		"exists - no convert": {
 			data: map[string]any{"one": "value"},
 			call: func(a RelaxedAPI) any {
 				return RelaxedOrDefault(a, "one", "default")
@@ -89,14 +89,14 @@ func TestRelaxedOrDefault(t *testing.T) {
 			},
 			expectedValue: "default",
 		},
-		"exists - cast": {
+		"exists - convert": {
 			data: map[string]any{"one": 123},
 			call: func(a RelaxedAPI) any {
 				return RelaxedOrDefault(a, "one", "default")
 			},
 			expectedValue: "123",
 		},
-		"exists - with cast to alias": {
+		"exists - with convert to alias": {
 			data: map[string]any{"one": "value"},
 			call: func(a RelaxedAPI) any {
 				return RelaxedOrDefault[stringAlias](a, "one", stringAlias("default"))
@@ -124,7 +124,7 @@ func TestGet(t *testing.T) {
 		expectedValue any
 		errorAsserter tst.ErrorAsserter
 	}{
-		"exists - no cast": {
+		"exists - no convert": {
 			data: map[string]any{"one": "value"},
 			call: func(p Picker) (any, error) {
 				v, err := Get[string](p, "one")
@@ -142,7 +142,7 @@ func TestGet(t *testing.T) {
 			expectedValue: "",
 			errorAsserter: tst.ExpectedErrorIs(ErrFieldNotFound),
 		},
-		"exists - with cast": {
+		"exists - with convert": {
 			data: map[string]any{"one": 123},
 			call: func(p Picker) (any, error) {
 				v, err := Get[string](p, "one")
@@ -151,7 +151,7 @@ func TestGet(t *testing.T) {
 			expectedValue: "123",
 			errorAsserter: tst.NoError,
 		},
-		"exists - with cast to alias": {
+		"exists - with convert to alias": {
 			data: map[string]any{"one": "value"},
 			call: func(p Picker) (any, error) {
 				v, err := Get[stringAlias](p, "one")
@@ -180,7 +180,7 @@ func TestRelaxedGet(t *testing.T) {
 		call          func(RelaxedAPI) any
 		expectedValue any
 	}{
-		"exists - no cast": {
+		"exists - no convert": {
 			data: map[string]any{"one": "value"},
 			call: func(a RelaxedAPI) any {
 				return RelaxedGet[string](a, "one")
@@ -194,7 +194,7 @@ func TestRelaxedGet(t *testing.T) {
 			},
 			expectedValue: "",
 		},
-		"exists - cast": {
+		"exists - convert": {
 			data: map[string]any{"one": 123},
 			call: func(a RelaxedAPI) any {
 				return RelaxedGet[string](a, "one")

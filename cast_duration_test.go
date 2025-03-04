@@ -7,58 +7,58 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-func TestDurationCaster(t *testing.T) {
+func TestDurationConverter(t *testing.T) {
 	t.Parallel()
 
-	caster := NewDefaultCaster()
+	converter := NewDefaultConverter()
 
-	testCases := []singleCastTestCase[time.Duration]{
+	testCases := []singleConvertTestCase[time.Duration]{
 		{
 			input:         "8ns",
 			expected:      8 * time.Nanosecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 		{
 			input:         "8μs",
 			expected:      8 * time.Microsecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 		{
 			input:         "8ms",
 			expected:      8 * time.Millisecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 		{
 			input:         "8s",
 			expected:      8 * time.Second,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 		{
 			input:         "8m",
 			expected:      8 * time.Minute,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 		{
 			input:         "8h",
 			expected:      8 * time.Hour,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 
@@ -66,59 +66,59 @@ func TestDurationCaster(t *testing.T) {
 			input:         8,
 			expected:      8 * time.Nanosecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
 		},
 		{
 			input:         8,
 			expected:      8 * time.Nanosecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{DurationCastNumberFormat: DurationNumberNanoseconds}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberNanoseconds}, input)
 			},
 		},
 		{
 			input:         8,
 			expected:      8 * time.Microsecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{DurationCastNumberFormat: DurationNumberMicroseconds}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberMicroseconds}, input)
 			},
 		},
 		{
 			input:         8,
 			expected:      8 * time.Millisecond,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{DurationCastNumberFormat: DurationNumberMilliseconds}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberMilliseconds}, input)
 			},
 		},
 		{
 			input:         8,
 			expected:      8 * time.Second,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{DurationCastNumberFormat: DurationNumberSeconds}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberSeconds}, input)
 			},
 		},
 		{
 			input:         8,
 			expected:      8 * time.Minute,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{DurationCastNumberFormat: DurationNumberMinutes}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberMinutes}, input)
 			},
 		},
 		{
 			input:         8,
 			expected:      8 * time.Hour,
 			errorAsserter: tst.NoError,
-			directCastFn: func(input any) (time.Duration, error) {
-				return caster.AsDurationWithConfig(DurationCastConfig{DurationCastNumberFormat: DurationNumberHours}, input)
+			directConvertFn: func(input any) (time.Duration, error) {
+				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberHours}, input)
 			},
 		},
 	}
 
-	runSingleCastTestCases[time.Duration](t, testCases, caster.AsDuration)
+	runSingleConvertTestCases[time.Duration](t, testCases, converter.AsDuration)
 }

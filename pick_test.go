@@ -552,7 +552,7 @@ func TestNasaDataFile(t *testing.T) {
 			AccessFn:      p.Uint8,
 			Selector:      "near_earth_objects.2023-01-01[5].id",
 			ExpectedValue: uint8(214),
-			ErrorAsserter: tst.ExpectedErrorIs(ErrCastOverFlow),
+			ErrorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
 		},
 		{
 			AccessFn:      p.Len,
@@ -564,7 +564,7 @@ func TestNasaDataFile(t *testing.T) {
 			AccessFn:      p.Uint16,
 			Selector:      "near_earth_objects.2023-01-01[5].id",
 			ExpectedValue: uint16(50902),
-			ErrorAsserter: tst.ExpectedErrorIs(ErrCastOverFlow),
+			ErrorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
 		},
 		{
 			AccessFn:      p.Uint32,
@@ -592,7 +592,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) (time.Time, error) {
-				return p.TimeWithConfig(TimeCastConfig{StringFormat: timeFormat1}, selector)
+				return p.TimeWithConfig(TimeConvertConfig{StringFormat: timeFormat1}, selector)
 			},
 			Selector:      "near_earth_objects.2023-01-01[1].close_approach_data[0].close_approach_date",
 			ExpectedValue: time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -600,7 +600,7 @@ func TestNasaDataFile(t *testing.T) {
 		},
 		{
 			AccessFn: func(selector string) (time.Time, error) {
-				return p.TimeWithConfig(TimeCastConfig{StringFormat: timeFormat2}, selector)
+				return p.TimeWithConfig(TimeConvertConfig{StringFormat: timeFormat2}, selector)
 			},
 			Selector:      "near_earth_objects.2023-01-01[1].close_approach_data[0].close_approach_date_full",
 			ExpectedValue: time.Date(2023, time.January, 1, 19, 45, 0, 0, time.UTC),

@@ -7,7 +7,7 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-func (c DefaultCaster) AsString(input any) (string, error) {
+func (c DefaultConverter) AsString(input any) (string, error) {
 	switch origin := input.(type) {
 	case int:
 		return strconv.FormatInt(int64(origin), 10), nil
@@ -52,8 +52,8 @@ func (c DefaultCaster) AsString(input any) (string, error) {
 		return "", nil
 
 	default:
-		// try to cast to basic (in case input is ~basic)
-		if basic, err := tryCastToBasicType(input); err == nil {
+		// try to convert to basic (in case input is ~basic)
+		if basic, err := tryConvertToBasicType(input); err == nil {
 			return c.AsString(basic)
 		}
 
@@ -61,6 +61,6 @@ func (c DefaultCaster) AsString(input any) (string, error) {
 	}
 }
 
-func (c DefaultCaster) AsStringSlice(input any) ([]string, error) {
+func (c DefaultConverter) AsStringSlice(input any) ([]string, error) {
 	return iter.Map(input, iter.MapOpFn(c.AsString))
 }

@@ -6,13 +6,13 @@ import (
 	"github.com/moukoublen/pick/internal/tst"
 )
 
-func TestStringCaster(t *testing.T) {
+func TestStringConverter(t *testing.T) {
 	t.Parallel()
 
 	type int32Alias int32
 	type stringAlias string
 	type float32alias float32
-	testCases := []singleCastTestCase[string]{
+	testCases := []singleConvertTestCase[string]{
 		{
 			input:         int32Alias(123456),
 			expected:      "123456",
@@ -30,14 +30,14 @@ func TestStringCaster(t *testing.T) {
 		},
 	}
 
-	caster := NewDefaultCaster()
-	runSingleCastTestCases[string](t, testCases, caster.AsString)
+	converter := NewDefaultConverter()
+	runSingleConvertTestCases[string](t, testCases, converter.AsString)
 }
 
-func TestStringSliceCaster(t *testing.T) {
+func TestStringSliceConverter(t *testing.T) {
 	t.Parallel()
 
-	testCases := []singleCastTestCase[[]string]{
+	testCases := []singleConvertTestCase[[]string]{
 		{
 			input:         "singe string",
 			expected:      []string{"singe string"},
@@ -90,6 +90,6 @@ func TestStringSliceCaster(t *testing.T) {
 		},
 	}
 
-	caster := NewDefaultCaster()
-	runSingleCastTestCases(t, testCases, caster.AsStringSlice)
+	converter := NewDefaultConverter()
+	runSingleConvertTestCases(t, testCases, converter.AsStringSlice)
 }
