@@ -144,7 +144,7 @@ func (c DefaultConverter) ByType(input any, asType reflect.Type) (any, error) {
 
 	// if target type is map
 	case reflect.Map:
-		return c.toMapByType(input, asType.Key(), asType.Elem())
+		return c.toMapByType(input, asType, asType.Key(), asType.Elem())
 
 	// if target type is pointer
 	case reflect.Pointer:
@@ -188,8 +188,71 @@ func (c DefaultConverter) toSliceByType(input any, asSliceElemType reflect.Type)
 }
 
 // toMapByType can convert to map if the input is either slice, array or map of any type.
-func (c DefaultConverter) toMapByType(input any, keyType, valueType reflect.Type) (any, error) { //nolint:revive
-	// TODO: implement.
+func (c DefaultConverter) toMapByType(input any, dstType, dstKeyType, dstValueType reflect.Type) (r any, rErr error) { //nolint:revive
+	defer errorsx.RecoverPanicToError(&rErr)
+
+	srcValue := reflect.ValueOf(input)
+	srcKind := srcValue.Kind()
+
+	if srcKind != reflect.Map && srcKind != reflect.Array && srcKind != reflect.Slice {
+		return nil, ErrConvertInvalidType
+	}
+
+	if srcKind == reflect.Map { // quick return if already the type.
+		srcType := srcValue.Type()
+		if srcType.Key() == dstKeyType && srcType.Elem() == dstValueType {
+			return input, nil
+		}
+	}
+
+	switch srcKind {
+	// if source kind is map
+	case reflect.Map:
+		srcType := srcValue.Type()
+		if srcType.Key() == dstKeyType && srcType.Elem() == dstValueType {
+			return input, nil
+		}
+		dstValue := reflect.MakeMapWithSize(dstType, srcValue.Len())
+		iter := srcValue.MapRange()
+		for iter.Next() {
+			keyConverted, kErr := c.ByType(iter.Key().Interface(), dstKeyType)
+			if kErr != nil {
+				return nil, kErr
+			}
+
+			valueConverted, vErr := c.ByType(iter.Value().Interface(), dstValueType)
+			if vErr != nil {
+				return nil, vErr
+			}
+
+			dstValue.SetMapIndex(reflect.ValueOf(keyConverted), reflect.ValueOf(valueConverted))
+		}
+
+		return dstValue.Interface(), nil
+
+	// if source kind is array or slice
+	case reflect.Array, reflect.Slice:
+		dstValue := reflect.MakeMapWithSize(dstType, srcValue.Len())
+		length := srcValue.Len()
+		for i := range length {
+			item := srcValue.Index(i)
+
+			keyConverted, kErr := c.ByType(i, dstKeyType)
+			if kErr != nil {
+				return nil, kErr
+			}
+
+			valueConverted, vErr := c.ByType(item.Interface(), dstValueType)
+			if vErr != nil {
+				return nil, vErr
+			}
+
+			dstValue.SetMapIndex(reflect.ValueOf(keyConverted), reflect.ValueOf(valueConverted))
+		}
+
+		return dstValue.Interface(), nil
+	}
+
 	return nil, ErrConvertInvalidType
 }
 

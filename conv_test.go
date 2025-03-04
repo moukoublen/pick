@@ -2,6 +2,7 @@ package pick
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 
@@ -425,10 +426,130 @@ func TestConvertGeneric(t *testing.T) {
 		},
 		5: {
 			convertFn: func() (any, error) {
-				return Convert[map[string]string](map[string]any{"one": 1, "two": 2})
+				m := map[string]any{"one": 1, "two": 2}
+				return Convert[map[string]string](m)
+			},
+			expected:      map[string]string{"one": "1", "two": "2"},
+			errorAsserter: tst.NoError,
+		},
+		6: {
+			convertFn: func() (any, error) {
+				m := map[string]int{"one": 1, "two": 2}
+				return Convert[map[string]string](m)
+			},
+			expected:      map[string]string{"one": "1", "two": "2"},
+			errorAsserter: tst.NoError,
+		},
+		7: {
+			convertFn: func() (any, error) {
+				m := map[string]bool{"one": true, "two": false}
+				return Convert[map[string]int](m)
+			},
+			expected:      map[string]int{"one": 1, "two": 0},
+			errorAsserter: tst.NoError,
+		},
+		8: {
+			convertFn: func() (any, error) {
+				m := map[string]string{"1": "1", "2": "2"}
+				return Convert[map[int]string](m)
+			},
+			expected:      map[int]string{1: "1", 2: "2"},
+			errorAsserter: tst.NoError,
+		},
+		9: {
+			convertFn: func() (any, error) {
+				return Convert[map[string]any](int(42))
+			},
+			expected:      map[string]any(nil),
+			errorAsserter: tst.ExpectedErrorIs(ErrConvertInvalidType),
+		},
+		10: {
+			convertFn: func() (any, error) {
+				m := map[string]any{"one": "a", "two": "b"}
+				return Convert[map[string]string](m)
+			},
+			expected:      map[string]string{"one": "a", "two": "b"},
+			errorAsserter: tst.NoError,
+		},
+		11: {
+			convertFn: func() (any, error) {
+				m := map[string]any{"one": []any{"a", "b"}, "two": []any{"c", "d"}}
+				return Convert[map[string][]string](m)
+			},
+			expected:      map[string][]string{"one": {"a", "b"}, "two": {"c", "d"}},
+			errorAsserter: tst.NoError,
+		},
+		12: {
+			convertFn: func() (any, error) {
+				m := map[string]any{"one": "a", "two": []string{"abc", "def"}}
+				return Convert[map[string]string](m)
 			},
 			expected:      map[string]string(nil),
 			errorAsserter: tst.ExpectedErrorIs(ErrConvertInvalidType),
+		},
+		13: {
+			convertFn: func() (any, error) {
+				m := map[string]any{"one": 1, "two": 2}
+				return Convert[map[string]any](m)
+			},
+			expected:      map[string]any{"one": 1, "two": 2},
+			errorAsserter: tst.NoError,
+		},
+		14: { // key cast error
+			convertFn: func() (any, error) {
+				m := map[int32]any{math.MaxInt32: "abc"}
+				return Convert[map[int8]any](m)
+			},
+			expected:      map[int8]any(nil),
+			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+		},
+		15: { // value cast error
+			convertFn: func() (any, error) {
+				m := map[string]int32{"abc": math.MaxInt32}
+				return Convert[map[string]int8](m)
+			},
+			expected:      map[string]int8(nil),
+			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+		},
+		16: {
+			convertFn: func() (any, error) {
+				s := []string{"a", "b", "c"}
+				return Convert[map[int]string](s)
+			},
+			expected:      map[int]string{0: "a", 1: "b", 2: "c"},
+			errorAsserter: tst.NoError,
+		},
+		17: {
+			convertFn: func() (any, error) {
+				s := []string{"a", "b", "c"}
+				return Convert[map[int]any](s)
+			},
+			expected:      map[int]any{0: "a", 1: "b", 2: "c"},
+			errorAsserter: tst.NoError,
+		},
+		18: {
+			convertFn: func() (any, error) {
+				s := []string{"a", "b", "c"}
+				return Convert[map[string]string](s)
+			},
+			expected:      map[string]string{"0": "a", "1": "b", "2": "c"},
+			errorAsserter: tst.NoError,
+		},
+		19: { // from slice key convert error
+			convertFn: func() (any, error) {
+				s := make([]string, 1000)
+				return Convert[map[int8]string](s)
+			},
+			expected:      map[int8]string(nil),
+			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+		},
+		20: { // from slice value convert error
+			convertFn: func() (any, error) {
+				s := []string{"1000"}
+				return Convert[map[int8]int8](s)
+			},
+			expected:      map[int8]int8(nil),
+			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
 		},
 	}
 
