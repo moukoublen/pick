@@ -8,7 +8,7 @@ import (
 	"github.com/moukoublen/pick/iter"
 )
 
-// This file contains the top-level functions that operates to `Picker` and `SelectorMustAPI`
+// This file contains the top-level functions that operates to `Picker` and `SelectorRelaxedAPI`
 
 //
 // Top level functions that use default API.
@@ -134,13 +134,13 @@ func Get[Output any](p Picker, selector string) (Output, error) { //nolint:iretu
 }
 
 //
-// Top level functions that use must API. (They have the `Must` prefix in name)
+// Top level functions that use Relaxed API. (They have the `Relaxed` prefix in name)
 //
 
-// MustEach applies operation function to each element of the given selector.
-// The operation functions receives the index of the element, a SelectorMustAPI
+// RelaxedEach applies operation function to each element of the given selector.
+// The operation functions receives the index of the element, a SelectorRelaxedAPI
 // and the total length of the slice (or 1 if input is a single element and not a slice).
-func MustEach(a SelectorMustAPI, selector string, operation func(index int, item SelectorMustAPI, length int) error) {
+func RelaxedEach(a RelaxedAPI, selector string, operation func(index int, item RelaxedAPI, length int) error) {
 	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
 	if err != nil {
 		a.gather(selector, err)
@@ -161,10 +161,10 @@ func MustEach(a SelectorMustAPI, selector string, operation func(index int, item
 	}
 }
 
-// MustEachField applies operation function to each field of the object of the given selector.
-// The operation functions receives the name of the field of the element, a SelectorMustAPI
+// RelaxedEachField applies operation function to each field of the object of the given selector.
+// The operation functions receives the name of the field of the element, a SelectorRelaxedAPI
 // and the total length of the slice (or 1 if input is a single element and not a slice).
-func MustEachField(a SelectorMustAPI, selector string, operation func(field string, value SelectorMustAPI, numOfFields int) error) {
+func RelaxedEachField(a RelaxedAPI, selector string, operation func(field string, value RelaxedAPI, numOfFields int) error) {
 	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
 	if err != nil {
 		a.gather(selector, err)
@@ -185,12 +185,12 @@ func MustEachField(a SelectorMustAPI, selector string, operation func(field stri
 	}
 }
 
-// MustMap transform each element of a slice (or a the single element if selector leads to not slice)
+// RelaxedMap transform each element of a slice (or a the single element if selector leads to not slice)
 // by applying the transform function.
-// It also gathers any possible error of Must API to `multipleError` and returns it.
+// It also gathers any possible error of Relaxed API to `multipleError` and returns it.
 // Example:
 //
-//	itemsSlice, err := MustMap(p.Must(), "near_earth_objects.2023-01-07", func(sm SelectorMustAPI) Item {
+//	itemsSlice, err := RelaxedMap(p.Relaxed(), "near_earth_objects.2023-01-07", func(sm SelectorRelaxedAPI) Item {
 //		return Item{
 //			Name:   sm.String("name"),
 //			Sentry: sm.Bool("is_sentry_object"),
@@ -198,15 +198,15 @@ func MustEachField(a SelectorMustAPI, selector string, operation func(field stri
 //	})
 //
 //nolint:ireturn
-func MustMap[Output any](a SelectorMustAPI, selector string, transform func(SelectorMustAPI) (Output, error)) []Output {
-	return MustMapFilter[Output](a, selector, func(sma SelectorMustAPI) (Output, bool, error) {
+func RelaxedMap[Output any](a RelaxedAPI, selector string, transform func(RelaxedAPI) (Output, error)) []Output {
+	return RelaxedMapFilter[Output](a, selector, func(sma RelaxedAPI) (Output, bool, error) {
 		o, err := transform(sma)
 		return o, true, err
 	})
 }
 
 //nolint:ireturn
-func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform func(SelectorMustAPI) (Output, bool, error)) []Output {
+func RelaxedMapFilter[Output any](a RelaxedAPI, selector string, transform func(RelaxedAPI) (Output, bool, error)) []Output {
 	item, path, err := parseSelectorAndTraverse(a.Picker, selector)
 	if err != nil {
 		a.gather(selector, err)
@@ -230,13 +230,13 @@ func MustMapFilter[Output any](a SelectorMustAPI, selector string, transform fun
 }
 
 //nolint:ireturn
-func MustFlatMap[Output any](a SelectorMustAPI, selector string, transform func(SelectorMustAPI) ([]Output, error)) []Output {
-	item := MustMap[[]Output](a, selector, transform)
+func RelaxedFlatMap[Output any](a RelaxedAPI, selector string, transform func(RelaxedAPI) ([]Output, error)) []Output {
+	item := RelaxedMap[[]Output](a, selector, transform)
 	return flatten[Output](item)
 }
 
-// MustPath is the version of [Path] that uses SelectorMustAPI.
-func MustPath[Output any](a SelectorMustAPI, path ...Key) Output { //nolint:ireturn
+// RelaxedPath is the version of [Path] that uses SelectorRelaxedAPI.
+func RelaxedPath[Output any](a RelaxedAPI, path ...Key) Output { //nolint:ireturn
 	casted, err := Path[Output](a.Picker, path...)
 	if err != nil {
 		selector := DotNotation{}.Format(path...)
@@ -245,8 +245,8 @@ func MustPath[Output any](a SelectorMustAPI, path ...Key) Output { //nolint:iret
 	return casted
 }
 
-// MustOrDefault will return the default value if any error occurs. Version of [OrDefault] that uses SelectorMustAPI.
-func MustOrDefault[Output any](a SelectorMustAPI, selector string, defaultValue Output) Output { //nolint:ireturn
+// RelaxedOrDefault will return the default value if any error occurs. Version of [OrDefault] that uses SelectorRelaxedAPI.
+func RelaxedOrDefault[Output any](a RelaxedAPI, selector string, defaultValue Output) Output { //nolint:ireturn
 	item, err := OrDefault(a.Picker, selector, defaultValue)
 	if err != nil {
 		a.gather(selector, err)
@@ -255,8 +255,8 @@ func MustOrDefault[Output any](a SelectorMustAPI, selector string, defaultValue 
 	return item
 }
 
-// MustGet resolves the cast type from the generic type. Version of [Get] that uses SelectorMustAPI.
-func MustGet[Output any](a SelectorMustAPI, selector string) Output { //nolint:ireturn
+// RelaxedGet resolves the cast type from the generic type. Version of [Get] that uses SelectorRelaxedAPI.
+func RelaxedGet[Output any](a RelaxedAPI, selector string) Output { //nolint:ireturn
 	item, err := Get[Output](a.Picker, selector)
 	if err != nil {
 		a.gather(selector, err)

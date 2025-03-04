@@ -83,8 +83,8 @@ func NewPicker(data any, t Traverser, c Caster, n Notation) Picker {
 
 func (p Picker) Data() any { return p.data }
 
-func (p Picker) Must(onErr ...ErrorGatherer) SelectorMustAPI {
-	return SelectorMustAPI{Picker: p, errorGatherers: onErr}
+func (p Picker) Relaxed(onErr ...ErrorGatherer) RelaxedAPI {
+	return RelaxedAPI{Picker: p, errorGatherers: onErr}
 }
 
 func (p Picker) Any(selector string) (any, error) {
@@ -114,7 +114,7 @@ func (p Picker) Len(selector string) (int, error) {
 	return iter.Len(a)
 }
 
-// Default Selector API (embedded into Picker)
+// Default API (embedded into Picker)
 
 func (p Picker) Each(selector string, operation func(index int, p Picker, length int) error) error {
 	return Each(p, selector, operation)
@@ -285,185 +285,185 @@ func (p Picker) Wrap(data any) Picker {
 	return NewPicker(data, p.traverser, p.Caster, p.notation)
 }
 
-// Selector Must API
+// Relaxed API
 
-type SelectorMustAPI struct {
+type RelaxedAPI struct {
 	Picker
 	errorGatherers []ErrorGatherer
 }
 
-func (a SelectorMustAPI) gather(selector string, err error) {
+func (a RelaxedAPI) gather(selector string, err error) {
 	for _, eg := range a.errorGatherers {
 		eg.GatherSelector(selector, err)
 	}
 }
 
-func (a SelectorMustAPI) Each(selector string, operation func(index int, item SelectorMustAPI, length int) error) {
-	MustEach(a, selector, operation)
+func (a RelaxedAPI) Each(selector string, operation func(index int, item RelaxedAPI, length int) error) {
+	RelaxedEach(a, selector, operation)
 }
 
-func (a SelectorMustAPI) Bool(selector string) bool {
-	return pickSelectorMust(a, selector, a.Caster.AsBool)
+func (a RelaxedAPI) Bool(selector string) bool {
+	return pickRelaxed(a, selector, a.Caster.AsBool)
 }
 
-func (a SelectorMustAPI) BoolSlice(selector string) []bool {
-	return pickSelectorMust(a, selector, a.Caster.AsBoolSlice)
+func (a RelaxedAPI) BoolSlice(selector string) []bool {
+	return pickRelaxed(a, selector, a.Caster.AsBoolSlice)
 }
 
-func (a SelectorMustAPI) Byte(selector string) byte {
-	return pickSelectorMust(a, selector, a.Caster.AsByte)
+func (a RelaxedAPI) Byte(selector string) byte {
+	return pickRelaxed(a, selector, a.Caster.AsByte)
 }
 
-func (a SelectorMustAPI) ByteSlice(selector string) []byte {
-	return pickSelectorMust(a, selector, a.Caster.AsByteSlice)
+func (a RelaxedAPI) ByteSlice(selector string) []byte {
+	return pickRelaxed(a, selector, a.Caster.AsByteSlice)
 }
 
-func (a SelectorMustAPI) Float32(selector string) float32 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat32)
+func (a RelaxedAPI) Float32(selector string) float32 {
+	return pickRelaxed(a, selector, a.Caster.AsFloat32)
 }
 
-func (a SelectorMustAPI) Float32Slice(selector string) []float32 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat32Slice)
+func (a RelaxedAPI) Float32Slice(selector string) []float32 {
+	return pickRelaxed(a, selector, a.Caster.AsFloat32Slice)
 }
 
-func (a SelectorMustAPI) Float64(selector string) float64 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat64)
+func (a RelaxedAPI) Float64(selector string) float64 {
+	return pickRelaxed(a, selector, a.Caster.AsFloat64)
 }
 
-func (a SelectorMustAPI) Float64Slice(selector string) []float64 {
-	return pickSelectorMust(a, selector, a.Caster.AsFloat64Slice)
+func (a RelaxedAPI) Float64Slice(selector string) []float64 {
+	return pickRelaxed(a, selector, a.Caster.AsFloat64Slice)
 }
 
-func (a SelectorMustAPI) Int(selector string) int {
-	return pickSelectorMust(a, selector, a.Caster.AsInt)
+func (a RelaxedAPI) Int(selector string) int {
+	return pickRelaxed(a, selector, a.Caster.AsInt)
 }
 
-func (a SelectorMustAPI) IntSlice(selector string) []int {
-	return pickSelectorMust(a, selector, a.Caster.AsIntSlice)
+func (a RelaxedAPI) IntSlice(selector string) []int {
+	return pickRelaxed(a, selector, a.Caster.AsIntSlice)
 }
 
-func (a SelectorMustAPI) Int8(selector string) int8 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt8)
+func (a RelaxedAPI) Int8(selector string) int8 {
+	return pickRelaxed(a, selector, a.Caster.AsInt8)
 }
 
-func (a SelectorMustAPI) Int8Slice(selector string) []int8 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt8Slice)
+func (a RelaxedAPI) Int8Slice(selector string) []int8 {
+	return pickRelaxed(a, selector, a.Caster.AsInt8Slice)
 }
 
-func (a SelectorMustAPI) Int16(selector string) int16 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt16)
+func (a RelaxedAPI) Int16(selector string) int16 {
+	return pickRelaxed(a, selector, a.Caster.AsInt16)
 }
 
-func (a SelectorMustAPI) Int16Slice(selector string) []int16 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt16Slice)
+func (a RelaxedAPI) Int16Slice(selector string) []int16 {
+	return pickRelaxed(a, selector, a.Caster.AsInt16Slice)
 }
 
-func (a SelectorMustAPI) Int32(selector string) int32 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt32)
+func (a RelaxedAPI) Int32(selector string) int32 {
+	return pickRelaxed(a, selector, a.Caster.AsInt32)
 }
 
-func (a SelectorMustAPI) Int32Slice(selector string) []int32 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt32Slice)
+func (a RelaxedAPI) Int32Slice(selector string) []int32 {
+	return pickRelaxed(a, selector, a.Caster.AsInt32Slice)
 }
 
-func (a SelectorMustAPI) Int64(selector string) int64 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt64)
+func (a RelaxedAPI) Int64(selector string) int64 {
+	return pickRelaxed(a, selector, a.Caster.AsInt64)
 }
 
-func (a SelectorMustAPI) Int64Slice(selector string) []int64 {
-	return pickSelectorMust(a, selector, a.Caster.AsInt64Slice)
+func (a RelaxedAPI) Int64Slice(selector string) []int64 {
+	return pickRelaxed(a, selector, a.Caster.AsInt64Slice)
 }
 
-func (a SelectorMustAPI) Uint(selector string) uint {
-	return pickSelectorMust(a, selector, a.Caster.AsUint)
+func (a RelaxedAPI) Uint(selector string) uint {
+	return pickRelaxed(a, selector, a.Caster.AsUint)
 }
 
-func (a SelectorMustAPI) UintSlice(selector string) []uint {
-	return pickSelectorMust(a, selector, a.Caster.AsUintSlice)
+func (a RelaxedAPI) UintSlice(selector string) []uint {
+	return pickRelaxed(a, selector, a.Caster.AsUintSlice)
 }
 
-func (a SelectorMustAPI) Uint8(selector string) uint8 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint8)
+func (a RelaxedAPI) Uint8(selector string) uint8 {
+	return pickRelaxed(a, selector, a.Caster.AsUint8)
 }
 
-func (a SelectorMustAPI) Uint8Slice(selector string) []uint8 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint8Slice)
+func (a RelaxedAPI) Uint8Slice(selector string) []uint8 {
+	return pickRelaxed(a, selector, a.Caster.AsUint8Slice)
 }
 
-func (a SelectorMustAPI) Uint16(selector string) uint16 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint16)
+func (a RelaxedAPI) Uint16(selector string) uint16 {
+	return pickRelaxed(a, selector, a.Caster.AsUint16)
 }
 
-func (a SelectorMustAPI) Uint16Slice(selector string) []uint16 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint16Slice)
+func (a RelaxedAPI) Uint16Slice(selector string) []uint16 {
+	return pickRelaxed(a, selector, a.Caster.AsUint16Slice)
 }
 
-func (a SelectorMustAPI) Uint32(selector string) uint32 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint32)
+func (a RelaxedAPI) Uint32(selector string) uint32 {
+	return pickRelaxed(a, selector, a.Caster.AsUint32)
 }
 
-func (a SelectorMustAPI) Uint32Slice(selector string) []uint32 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint32Slice)
+func (a RelaxedAPI) Uint32Slice(selector string) []uint32 {
+	return pickRelaxed(a, selector, a.Caster.AsUint32Slice)
 }
 
-func (a SelectorMustAPI) Uint64(selector string) uint64 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint64)
+func (a RelaxedAPI) Uint64(selector string) uint64 {
+	return pickRelaxed(a, selector, a.Caster.AsUint64)
 }
 
-func (a SelectorMustAPI) Uint64Slice(selector string) []uint64 {
-	return pickSelectorMust(a, selector, a.Caster.AsUint64Slice)
+func (a RelaxedAPI) Uint64Slice(selector string) []uint64 {
+	return pickRelaxed(a, selector, a.Caster.AsUint64Slice)
 }
 
-func (a SelectorMustAPI) String(selector string) string {
-	return pickSelectorMust(a, selector, a.Caster.AsString)
+func (a RelaxedAPI) String(selector string) string {
+	return pickRelaxed(a, selector, a.Caster.AsString)
 }
 
-func (a SelectorMustAPI) StringSlice(selector string) []string {
-	return pickSelectorMust(a, selector, a.Caster.AsStringSlice)
+func (a RelaxedAPI) StringSlice(selector string) []string {
+	return pickRelaxed(a, selector, a.Caster.AsStringSlice)
 }
 
-func (a SelectorMustAPI) Time(selector string) time.Time {
-	return pickSelectorMust(a, selector, a.Caster.AsTime)
+func (a RelaxedAPI) Time(selector string) time.Time {
+	return pickRelaxed(a, selector, a.Caster.AsTime)
 }
 
-func (a SelectorMustAPI) TimeWithConfig(config TimeCastConfig, selector string) time.Time {
-	return pickSelectorMust(a, selector, func(input any) (time.Time, error) {
+func (a RelaxedAPI) TimeWithConfig(config TimeCastConfig, selector string) time.Time {
+	return pickRelaxed(a, selector, func(input any) (time.Time, error) {
 		return a.Caster.AsTimeWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) TimeSlice(selector string) []time.Time {
-	return pickSelectorMust(a, selector, a.Caster.AsTimeSlice)
+func (a RelaxedAPI) TimeSlice(selector string) []time.Time {
+	return pickRelaxed(a, selector, a.Caster.AsTimeSlice)
 }
 
-func (a SelectorMustAPI) TimeSliceWithConfig(config TimeCastConfig, selector string) []time.Time {
-	return pickSelectorMust(a, selector, func(input any) ([]time.Time, error) {
+func (a RelaxedAPI) TimeSliceWithConfig(config TimeCastConfig, selector string) []time.Time {
+	return pickRelaxed(a, selector, func(input any) ([]time.Time, error) {
 		return a.Caster.AsTimeSliceWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) Duration(selector string) time.Duration {
-	return pickSelectorMust(a, selector, a.Caster.AsDuration)
+func (a RelaxedAPI) Duration(selector string) time.Duration {
+	return pickRelaxed(a, selector, a.Caster.AsDuration)
 }
 
-func (a SelectorMustAPI) DurationWithConfig(config DurationCastConfig, selector string) time.Duration {
-	return pickSelectorMust(a, selector, func(input any) (time.Duration, error) {
+func (a RelaxedAPI) DurationWithConfig(config DurationCastConfig, selector string) time.Duration {
+	return pickRelaxed(a, selector, func(input any) (time.Duration, error) {
 		return a.Caster.AsDurationWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) DurationSlice(selector string) []time.Duration {
-	return pickSelectorMust(a, selector, a.Caster.AsDurationSlice)
+func (a RelaxedAPI) DurationSlice(selector string) []time.Duration {
+	return pickRelaxed(a, selector, a.Caster.AsDurationSlice)
 }
 
-func (a SelectorMustAPI) DurationSliceWithConfig(config DurationCastConfig, selector string) []time.Duration {
-	return pickSelectorMust(a, selector, func(input any) ([]time.Duration, error) {
+func (a RelaxedAPI) DurationSliceWithConfig(config DurationCastConfig, selector string) []time.Duration {
+	return pickRelaxed(a, selector, func(input any) ([]time.Duration, error) {
 		return a.Caster.AsDurationSliceWithConfig(config, input)
 	})
 }
 
-func (a SelectorMustAPI) Wrap(data any) SelectorMustAPI {
-	return NewPicker(data, a.traverser, a.Caster, a.notation).Must(a.errorGatherers...)
+func (a RelaxedAPI) Wrap(data any) RelaxedAPI {
+	return NewPicker(data, a.traverser, a.Caster, a.notation).Relaxed(a.errorGatherers...)
 }
 
 //nolint:ireturn
@@ -478,7 +478,7 @@ func pickSelector[Output any](p Picker, selector string, castFn func(any) (Outpu
 }
 
 //nolint:ireturn
-func pickSelectorMust[Output any](a SelectorMustAPI, selector string, castFn func(any) (Output, error)) Output {
+func pickRelaxed[Output any](a RelaxedAPI, selector string, castFn func(any) (Output, error)) Output {
 	casted, err := pickSelector(a.Picker, selector, castFn)
 	if err != nil {
 		a.gather(selector, err)

@@ -66,40 +66,40 @@ func TestOrDefault(t *testing.T) {
 	}
 }
 
-func TestMustOrDefault(t *testing.T) {
+func TestRelaxedOrDefault(t *testing.T) {
 	type stringAlias string
 
 	tests := map[string]struct {
 		data any
-		call func(SelectorMustAPI) any
+		call func(RelaxedAPI) any
 
 		expectedValue any
 	}{
 		"exists - no cast": {
 			data: map[string]any{"one": "value"},
-			call: func(a SelectorMustAPI) any {
-				return MustOrDefault(a, "one", "default")
+			call: func(a RelaxedAPI) any {
+				return RelaxedOrDefault(a, "one", "default")
 			},
 			expectedValue: "value",
 		},
 		"not exists - default": {
 			data: map[string]any{"one": "value"},
-			call: func(a SelectorMustAPI) any {
-				return MustOrDefault(a, "two", "default")
+			call: func(a RelaxedAPI) any {
+				return RelaxedOrDefault(a, "two", "default")
 			},
 			expectedValue: "default",
 		},
 		"exists - cast": {
 			data: map[string]any{"one": 123},
-			call: func(a SelectorMustAPI) any {
-				return MustOrDefault(a, "one", "default")
+			call: func(a RelaxedAPI) any {
+				return RelaxedOrDefault(a, "one", "default")
 			},
 			expectedValue: "123",
 		},
 		"exists - with cast to alias": {
 			data: map[string]any{"one": "value"},
-			call: func(a SelectorMustAPI) any {
-				return MustOrDefault[stringAlias](a, "one", stringAlias("default"))
+			call: func(a RelaxedAPI) any {
+				return RelaxedOrDefault[stringAlias](a, "one", stringAlias("default"))
 			},
 			expectedValue: stringAlias("value"),
 		},
@@ -108,7 +108,7 @@ func TestMustOrDefault(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
-			got := tc.call(p.Must())
+			got := tc.call(p.Relaxed())
 			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
@@ -172,39 +172,39 @@ func TestGet(t *testing.T) {
 	}
 }
 
-func TestMustGet(t *testing.T) {
+func TestRelaxedGet(t *testing.T) {
 	type stringAlias string
 
 	tests := map[string]struct {
 		data          any
-		call          func(SelectorMustAPI) any
+		call          func(RelaxedAPI) any
 		expectedValue any
 	}{
 		"exists - no cast": {
 			data: map[string]any{"one": "value"},
-			call: func(a SelectorMustAPI) any {
-				return MustGet[string](a, "one")
+			call: func(a RelaxedAPI) any {
+				return RelaxedGet[string](a, "one")
 			},
 			expectedValue: "value",
 		},
 		"not exists": {
 			data: map[string]any{"one": "value"},
-			call: func(a SelectorMustAPI) any {
-				return MustGet[string](a, "two")
+			call: func(a RelaxedAPI) any {
+				return RelaxedGet[string](a, "two")
 			},
 			expectedValue: "",
 		},
 		"exists - cast": {
 			data: map[string]any{"one": 123},
-			call: func(a SelectorMustAPI) any {
-				return MustGet[string](a, "one")
+			call: func(a RelaxedAPI) any {
+				return RelaxedGet[string](a, "one")
 			},
 			expectedValue: "123",
 		},
 		"not exists with type alias": {
 			data: map[string]any{"one": "value"},
-			call: func(a SelectorMustAPI) any {
-				return MustGet[stringAlias](a, "one")
+			call: func(a RelaxedAPI) any {
+				return RelaxedGet[stringAlias](a, "one")
 			},
 			expectedValue: stringAlias("value"),
 		},
@@ -213,7 +213,7 @@ func TestMustGet(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
-			got := tc.call(p.Must())
+			got := tc.call(p.Relaxed())
 			tst.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
@@ -310,9 +310,9 @@ func TestEachField(t *testing.T) {
 			},
 			selector: "",
 			expectedCalls: func(mo *mockOp) {
-				maybe := func(op, opMust *mock.Call) {
+				maybe := func(op, opRelaxed *mock.Call) {
 					op.Maybe()
-					opMust.Maybe()
+					opRelaxed.Maybe()
 				}
 				mo.
 					ExpectOp(3, "one", "v1", mockErr).
@@ -334,7 +334,7 @@ func TestEachField(t *testing.T) {
 			tc.errorAsserter(t, err)
 
 			eg := &ErrorsSink{}
-			MustEachField(p.Must(eg), tc.selector, m.OperationMust)
+			RelaxedEachField(p.Relaxed(eg), tc.selector, m.OperationRelaxed)
 			tc.errorAsserter(t, eg.Outcome())
 
 			m.AssertExpectations(t)
@@ -346,9 +346,9 @@ type mockOp struct {
 	mock.Mock
 }
 
-func (m *mockOp) ExpectOp(numOfFields int, field string, item any, returnError error, ext ...func(op, opMust *mock.Call)) *mockOp {
+func (m *mockOp) ExpectOp(numOfFields int, field string, item any, returnError error, ext ...func(op, opRelaxed *mock.Call)) *mockOp {
 	c1 := m.On("Operation", field, numOfFields, item).Return(returnError)
-	c2 := m.On("OperationMust", field, numOfFields, item).Return(returnError)
+	c2 := m.On("OperationRelaxed", field, numOfFields, item).Return(returnError)
 	for _, f := range ext {
 		f(c1, c2)
 	}
@@ -359,6 +359,6 @@ func (m *mockOp) Operation(field string, item Picker, numOfFields int) error {
 	return m.Called(field, numOfFields, item.Data()).Error(0)
 }
 
-func (m *mockOp) OperationMust(field string, item SelectorMustAPI, numOfFields int) error {
+func (m *mockOp) OperationRelaxed(field string, item RelaxedAPI, numOfFields int) error {
 	return m.Called(field, numOfFields, item.Data()).Error(0)
 }
