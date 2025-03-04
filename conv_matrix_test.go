@@ -16,9 +16,9 @@ type ConverterTester interface {
 	SetInput(i any)
 }
 
-func matrixTestConstructorFn[Output any](c DefaultConverter) func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCaseMel[Output] {
-	return func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCaseMel[Output] {
-		return &converterTestCaseMel[Output]{
+func matrixTestConstructorFn[Output any](c DefaultConverter) func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCase[Output] {
+	return func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCase[Output] {
+		return &converterTestCase[Output]{
 			Converter:                c,
 			Input:                    nil,
 			Expected:                 expected,
@@ -31,7 +31,7 @@ func matrixTestConstructorFn[Output any](c DefaultConverter) func(expected Outpu
 	}
 }
 
-func splitBasedOnArch[Output any](for32bit, for64bit *converterTestCaseMel[Output]) *converterTestCaseMel[Output] {
+func splitBasedOnArch[Output any](for32bit, for64bit *converterTestCase[Output]) *converterTestCase[Output] {
 	switch runtime.GOARCH {
 	case "arm", "386":
 		return for32bit
@@ -47,8 +47,8 @@ func TestConverterMatrix(t *testing.T) {
 	type stringAlias string
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected byte, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[byte] {
-		return &converterTestCaseMel[byte]{
+	expectByte := func(expected byte, errorAssertFn tst.ErrorAsserter) *converterTestCase[byte] {
+		return &converterTestCase[byte]{
 			Converter:                converter,
 			Input:                    nil,
 			Expected:                 expected,
@@ -64,8 +64,8 @@ func TestConverterMatrix(t *testing.T) {
 	expectInt32 := matrixTestConstructorFn[int32](converter)
 	expectInt64 := matrixTestConstructorFn[int64](converter)
 	expectInt := matrixTestConstructorFn[int](converter)
-	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[uint8] {
-		return &converterTestCaseMel[uint8]{
+	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAsserter) *converterTestCase[uint8] {
+		return &converterTestCase[uint8]{
 			Converter:                converter,
 			Input:                    nil,
 			Expected:                 expected,
@@ -854,8 +854,8 @@ func TestConverterSliceMatrix(t *testing.T) {
 	converter := NewDefaultConverter()
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected []byte, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[[]byte] {
-		return &converterTestCaseMel[[]byte]{
+	expectByte := func(expected []byte, errorAssertFn tst.ErrorAsserter) *converterTestCase[[]byte] {
+		return &converterTestCase[[]byte]{
 			Converter:                converter,
 			Input:                    nil,
 			Expected:                 expected,
@@ -871,8 +871,8 @@ func TestConverterSliceMatrix(t *testing.T) {
 	expectInt32 := matrixTestConstructorFn[[]int32](converter)
 	expectInt64 := matrixTestConstructorFn[[]int64](converter)
 	expectInt := matrixTestConstructorFn[[]int](converter)
-	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAsserter) *converterTestCaseMel[[]uint8] {
-		return &converterTestCaseMel[[]uint8]{
+	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAsserter) *converterTestCase[[]uint8] {
+		return &converterTestCase[[]uint8]{
 			Converter:                converter,
 			Input:                    nil,
 			Expected:                 expected,

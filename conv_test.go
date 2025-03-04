@@ -27,7 +27,7 @@ var (
 	)
 )
 
-type converterTestCaseMel[T any] struct {
+type converterTestCase[T any] struct {
 	Input                    any
 	Expected                 T
 	ErrorAsserter            tst.ErrorAsserter
@@ -38,11 +38,11 @@ type converterTestCaseMel[T any] struct {
 	OmitConvertByType        bool
 }
 
-func (c *converterTestCaseMel[T]) SetInput(i any) {
+func (c *converterTestCase[T]) SetInput(i any) {
 	c.Input = i
 }
 
-func (c *converterTestCaseMel[T]) Test(t *testing.T) {
+func (c *converterTestCase[T]) Test(t *testing.T) {
 	t.Helper()
 	tps := newDirectConvertFunctionsTypes()
 
