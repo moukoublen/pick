@@ -383,6 +383,7 @@ func TestByType(t *testing.T) {
 
 func TestConvertGeneric(t *testing.T) {
 	type stringAlias string
+	type mapStringAny map[string]any
 
 	tests := []struct {
 		convertFn     func() (any, error)
@@ -550,6 +551,14 @@ func TestConvertGeneric(t *testing.T) {
 			},
 			expected:      map[int8]int8(nil),
 			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+		},
+		21: {
+			convertFn: func() (any, error) {
+				m := mapStringAny{"a": "b"}
+				return Convert[map[string]any](m)
+			},
+			expected:      map[string]any{"a": "b"},
+			errorAsserter: tst.NoError,
 		},
 	}
 

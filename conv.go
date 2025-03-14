@@ -193,16 +193,19 @@ func (c DefaultConverter) toMapByType(input any, dstType, dstKeyType, dstValueTy
 
 	srcValue := reflect.ValueOf(input)
 	srcKind := srcValue.Kind()
+	srcType := srcValue.Type()
 
 	if srcKind != reflect.Map && srcKind != reflect.Array && srcKind != reflect.Slice {
 		return nil, ErrConvertInvalidType
 	}
 
-	if srcKind == reflect.Map { // quick return if already the type.
-		srcType := srcValue.Type()
-		if srcType.Key() == dstKeyType && srcType.Elem() == dstValueType {
-			return input, nil
-		}
+	if srcType == dstType { // quick return if already the type.
+		return input, nil
+	}
+
+	// check if type alias
+	if srcValue.CanConvert(dstType) {
+		return srcValue.Convert(dstType).Interface(), nil
 	}
 
 	switch srcKind {
