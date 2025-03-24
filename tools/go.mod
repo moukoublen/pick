@@ -1,13 +1,14 @@
 module github.com/moukoublen/pick/tools
 
 go 1.23.6
+
 toolchain go1.24.1
 
 // tools version goes here.
 // this go.mod is not used to actually run the tools, only to store the version.
 
 require (
-	github.com/golangci/golangci-lint v1.64.7
+	github.com/golangci/golangci-lint v1.64.8
 	github.com/itchyny/gojq v0.12.17
 	golang.org/x/tools v0.31.0
 	honnef.co/go/tools v0.6.1
