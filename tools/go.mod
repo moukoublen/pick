@@ -10,9 +10,9 @@ toolchain go1.24.1
 require (
 	github.com/golangci/golangci-lint v1.64.8
 	github.com/itchyny/gojq v0.12.17
-	golang.org/x/tools v0.31.0
+	golang.org/x/tools v0.32.0
 	honnef.co/go/tools v0.6.1
-	mvdan.cc/gofumpt v0.7.0
+	mvdan.cc/gofumpt v0.8.0
 	mvdan.cc/sh/v3 v3.11.0
 )
 
@@ -192,8 +192,8 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250210185358-939b2ce775ac // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
