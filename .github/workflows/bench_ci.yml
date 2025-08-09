@@ -2,16 +2,20 @@
 name: Benchmarks
 
 on:
-  pull_request:
-    branches: [ main ]
-  push:
-    branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+  # push:
+  #   branches: [ main ]
+  workflow_dispatch: {}
+  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
+  # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatch
 
 jobs:
 
   benchmark:
     name: Benchmarks
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     env:
       BENCH_DIR: /tmp/bench
     steps:
@@ -30,14 +34,15 @@ jobs:
       with:
         fetch-depth: 2
 
-    - name: Prepare when pr to main
-      if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    # https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context
+    - name: Prepare comparison with main branch
+      if: github.ref_name != 'main'
       shell: bash
       run: |
         git fetch origin main
         echo "COMPARE_WITH=main" >> $GITHUB_ENV
-    - name: Prepare when commit to main
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    - name: Prepare comparison with previous commit
+      if: github.ref_name == 'main'
       shell: bash
       run: |
         echo "COMPARE_WITH=$(git rev-parse HEAD~1)" >> $GITHUB_ENV
