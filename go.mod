@@ -1,10 +1,11 @@
 module github.com/moukoublen/pick
 
-go 1.23
+go 1.23.0
 
 // Test dependencies. They will not be pushed downstream as indirect ones.
 require (
 	github.com/google/go-cmp v0.7.0
+	github.com/ifnotnil/x/tst v0.0.2
 	github.com/stretchr/testify v1.10.0
 )
 

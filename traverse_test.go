@@ -3,7 +3,9 @@ package pick
 import (
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
+	"github.com/moukoublen/pick/internal/testingx"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDefaultTraverser(t *testing.T) {
@@ -18,54 +20,54 @@ func TestDefaultTraverser(t *testing.T) {
 	tests := map[string]struct {
 		input         any
 		expected      any
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 		keys          []Key
 	}{
 		"nil": {
 			input:         nil,
 			keys:          nil,
 			expected:      nil,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"access zero level": {
 			input:         []any{"one", "two"},
 			keys:          []Key{},
 			expected:      []any{"one", "two"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"index access level 1": {
 			input:         []any{"one", "two"},
 			keys:          []Key{Index(1)},
 			expected:      "two",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"index access level 1 negative index": {
 			input:         []any{"one", "two", "three"},
 			keys:          []Key{Index(-1)},
 			expected:      "three",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"index access level 1 negative index 2": {
 			input:         []any{"one", "two", "three"},
 			keys:          []Key{Index(-2)},
 			expected:      "two",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"index access level 1 out of range": {
 			input:    []any{"one", "two"},
 			keys:     []Key{Index(6)},
 			expected: nil,
-			errorAsserter: tst.ExpectedErrorChecks(
-				tst.ExpectedErrorIs(ErrIndexOutOfRange),
-				tst.ExpectedErrorOfType[*TraverseError](
-					func(t *testing.T, te *TraverseError) { //nolint:thelper
-						tst.AssertEqual(t, "selector: [6] : error trying to traverse: field not found: index out of range", te.Error())
-						tst.AssertEqual(t, te.Path(), []Key{Index(6)})
+			errorAsserter: tst.All(
+				tst.ErrorIs(ErrIndexOutOfRange),
+				tst.ErrorOfType[*TraverseError](
+					func(t tst.TestingT, te *TraverseError) { //nolint:thelper
+						assert.Equal(t, "selector: [6] : error trying to traverse: field not found: index out of range", te.Error())
+						assert.Equal(t, []Key{Index(6)}, te.Path())
 					},
 				),
 			),
@@ -75,47 +77,47 @@ func TestDefaultTraverser(t *testing.T) {
 			input:         []string{"one", "two"},
 			keys:          []Key{Index(1)},
 			expected:      "two",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"name access level 1": {
 			input:         map[string]any{"one": "value"},
 			keys:          []Key{Field("one")},
 			expected:      "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"name access level 1 happy path": {
 			input:         map[string]any{"one": "value"},
 			keys:          []Key{Field("one")},
 			expected:      "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"name access level 1 not found": {
 			input:         map[string]any{"one": "value"},
 			keys:          []Key{Field("two")},
 			expected:      nil,
-			errorAsserter: tst.ExpectedErrorIs(ErrFieldNotFound),
+			errorAsserter: tst.ErrorIs(ErrFieldNotFound),
 		},
 
 		"name access level 2 happy path": {
 			input:         map[string]any{"one": map[string]any{"two": "value"}},
 			keys:          []Key{Field("one"), Field("two")},
 			expected:      "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"name access level 2 but nil": {
 			input:    map[string]any{"one": nil},
 			keys:     []Key{Field("one"), Field("two")},
 			expected: nil,
-			errorAsserter: tst.ExpectedErrorChecks(
-				tst.ExpectedErrorIs(ErrFieldNotFound),
-				tst.ExpectedErrorOfType[*TraverseError](
-					func(t *testing.T, te *TraverseError) { //nolint:thelper
-						tst.AssertEqual(t, te.Error(), "selector: one.two : error trying to traverse: field not found")
-						tst.AssertEqual(t, te.Path(), []Key{Field("one"), Field("two")})
+			errorAsserter: tst.All(
+				tst.ErrorIs(ErrFieldNotFound),
+				tst.ErrorOfType[*TraverseError](
+					func(t tst.TestingT, te *TraverseError) { //nolint:thelper
+						assert.Equal(t, "selector: one.two : error trying to traverse: field not found", te.Error())
+						assert.Equal(t, []Key{Field("one"), Field("two")}, te.Path())
 					},
 				),
 			),
@@ -125,12 +127,12 @@ func TestDefaultTraverser(t *testing.T) {
 			input:    map[string]any{"one": 12},
 			keys:     []Key{Field("one"), Field("two"), Field("tree")},
 			expected: nil,
-			errorAsserter: tst.ExpectedErrorChecks(
-				tst.ExpectedErrorIs(ErrFieldNotFound),
-				tst.ExpectedErrorOfType[*TraverseError](
-					func(t *testing.T, te *TraverseError) { //nolint:thelper
-						tst.AssertEqual(t, te.Error(), "selector: one.two : error trying to traverse: field not found")
-						tst.AssertEqual(t, te.Path(), []Key{Field("one"), Field("two")})
+			errorAsserter: tst.All(
+				tst.ErrorIs(ErrFieldNotFound),
+				tst.ErrorOfType[*TraverseError](
+					func(t tst.TestingT, te *TraverseError) { //nolint:thelper
+						assert.Equal(t, "selector: one.two : error trying to traverse: field not found", te.Error())
+						assert.Equal(t, []Key{Field("one"), Field("two")}, te.Path())
 					},
 				),
 			),
@@ -140,51 +142,51 @@ func TestDefaultTraverser(t *testing.T) {
 			input:         map[string]any{"one": renamed{"two": "value"}},
 			keys:          []Key{Field("one"), Field("two")},
 			expected:      "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 2": {
 			input:         []any{"one", map[string]any{"two": "value"}},
 			keys:          []Key{Index(1), Field("two")},
 			expected:      "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 2 with convert": {
 			input:         []any{"one", map[string]any{"4": "value"}},
 			keys:          []Key{Index(1), Index(4)},
 			expected:      "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 2 with convert 2": {
 			input:         map[string]any{"one": []string{"s0", "s1", "s2"}},
 			keys:          []Key{Field("one"), Field("1")},
 			expected:      "s1",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 3 with struct": {
 			input:         map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:          []Key{Field("one"), Field("two"), Field("FieldOne")},
 			expected:      "test",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 3 with struct using index": {
 			input:         map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:          []Key{Field("one"), Field("two"), Index(0)},
 			expected:      "test",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 3 with struct using wrong index": {
 			input:    map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:     []Key{Field("one"), Field("two"), Index(12)},
 			expected: nil,
-			errorAsserter: tst.ExpectedErrorChecks(
-				tst.ExpectedErrorOfType[*TraverseError](),
-				tst.ExpectedErrorStringContains("reflect: Field index out of range"),
+			errorAsserter: tst.All(
+				tst.ErrorOfType[*TraverseError](),
+				tst.ErrorStringContains("reflect: Field index out of range"),
 			),
 		},
 
@@ -192,9 +194,9 @@ func TestDefaultTraverser(t *testing.T) {
 			input:    map[string]any{"one": renamed{"two": itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:     []Key{Field("one"), Field("two"), Field("Wrong")},
 			expected: nil,
-			errorAsserter: tst.ExpectedErrorChecks(
-				tst.ExpectedErrorOfType[*TraverseError](),
-				tst.ExpectedErrorIs(ErrFieldNotFound),
+			errorAsserter: tst.All(
+				tst.ErrorOfType[*TraverseError](),
+				tst.ErrorIs(ErrFieldNotFound),
 			),
 		},
 
@@ -202,106 +204,106 @@ func TestDefaultTraverser(t *testing.T) {
 			input:         map[string]any{"one": renamed{"two": &itemOne{FieldOne: "test", FieldTwo: 123}}},
 			keys:          []Key{Field("one"), Field("two"), Field("FieldOne")},
 			expected:      "test",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 3 with map with int32 key": {
 			input:         map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
 			keys:          []Key{Field("one"), Field("42"), Index(0)},
 			expected:      "test",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"mixed access level 3 with map with int32 key and index fields": {
 			input:         map[string]any{"one": map[int32]itemOne{42: {FieldOne: "test", FieldTwo: 123}}},
 			keys:          []Key{Field("one"), Index(42), Index(0)},
 			expected:      "test",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"index access slice of int level 1": {
 			input:         []int{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      2,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of int8 level 1": {
 			input:         []int8{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      int8(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of int16 level 1": {
 			input:         []int16{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      int16(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of int32 level 1": {
 			input:         []int32{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      int32(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of int64 level 1": {
 			input:         []int64{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      int64(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of uint level 1": {
 			input:         []uint{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      uint(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of uint8 level 1": {
 			input:         []uint8{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      uint8(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of uint16 level 1": {
 			input:         []uint16{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      uint16(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of uint32 level 1": {
 			input:         []uint32{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      uint32(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of uint64 level 1": {
 			input:         []uint64{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      uint64(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of float32 level 1": {
 			input:         []float32{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      float32(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of float64 level 1": {
 			input:         []float64{1, 2, 3},
 			keys:          []Key{Index(1)},
 			expected:      float64(2),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of bool level 1": {
 			input:         []bool{false, true, true},
 			keys:          []Key{Index(1)},
 			expected:      true,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"index access slice of foo level 1": {
 			input:         []foo{{A: 1}, {A: 2}, {A: 3}},
 			keys:          []Key{Index(1)},
 			expected:      foo{A: 2},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -318,7 +320,7 @@ func TestDefaultTraverser(t *testing.T) {
 			tc.errorAsserter(t, err)
 
 			// check returned item
-			tst.AssertEqual(t, got, tc.expected)
+			testingx.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
@@ -533,17 +535,17 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 
 func TestTraverseError(t *testing.T) { //nolint:thelper
 	err1 := NewTraverseError("not good", []Key{Field("one")}, 0, nil)
-	tst.AssertEqual(t, err1.Error(), "selector: one : not good")
-	tst.AssertEqual(t, err1.Unwrap(), error(nil))
-	tst.AssertEqual(t, err1.Path(), []Key{Field("one")})
+	testingx.AssertEqual(t, err1.Error(), "selector: one : not good")
+	testingx.AssertEqual(t, err1.Unwrap(), error(nil))
+	testingx.AssertEqual(t, err1.Path(), []Key{Field("one")})
 
 	err2 := NewTraverseError("not good", []Key{Field("one"), Field("two")}, 0, nil)
-	tst.AssertEqual(t, err2.Error(), "selector: one : not good")
-	tst.AssertEqual(t, err2.Unwrap(), error(nil))
-	tst.AssertEqual(t, err2.Path(), []Key{Field("one")})
+	testingx.AssertEqual(t, err2.Error(), "selector: one : not good")
+	testingx.AssertEqual(t, err2.Unwrap(), error(nil))
+	testingx.AssertEqual(t, err2.Path(), []Key{Field("one")})
 
 	err3 := NewTraverseError("not good", []Key{Field("one"), Field("two"), Index(2)}, 1, ErrFieldNotFound)
-	tst.AssertEqual(t, err3.Error(), "selector: one.two : not good: field not found")
-	tst.ExpectedErrorIs(ErrFieldNotFound)(t, err3)
-	tst.AssertEqual(t, err3.Path(), []Key{Field("one"), Field("two")})
+	testingx.AssertEqual(t, err3.Error(), "selector: one.two : not good: field not found")
+	tst.ErrorIs(ErrFieldNotFound)(t, err3)
+	testingx.AssertEqual(t, err3.Path(), []Key{Field("one"), Field("two")})
 }

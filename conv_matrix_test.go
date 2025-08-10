@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
+	"github.com/moukoublen/pick/internal/testingx"
 )
 
 type ConverterTester interface {
@@ -16,8 +17,8 @@ type ConverterTester interface {
 	SetInput(i any)
 }
 
-func matrixTestConstructorFn[Output any](c DefaultConverter) func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCase[Output] {
-	return func(expected Output, errorAsserter tst.ErrorAsserter) *converterTestCase[Output] {
+func matrixTestConstructorFn[Output any](c DefaultConverter) func(expected Output, errorAsserter tst.ErrorAssertionFunc) *converterTestCase[Output] {
+	return func(expected Output, errorAsserter tst.ErrorAssertionFunc) *converterTestCase[Output] {
 		return &converterTestCase[Output]{
 			Converter:                c,
 			Input:                    nil,
@@ -47,7 +48,7 @@ func TestConverterMatrix(t *testing.T) {
 	type stringAlias string
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected byte, errorAssertFn tst.ErrorAsserter) *converterTestCase[byte] {
+	expectByte := func(expected byte, errorAssertFn tst.ErrorAssertionFunc) *converterTestCase[byte] {
 		return &converterTestCase[byte]{
 			Converter:                converter,
 			Input:                    nil,
@@ -64,7 +65,7 @@ func TestConverterMatrix(t *testing.T) {
 	expectInt32 := matrixTestConstructorFn[int32](converter)
 	expectInt64 := matrixTestConstructorFn[int64](converter)
 	expectInt := matrixTestConstructorFn[int](converter)
-	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAsserter) *converterTestCase[uint8] {
+	expectUInt8 := func(expected uint8, errorAssertFn tst.ErrorAssertionFunc) *converterTestCase[uint8] {
 		return &converterTestCase[uint8]{
 			Converter:                converter,
 			Input:                    nil,
@@ -439,8 +440,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(123, nil),
 				expectString("123", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#016": {
@@ -461,8 +462,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(123, nil),
 				expectString("123", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#017": {
@@ -483,8 +484,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(123.321, nil),
 				expectString("123.321", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#018": {
@@ -505,8 +506,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(23, nil),
 				expectString("23", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: missing unit in duration")),
 			},
 		},
 		"tc#019": {
@@ -527,8 +528,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(0, expectMalformedSyntax),
 				expectString("just string", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: invalid duration")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: invalid duration")),
 			},
 		},
 		"tc#020": {
@@ -549,8 +550,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(0, expectMalformedSyntax),
 				expectString("byte slice", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: invalid duration")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: invalid duration")),
 			},
 		},
 		"tc#021": {
@@ -745,8 +746,8 @@ func TestConverterMatrix(t *testing.T) {
 				expectFloat64(math.MaxFloat64, nil),
 				expectString("1.79769313486231570814527423731704356798070e+308", nil),
 				expectBool(false, expectMalformedSyntax),
-				expectTime(time.Time{}, tst.ExpectedErrorOfType[*time.ParseError]()),
-				expectDuration(time.Duration(0), tst.ExpectedErrorStringContains("time: unknown unit")),
+				expectTime(time.Time{}, tst.ErrorOfType[*time.ParseError]()),
+				expectDuration(time.Duration(0), tst.ErrorStringContains("time: unknown unit")),
 			},
 		},
 		"tc#030": {
@@ -854,7 +855,7 @@ func TestConverterSliceMatrix(t *testing.T) {
 	converter := NewDefaultConverter()
 
 	// matrixExpectedResult constructor function aliases.
-	expectByte := func(expected []byte, errorAssertFn tst.ErrorAsserter) *converterTestCase[[]byte] {
+	expectByte := func(expected []byte, errorAssertFn tst.ErrorAssertionFunc) *converterTestCase[[]byte] {
 		return &converterTestCase[[]byte]{
 			Converter:                converter,
 			Input:                    nil,
@@ -871,7 +872,7 @@ func TestConverterSliceMatrix(t *testing.T) {
 	expectInt32 := matrixTestConstructorFn[[]int32](converter)
 	expectInt64 := matrixTestConstructorFn[[]int64](converter)
 	expectInt := matrixTestConstructorFn[[]int](converter)
-	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAsserter) *converterTestCase[[]uint8] {
+	expectUInt8 := func(expected []uint8, errorAssertFn tst.ErrorAssertionFunc) *converterTestCase[[]uint8] {
 		return &converterTestCase[[]uint8]{
 			Converter:                converter,
 			Input:                    nil,
@@ -1178,8 +1179,8 @@ func TestConverterSliceMatrix(t *testing.T) {
 				expectFloat64([]float64{1, 2, 3}, nil),
 				expectString([]string{"1", "2", "3"}, nil),
 				expectBool([]bool(nil), expectMalformedSyntax),
-				expectTime([]time.Time(nil), tst.ExpectedErrorStringContains("error: parsing time")),
-				expectDuration([]time.Duration(nil), tst.ExpectedErrorStringContains("time: missing unit in duration")),
+				expectTime([]time.Time(nil), tst.ErrorStringContains("error: parsing time")),
+				expectDuration([]time.Duration(nil), tst.ErrorStringContains("time: missing unit in duration")),
 			},
 		},
 	}
@@ -1228,7 +1229,7 @@ func converterSubBenchmarks[Output any](testCases []any, convertFn func(any) (Ou
 	return func(b *testing.B) {
 		b.Helper()
 		for i, tc := range testCases {
-			name := fmt.Sprintf("%d %s", i, tst.Format(tc))
+			name := fmt.Sprintf("%d %s", i, testingx.Format(tc))
 			b.Run(name, matrixSubBenchmark(tc, convertFn))
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
 )
 
 func TestDurationConverter(t *testing.T) {
@@ -16,7 +16,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         "8ns",
 			expected:      8 * time.Nanosecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -24,7 +24,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         "8μs",
 			expected:      8 * time.Microsecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -32,7 +32,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         "8ms",
 			expected:      8 * time.Millisecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -40,7 +40,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         "8s",
 			expected:      8 * time.Second,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -48,7 +48,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         "8m",
 			expected:      8 * time.Minute,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -56,7 +56,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         "8h",
 			expected:      8 * time.Hour,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -65,7 +65,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Nanosecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{}, input)
 			},
@@ -73,7 +73,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Nanosecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberNanoseconds}, input)
 			},
@@ -81,7 +81,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Microsecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberMicroseconds}, input)
 			},
@@ -89,7 +89,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Millisecond,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberMilliseconds}, input)
 			},
@@ -97,7 +97,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Second,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberSeconds}, input)
 			},
@@ -105,7 +105,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Minute,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberMinutes}, input)
 			},
@@ -113,7 +113,7 @@ func TestDurationConverter(t *testing.T) {
 		{
 			input:         8,
 			expected:      8 * time.Hour,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 			directConvertFn: func(input any) (time.Duration, error) {
 				return converter.AsDurationWithConfig(DurationConvertConfig{DurationConvertNumberFormat: DurationNumberHours}, input)
 			},

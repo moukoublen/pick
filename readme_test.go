@@ -5,7 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
+	"github.com/moukoublen/pick/internal/testingx"
 )
 
 func TestReadme(t *testing.T) {
@@ -21,7 +22,7 @@ func TestReadme(t *testing.T) {
 	p1, _ := WrapJSON([]byte(j))
 
 	t.Run("basic", func(t *testing.T) {
-		assert2 := tst.AssertEqualWithErrorFn(t)
+		assert2 := testingx.AssertEqualWithErrorFn(t)
 
 		assert2(p1.String("item.three[1]"))("2", nil)
 		assert2(p1.Uint64("item.three[1]"))(uint64(2), nil)
@@ -34,7 +35,7 @@ func TestReadme(t *testing.T) {
 
 	// Relaxed API
 	t.Run("basic Relaxed api", func(t *testing.T) {
-		assert := tst.AssertEqualFn(t)
+		assert := testingx.AssertEqualFn(t)
 
 		assert(p1.Relaxed().Int32("item.one"), int32(1))
 		assert(p1.Relaxed().Int32("non-existing"), int32(0))
@@ -52,8 +53,8 @@ func TestReadme(t *testing.T) {
 	})
 
 	t.Run("generics", func(t *testing.T) {
-		assert := tst.AssertEqualFn(t)
-		assert2 := tst.AssertEqualWithErrorFn(t)
+		assert := testingx.AssertEqualFn(t)
+		assert2 := testingx.AssertEqualWithErrorFn(t)
 
 		assert2(Get[int64](p1, "item.three[1]"))(int64(2), nil)
 		assert2(Get[string](p1, "item.three[1]"))("2", nil)
@@ -66,7 +67,7 @@ func TestReadme(t *testing.T) {
 	})
 
 	t.Run("map examples", func(t *testing.T) {
-		assert := tst.AssertEqualFn(t)
+		assert := testingx.AssertEqualFn(t)
 
 		j2 := `{
 				"items": [
@@ -99,7 +100,7 @@ func TestReadme(t *testing.T) {
 	})
 
 	t.Run("each and each field function", func(t *testing.T) {
-		assert := tst.AssertEqualFn(t)
+		assert := testingx.AssertEqualFn(t)
 
 		j := `{
 				"2023-01-01": [0,1,2],
@@ -114,7 +115,7 @@ func TestReadme(t *testing.T) {
 			lens[field] = l
 			return nil
 		})
-		tst.NoError(t, err)
+		tst.NoError()(t, err)
 		assert(lens, map[string]int{"2023-01-01": 3, "2023-01-02": 4, "2023-01-03": 5})
 
 		sumEvenIndex := 0
@@ -125,12 +126,12 @@ func TestReadme(t *testing.T) {
 			return nil
 		})
 		assert(sumEvenIndex, 6)
-		tst.NoError(t, err)
+		tst.NoError()(t, err)
 	})
 
 	// time API
 	t.Run("time", func(t *testing.T) {
-		assert := tst.AssertEqualFn(t)
+		assert := testingx.AssertEqualFn(t)
 
 		dateData := map[string]any{
 			"time1":     "1977-05-25T22:30:00Z",
@@ -165,7 +166,7 @@ func TestReadme(t *testing.T) {
 }
 
 func TestReadmeConvert(t *testing.T) {
-	eq := tst.AssertEqualFn(t)
+	eq := testingx.AssertEqualFn(t)
 
 	c := NewDefaultConverter()
 
