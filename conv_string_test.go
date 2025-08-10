@@ -3,7 +3,7 @@ package pick
 import (
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
 )
 
 func TestStringConverter(t *testing.T) {
@@ -16,17 +16,17 @@ func TestStringConverter(t *testing.T) {
 		{
 			input:         int32Alias(123456),
 			expected:      "123456",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         stringAlias("abcd"),
 			expected:      "abcd",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         float32alias(12.123),
 			expected:      "12.123",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -41,42 +41,42 @@ func TestStringSliceConverter(t *testing.T) {
 		{
 			input:         "singe string",
 			expected:      []string{"singe string"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         444,
 			expected:      []string{"444"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []string{"string", "slice"},
 			expected:      []string{"string", "slice"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         [2]string{"string", "array"},
 			expected:      []string{"string", "array"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []any{"slice", "of", 3},
 			expected:      []string{"slice", "of", "3"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []any{"slice", int32(12), float64(1.456)},
 			expected:      []string{"slice", "12", "1.456"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []int32{1, 2, 3, 4},
 			expected:      []string{"1", "2", "3", "4"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []int32(nil),
 			expected:      []string(nil),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         map[string]string{"": ""},

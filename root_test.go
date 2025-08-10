@@ -4,7 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
+	"github.com/moukoublen/pick/internal/testingx"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -16,7 +17,7 @@ func TestOrDefault(t *testing.T) {
 		call func(Picker) (any, error)
 
 		expectedValue any
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 	}{
 		"exists - no convert": {
 			data: map[string]any{"one": "value"},
@@ -25,7 +26,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"not exists - return default": {
 			data: map[string]any{"one": "value"},
@@ -34,7 +35,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "default",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"exists - with convert": {
 			data: map[string]any{"one": 123},
@@ -43,7 +44,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "123",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"exists - with convert to alias": {
 			data: map[string]any{"one": "value"},
@@ -52,7 +53,7 @@ func TestOrDefault(t *testing.T) {
 				return v, err
 			},
 			expectedValue: stringAlias("value"),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -61,7 +62,7 @@ func TestOrDefault(t *testing.T) {
 			p := Wrap(tc.data)
 			got, gotErr := tc.call(p)
 			tc.errorAsserter(t, gotErr)
-			tst.AssertEqual(t, got, tc.expectedValue)
+			testingx.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -109,7 +110,7 @@ func TestRelaxedOrDefault(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
 			got := tc.call(p.Relaxed())
-			tst.AssertEqual(t, got, tc.expectedValue)
+			testingx.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -122,7 +123,7 @@ func TestGet(t *testing.T) {
 		call func(Picker) (any, error)
 
 		expectedValue any
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 	}{
 		"exists - no convert": {
 			data: map[string]any{"one": "value"},
@@ -131,7 +132,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "value",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"not exists": {
 			data: map[string]any{"one": "value"},
@@ -140,7 +141,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "",
-			errorAsserter: tst.ExpectedErrorIs(ErrFieldNotFound),
+			errorAsserter: tst.ErrorIs(ErrFieldNotFound),
 		},
 		"exists - with convert": {
 			data: map[string]any{"one": 123},
@@ -149,7 +150,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: "123",
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"exists - with convert to alias": {
 			data: map[string]any{"one": "value"},
@@ -158,7 +159,7 @@ func TestGet(t *testing.T) {
 				return v, err
 			},
 			expectedValue: stringAlias("value"),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -167,7 +168,7 @@ func TestGet(t *testing.T) {
 			p := Wrap(tc.data)
 			got, gotErr := tc.call(p)
 			tc.errorAsserter(t, gotErr)
-			tst.AssertEqual(t, got, tc.expectedValue)
+			testingx.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -214,7 +215,7 @@ func TestRelaxedGet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			p := Wrap(tc.data)
 			got := tc.call(p.Relaxed())
-			tst.AssertEqual(t, got, tc.expectedValue)
+			testingx.AssertEqual(t, got, tc.expectedValue)
 		})
 	}
 }
@@ -234,7 +235,7 @@ func TestEachField(t *testing.T) {
 		data          any
 		selector      string
 		expectedCalls func(*mockOp)
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 	}{
 		"map[string]any": {
 			data:     map[string]any{"one": "v1", "two": 42},
@@ -244,7 +245,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(2, "one", "v1", nil).
 					ExpectOp(2, "two", 42, nil)
 			},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"map[string]any - inner": {
@@ -255,7 +256,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(2, "three", 42, nil).
 					ExpectOp(2, "four", "abc", nil)
 			},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"map[string]any - alias": {
@@ -266,7 +267,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(2, "three", 42, nil).
 					ExpectOp(2, "four", "abc", nil)
 			},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"Foo struct": {
@@ -277,7 +278,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(2, "A", "a", nil).
 					ExpectOp(2, "B", 42, nil)
 			},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"map[stringAlias]any": {
@@ -288,7 +289,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(2, "first", 10, nil).
 					ExpectOp(2, "second", "abc", nil)
 			},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"map[int]int": {
@@ -299,7 +300,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(2, "100", 10, nil).
 					ExpectOp(2, "200", 20, nil)
 			},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 
 		"map[string]any - error": {
@@ -319,7 +320,7 @@ func TestEachField(t *testing.T) {
 					ExpectOp(3, "two", "v2", nil, maybe).
 					ExpectOp(3, "three", "v3", nil, maybe)
 			},
-			errorAsserter: tst.ExpectedErrorIs(mockErr),
+			errorAsserter: tst.ErrorIs(mockErr),
 		},
 	}
 

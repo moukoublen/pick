@@ -4,14 +4,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
+	"github.com/moukoublen/pick/internal/testingx"
 )
 
 func TestDotNotation(t *testing.T) {
 	// t.Parallel()
 
 	tests := []struct {
-		errorAsserter     tst.ErrorAsserter
+		errorAsserter     tst.ErrorAssertionFunc
 		input             string
 		expectedPath      []Key
 		expectedFormatted string
@@ -19,77 +20,77 @@ func TestDotNotation(t *testing.T) {
 		{
 			input:         "",
 			expectedPath:  nil,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "one.two",
 			expectedPath:  []Key{Field("one"), Field("two")},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "one[1]",
 			expectedPath:  []Key{Field("one"), Index(1)},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "one[1432]",
 			expectedPath:  []Key{Field("one"), Index(1432)},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "[1][2][3]",
 			expectedPath:  []Key{Index(1), Index(2), Index(3)},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "[1][-1].field",
 			expectedPath:  []Key{Index(1), Index(-1), Field("field")},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "[154][34][376]",
 			expectedPath:  []Key{Index(154), Index(34), Index(376)},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "[154].a[2].three",
 			expectedPath:  []Key{Index(154), Field("a"), Index(2), Field("three")},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "r[154].a[2].three",
 			expectedPath:  []Key{Field("r"), Index(154), Field("a"), Index(2), Field("three")},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "ελληνικά[154].a[2].three",
 			expectedPath:  []Key{Field("ελληνικά"), Index(154), Field("a"), Index(2), Field("three")},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "start[3].ελληνικά.a[2].three",
 			expectedPath:  []Key{Field("start"), Index(3), Field("ελληνικά"), Field("a"), Index(2), Field("three")},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "[154].asd[",
 			expectedPath:  []Key(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
+			errorAsserter: tst.ErrorIs(ErrInvalidSelectorFormatForIndex),
 		},
 		{
 			input:         "[154].asd.",
 			expectedPath:  []Key(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
+			errorAsserter: tst.ErrorIs(ErrInvalidSelectorFormatForName),
 		},
 		{
 			input:         "[154].asd[r]",
 			expectedPath:  []Key(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForIndex),
+			errorAsserter: tst.ErrorIs(ErrInvalidSelectorFormatForIndex),
 		},
 		{
 			input:         "..",
 			expectedPath:  []Key(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrInvalidSelectorFormatForName),
+			errorAsserter: tst.ErrorIs(ErrInvalidSelectorFormatForName),
 		},
 	}
 
@@ -100,7 +101,7 @@ func TestDotNotation(t *testing.T) {
 			// t.Parallel()
 			got, err := dsf.Parse(tc.input)
 			tc.errorAsserter(t, err)
-			tst.AssertEqual(t, got, tc.expectedPath)
+			testingx.AssertEqual(t, got, tc.expectedPath)
 
 			if err != nil {
 				return
@@ -112,7 +113,7 @@ func TestDotNotation(t *testing.T) {
 			if tc.expectedFormatted != "" {
 				expectedFormatted = tc.expectedFormatted
 			}
-			tst.AssertEqual(t, expectedFormatted, gotFormatted)
+			testingx.AssertEqual(t, expectedFormatted, gotFormatted)
 		})
 	}
 }

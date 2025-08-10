@@ -3,7 +3,7 @@ package pick
 import (
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
 )
 
 func TestBoolConverter(t *testing.T) {
@@ -13,12 +13,12 @@ func TestBoolConverter(t *testing.T) {
 		{
 			input:         "true",
 			expected:      true,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         "false",
 			expected:      false,
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 

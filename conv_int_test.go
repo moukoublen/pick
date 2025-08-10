@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/moukoublen/pick/internal/testingx"
 )
 
 func TestInt64ConvertValid(t *testing.T) {
@@ -278,7 +278,7 @@ func BenchmarkIntConverter(b *testing.B) {
 	}
 
 	for idx, tc := range tests {
-		input := fmt.Sprintf("%d:%s", idx, tst.Format(tc))
+		input := fmt.Sprintf("%d:%s", idx, testingx.Format(tc))
 		b.Run("converter{int8}   "+input, benchmarkIntegerConverter(ic.int8Converter.convert, tc))
 		b.Run("converter{int16}  "+input, benchmarkIntegerConverter(ic.int16Converter.convert, tc))
 		b.Run("converter{int32}  "+input, benchmarkIntegerConverter(ic.int32Converter.convert, tc))

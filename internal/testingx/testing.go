@@ -1,4 +1,4 @@
-package tst
+package testingx
 
 import (
 	"errors"
@@ -12,93 +12,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 )
-
-type ErrorAsserter func(*testing.T, error)
-
-func errorExists(t *testing.T, err error) bool {
-	t.Helper()
-	if err == nil {
-		t.Errorf("expected error but none received")
-		return false
-	}
-
-	return true
-}
-
-func NoError(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Errorf("nil error expected but received : %T(%s)", err, err.Error())
-	}
-}
-
-func ExpectedErrorChecks(expected ...func(*testing.T, error)) ErrorAsserter {
-	return func(t *testing.T, err error) {
-		t.Helper()
-		if !errorExists(t, err) {
-			return
-		}
-		for _, fn := range expected {
-			fn(t, err)
-		}
-	}
-}
-
-func ExpectedErrorIs(allExpectedErrors ...error) ErrorAsserter {
-	return func(t *testing.T, err error) {
-		t.Helper()
-		if !errorExists(t, err) {
-			return
-		}
-		for _, expected := range allExpectedErrors {
-			if !errors.Is(err, expected) {
-				s := stringBuilder{}
-				s.WriteStringf("error unexpected.\n")
-				s.WriteStringf("Expected error: %T(%s)\n", expected, expected.Error())
-				s.WriteStringf("Got           : %T(%s)", err, err.Error())
-				t.Error(s.String())
-			}
-		}
-	}
-}
-
-func ExpectedErrorOfType[T error](assertsOnType ...func(*testing.T, T)) ErrorAsserter {
-	return func(t *testing.T, err error) {
-		t.Helper()
-		if !errorExists(t, err) {
-			return
-		}
-		var wantErr T
-		if !errors.As(err, &wantErr) {
-			var tErr T
-			s := stringBuilder{}
-			s.WriteStringf("error type check failed.\n")
-			s.WriteStringf("Expected error type: %T\n", tErr)
-			s.WriteStringf("Got                : %T(%s)", err, err.Error())
-			t.Error(s.String())
-		} else {
-			for _, e := range assertsOnType {
-				e(t, wantErr)
-			}
-		}
-	}
-}
-
-func ExpectedErrorStringContains(str string) ErrorAsserter {
-	return func(t *testing.T, err error) {
-		t.Helper()
-		if !errorExists(t, err) {
-			return
-		}
-		if !strings.Contains(err.Error(), str) {
-			s := stringBuilder{}
-			s.WriteStringf("error string check failed.\n")
-			s.WriteStringf("Expected to contain: %s\n", str)
-			s.WriteStringf("Got                : %T(%s)", err, err.Error())
-			t.Error(s.String())
-		}
-	}
-}
 
 func AssertEqualFn(t *testing.T) func(subject, expected any) {
 	t.Helper()

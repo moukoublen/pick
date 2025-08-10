@@ -6,32 +6,33 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/moukoublen/pick/internal/tst"
+	"github.com/ifnotnil/x/tst"
+	"github.com/moukoublen/pick/internal/testingx"
 )
 
 var (
-	expectOverFlowError = tst.ExpectedErrorChecks(
-		tst.ExpectedErrorOfType[*ConvertError](),
-		tst.ExpectedErrorIs(ErrConvertOverFlow),
+	expectOverFlowError = tst.All(
+		tst.ErrorOfType[*ConvertError](),
+		tst.ErrorIs(ErrConvertOverFlow),
 	)
-	expectLostDecimals = tst.ExpectedErrorChecks(
-		tst.ExpectedErrorOfType[*ConvertError](),
-		tst.ExpectedErrorIs(ErrConvertLostDecimals),
+	expectLostDecimals = tst.All(
+		tst.ErrorOfType[*ConvertError](),
+		tst.ErrorIs(ErrConvertLostDecimals),
 	)
-	expectMalformedSyntax = tst.ExpectedErrorChecks(
-		tst.ExpectedErrorOfType[*ConvertError](),
-		tst.ExpectedErrorIs(ErrConvertInvalidSyntax),
+	expectMalformedSyntax = tst.All(
+		tst.ErrorOfType[*ConvertError](),
+		tst.ErrorIs(ErrConvertInvalidSyntax),
 	)
-	expectInvalidType = tst.ExpectedErrorChecks(
-		tst.ExpectedErrorOfType[*ConvertError](),
-		tst.ExpectedErrorIs(ErrConvertInvalidType),
+	expectInvalidType = tst.All(
+		tst.ErrorOfType[*ConvertError](),
+		tst.ErrorIs(ErrConvertInvalidType),
 	)
 )
 
 type converterTestCase[T any] struct {
 	Input                    any
 	Expected                 T
-	ErrorAsserter            tst.ErrorAsserter
+	ErrorAsserter            tst.ErrorAssertionFunc
 	OverwriteDirectConvertFn func(any) (T, error)
 	Converter                DefaultConverter
 	OmitConvertByDirectFn    bool
@@ -50,14 +51,14 @@ func (c *converterTestCase[T]) Test(t *testing.T) {
 	typeOfExpected := reflect.TypeOf(c.Expected)
 
 	if c.ErrorAsserter == nil {
-		c.ErrorAsserter = tst.NoError
+		c.ErrorAsserter = tst.NoError()
 	}
 
 	if c.OverwriteDirectConvertFn != nil {
 		t.Run(fmt.Sprintf("to_(%s)_custom_direct", typeOfExpected.String()), func(t *testing.T) {
 			got, gotErr := c.OverwriteDirectConvertFn(c.Input)
 			c.ErrorAsserter(t, gotErr)
-			tst.AssertEqual(t, got, c.Expected)
+			testingx.AssertEqual(t, got, c.Expected)
 		})
 	} else if !c.OmitConvertByDirectFn {
 		t.Run(fmt.Sprintf("to_(%s)_direct", typeOfExpected.String()), func(t *testing.T) {
@@ -139,7 +140,7 @@ func (c *converterTestCase[T]) Test(t *testing.T) {
 			}
 
 			c.ErrorAsserter(t, gotErr)
-			tst.AssertEqual(t, got, c.Expected)
+			testingx.AssertEqual(t, got, c.Expected)
 		})
 	}
 
@@ -181,7 +182,7 @@ func (c *converterTestCase[T]) Test(t *testing.T) {
 			}
 
 			c.ErrorAsserter(t, gotErr)
-			tst.AssertEqual(t, got, c.Expected)
+			testingx.AssertEqual(t, got, c.Expected)
 		})
 	}
 
@@ -189,14 +190,14 @@ func (c *converterTestCase[T]) Test(t *testing.T) {
 		t.Run(fmt.Sprintf("to_(%s)_by_type", typeOfExpected.String()), func(t *testing.T) {
 			got, gotErr := c.Converter.ByType(c.Input, typeOfExpected)
 			c.ErrorAsserter(t, gotErr)
-			tst.AssertEqual(t, got, c.Expected)
+			testingx.AssertEqual(t, got, c.Expected)
 		})
 	}
 }
 
 type singleConvertTestCase[T any] struct {
 	input           any
-	errorAsserter   tst.ErrorAsserter
+	errorAsserter   tst.ErrorAssertionFunc
 	expected        T
 	directConvertFn func(any) (T, error)
 }
@@ -204,7 +205,7 @@ type singleConvertTestCase[T any] struct {
 func runSingleConvertTestCases[T any](t *testing.T, testCases []singleConvertTestCase[T], defaultConvertFn func(any) (T, error)) {
 	t.Helper()
 	for idx, tc := range testCases {
-		name := fmt.Sprintf("index:%d %s", idx, tst.Format(tc.input))
+		name := fmt.Sprintf("index:%d %s", idx, testingx.Format(tc.input))
 		t.Run(name, func(t *testing.T) {
 			// t.Helper()
 			// t.Parallel()
@@ -219,7 +220,7 @@ func runSingleConvertTestCases[T any](t *testing.T, testCases []singleConvertTes
 			}
 			tc.errorAsserter(t, gotErr)
 
-			tst.AssertEqual(t, got, tc.expected)
+			testingx.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
@@ -230,25 +231,25 @@ func TestTryConvertUsingReflect(t *testing.T) {
 		fn            any
 		input         any
 		expected      any
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 	}{
 		"intAlias to int16": {
 			fn:            tryReflectConvert[int16],
 			input:         intAlias(13),
 			expected:      int16(13),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		"struct to int16 expect error": {
 			fn:            tryReflectConvert[int16],
 			input:         struct{}{},
 			expected:      int16(0),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertInvalidType),
+			errorAsserter: tst.ErrorIs(ErrConvertInvalidType),
 		},
 		"string to []byte": {
 			fn:            tryReflectConvert[[]byte],
 			input:         "str",
 			expected:      []byte("str"),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -269,7 +270,7 @@ func TestTryConvertUsingReflect(t *testing.T) {
 				pass = gotVal.Equal(reflect.ValueOf(tc.expected))
 			} else {
 				a := gotVal.Interface()
-				pass = tst.Compare(a, tc.expected)
+				pass = testingx.Compare(a, tc.expected)
 			}
 			if !pass {
 				t.Fatalf("value comparison failed. Expected %#v got %#v", tc.expected, gotVal.Interface())
@@ -305,67 +306,67 @@ func TestByType(t *testing.T) {
 	tests := []struct {
 		input         any
 		expected      any
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 	}{
 		{
 			input:         int(123),
 			expected:      uint(123),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         aliasInt(123),
 			expected:      uint(123),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []aliasInt{1, 2, 3, 4},
 			expected:      []int{1, 2, 3, 4},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []int16{1, 2, 3, 4},
 			expected:      []int32{1, 2, 3, 4},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []int{1, 2, 3, 4},
 			expected:      []aliasInt{1, 2, 3, 4},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         123,
 			expected:      []int{123},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         aliasString("123"),
 			expected:      uint(123),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         aliasString2("123"),
 			expected:      uint(123),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         byte(123),
 			expected:      uint16(123),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         Foo{A: 123},
 			expected:      AliasFoo{A: 123},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         AliasFoo{A: 123},
 			expected:      Foo{A: 123},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		{
 			input:         []AliasFoo{{A: 121}, {A: 122}, {A: 123}},
 			expected:      []Foo{{A: 121}, {A: 122}, {A: 123}},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -376,7 +377,7 @@ func TestByType(t *testing.T) {
 			t.Parallel()
 			got, err := c.ByType(tc.input, reflect.TypeOf(tc.expected))
 			tc.errorAsserter(t, err)
-			tst.AssertEqual(t, got, tc.expected)
+			testingx.AssertEqual(t, got, tc.expected)
 		})
 	}
 }
@@ -388,42 +389,42 @@ func TestConvertGeneric(t *testing.T) {
 	tests := []struct {
 		convertFn     func() (any, error)
 		expected      any
-		errorAsserter tst.ErrorAsserter
+		errorAsserter tst.ErrorAssertionFunc
 	}{
 		0: {
 			convertFn: func() (any, error) {
 				return Convert[string](1)
 			},
 			expected:      string("1"),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		1: {
 			convertFn: func() (any, error) {
 				return Convert[int64]("1234567")
 			},
 			expected:      int64(1234567),
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		2: {
 			convertFn: func() (any, error) {
 				return Convert[[]uint8]([]int64{1, 2, 3, 4, 5, 6, 7})
 			},
 			expected:      []uint8{1, 2, 3, 4, 5, 6, 7},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		3: {
 			convertFn: func() (any, error) {
 				return Convert[[]stringAlias]([]string{"one", "two"})
 			},
 			expected:      []stringAlias{"one", "two"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		4: {
 			convertFn: func() (any, error) {
 				return Convert[[]string]([]stringAlias{"one", "two"})
 			},
 			expected:      []string{"one", "two"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		5: {
 			convertFn: func() (any, error) {
@@ -431,7 +432,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]string](m)
 			},
 			expected:      map[string]string{"one": "1", "two": "2"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		6: {
 			convertFn: func() (any, error) {
@@ -439,7 +440,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]string](m)
 			},
 			expected:      map[string]string{"one": "1", "two": "2"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		7: {
 			convertFn: func() (any, error) {
@@ -447,7 +448,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]int](m)
 			},
 			expected:      map[string]int{"one": 1, "two": 0},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		8: {
 			convertFn: func() (any, error) {
@@ -455,14 +456,14 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[int]string](m)
 			},
 			expected:      map[int]string{1: "1", 2: "2"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		9: {
 			convertFn: func() (any, error) {
 				return Convert[map[string]any](int(42))
 			},
 			expected:      map[string]any(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertInvalidType),
+			errorAsserter: tst.ErrorIs(ErrConvertInvalidType),
 		},
 		10: {
 			convertFn: func() (any, error) {
@@ -470,7 +471,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]string](m)
 			},
 			expected:      map[string]string{"one": "a", "two": "b"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		11: {
 			convertFn: func() (any, error) {
@@ -478,7 +479,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string][]string](m)
 			},
 			expected:      map[string][]string{"one": {"a", "b"}, "two": {"c", "d"}},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		12: {
 			convertFn: func() (any, error) {
@@ -486,7 +487,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]string](m)
 			},
 			expected:      map[string]string(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertInvalidType),
+			errorAsserter: tst.ErrorIs(ErrConvertInvalidType),
 		},
 		13: {
 			convertFn: func() (any, error) {
@@ -494,7 +495,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]any](m)
 			},
 			expected:      map[string]any{"one": 1, "two": 2},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		14: { // key cast error
 			convertFn: func() (any, error) {
@@ -502,7 +503,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[int8]any](m)
 			},
 			expected:      map[int8]any(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+			errorAsserter: tst.ErrorIs(ErrConvertOverFlow),
 		},
 		15: { // value cast error
 			convertFn: func() (any, error) {
@@ -510,7 +511,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]int8](m)
 			},
 			expected:      map[string]int8(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+			errorAsserter: tst.ErrorIs(ErrConvertOverFlow),
 		},
 		16: {
 			convertFn: func() (any, error) {
@@ -518,7 +519,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[int]string](s)
 			},
 			expected:      map[int]string{0: "a", 1: "b", 2: "c"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		17: {
 			convertFn: func() (any, error) {
@@ -526,7 +527,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[int]any](s)
 			},
 			expected:      map[int]any{0: "a", 1: "b", 2: "c"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		18: {
 			convertFn: func() (any, error) {
@@ -534,7 +535,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]string](s)
 			},
 			expected:      map[string]string{"0": "a", "1": "b", "2": "c"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 		19: { // from slice key convert error
 			convertFn: func() (any, error) {
@@ -542,7 +543,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[int8]string](s)
 			},
 			expected:      map[int8]string(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+			errorAsserter: tst.ErrorIs(ErrConvertOverFlow),
 		},
 		20: { // from slice value convert error
 			convertFn: func() (any, error) {
@@ -550,7 +551,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[int8]int8](s)
 			},
 			expected:      map[int8]int8(nil),
-			errorAsserter: tst.ExpectedErrorIs(ErrConvertOverFlow),
+			errorAsserter: tst.ErrorIs(ErrConvertOverFlow),
 		},
 		21: {
 			convertFn: func() (any, error) {
@@ -558,7 +559,7 @@ func TestConvertGeneric(t *testing.T) {
 				return Convert[map[string]any](m)
 			},
 			expected:      map[string]any{"a": "b"},
-			errorAsserter: tst.NoError,
+			errorAsserter: tst.NoError(),
 		},
 	}
 
@@ -566,7 +567,7 @@ func TestConvertGeneric(t *testing.T) {
 		t.Run(fmt.Sprintf("[%d]_%T", idx, tc.expected), func(t *testing.T) {
 			got, err := tc.convertFn()
 			tc.errorAsserter(t, err)
-			tst.AssertEqual(t, got, tc.expected)
+			testingx.AssertEqual(t, got, tc.expected)
 		})
 	}
 }

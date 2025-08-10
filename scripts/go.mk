@@ -11,7 +11,7 @@ GO_VER := $(shell go env GOVERSION)
 
 .PHONY: mod
 mod:
-	go mod tidy -go=1.23
+	go mod tidy
 	go mod verify
 
 # https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
