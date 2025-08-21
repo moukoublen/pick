@@ -289,6 +289,7 @@ func (p Picker) Wrap(data any) Picker {
 
 type RelaxedAPI struct {
 	Picker
+
 	errorGatherers []ErrorGatherer
 }
 

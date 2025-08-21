@@ -66,15 +66,19 @@ staticcheck: $(TOOLS_BIN)/staticcheck
 
 ## <golangci-lint>
 # https://github.com/golangci/golangci-lint/releases
-GOLANGCI-LINT_MOD:=github.com/golangci/golangci-lint
+GOLANGCI-LINT_MOD:=github.com/golangci/golangci-lint/v2
 GOLANGCI-LINT_VER:=$(call go_mod_ver,$(GOLANGCI-LINT_MOD))
 $(TOOLS_BIN)/golangci-lint: $(TOOLS_DB)/golangci-lint.$(GOLANGCI-LINT_VER).$(GO_VER).ver
-	$(call go_install,golangci-lint,$(GOLANGCI-LINT_MOD)/cmd/golangci-lint,$(GOLANGCI-LINT_VER))
-#@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) $(GOLANGCI-LINT_VER)
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_BIN) $(GOLANGCI-LINT_VER)
 
 .PHONY: golangci-lint
 golangci-lint: $(TOOLS_BIN)/golangci-lint
-	golangci-lint run --out-format colored-line-number
+	golangci-lint run
+	@echo ''
+
+.PHONY: golangci-lint-fmt
+golangci-lint-fmt: $(TOOLS_BIN)/golangci-lint
+	golangci-lint fmt
 	@echo ''
 ## </golangci-lint>
 
