@@ -3,25 +3,24 @@
 # https://golangci-lint.run/usage/configuration/
 # https://golangci-lint.run/usage/linters/
 
+version: "2"
+
 run:
-  concurrency: 0
-  go: '1.23'
-  timeout: 10m
+  go: "1.23"
+  modules-download-mode: readonly
   issues-exit-code: 1
   tests: true
-  modules-download-mode: readonly
 
 output:
   formats:
-    - format: colored-line-number
+    text:
       path: stderr
-  print-issued-lines: true
-  print-linter-name: true
+      print-linter-name: true
+      print-issued-lines: true
 
 linters:
-  enable-all: true
+  default: all
   disable:
-    - tenv # deprecated
     - nlreturn
     - wsl
     - lll
@@ -35,102 +34,107 @@ linters:
     - exhaustruct # TODO: reconsider
     - depguard    # TODO: reconsider
     - godox       # TODO: reconsider
+    - funcorder
+    - wsl
+    - wsl_v5
+    - noinlineerr
 
-issues:
-  # https://golangci-lint.run/usage/false-positives/#default-exclusions
-  exclude-use-default: true
-  exclude-dirs-use-default: true
-  include:
-    - EXC0004
-    - EXC0005
-    - EXC0006
-  exclude-rules:
-    - path: 'error_test.go'
-      linters: [thelper, errorlint]
-    - path: '(.+)_test\.go'
-      linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx, gocyclo, err113]
-    # Exclude govet fieldalignment in tests.
-    - path: '(.+)_test\.go'
-      linters: [govet]
-      text: 'fieldalignment:'
-    - path: internal/tesatingx/testdata
-      linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx]
+  settings:
+    # https://golangci-lint.run/usage/linters/#unused
+    unused:
+      field-writes-are-uses: false
+      post-statements-are-reads: false
+      exported-fields-are-used: true
+      parameters-are-used: true
+      local-variables-are-used: false
+      generated-is-used: true
 
-linters-settings:
+    # https://golangci-lint.run/usage/linters/#tagliatelle
+    tagliatelle:
+      case:
+        use-field-name: true
+        rules:
+          json: snake
+          yaml: camel
+          xml: camel
+          bson: camel
+          avro: snake
+          mapstructure: kebab
 
-  # https://golangci-lint.run/usage/linters/#unused
-  unused:
-    field-writes-are-uses: false
-    post-statements-are-reads: false
-    exported-fields-are-used: true
-    parameters-are-used: true
-    local-variables-are-used: false
-    generated-is-used: true
+    # https://golangci-lint.run/usage/linters/#paralleltest
+    paralleltest:
+      ignore-missing: true
+      ignore-missing-subtests: true
 
-  # https://golangci-lint.run/usage/linters/#tagliatelle
-  tagliatelle:
-    case:
-      use-field-name: true
+    # https://golangci-lint.run/usage/linters/#nolintlint
+    nolintlint:
+      allow-unused: true
+
+    # https://golangci-lint.run/usage/linters/#gocyclo
+    gocyclo:
+      min-complexity: 40
+
+    # https://golangci-lint.run/usage/linters/#maintidx
+    maintidx:
+      under: 10
+
+    # https://golangci-lint.run/usage/linters/#govet
+    govet:
+      enable-all: true
+      settings:
+        shadow:
+            strict: false
+      #disable:
+      #  - fieldalignment
+
+    # https://golangci-lint.run/usage/linters/#prealloc
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: true
+
+    # https://golangci-lint.run/usage/linters/#revive
+    # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
+    revive:
       rules:
-        json: snake
-        yaml: camel
-        xml: camel
-        bson: camel
-        avro: snake
-        mapstructure: kebab
+        - name: unused-parameter
+          disabled: true
 
-  # https://golangci-lint.run/usage/linters/#paralleltest
-  paralleltest:
-    ignore-missing: true
-    ignore-missing-subtests: true
 
-  # https://golangci-lint.run/usage/linters/#nolintlint
-  nolintlint:
-    allow-unused: true
 
-  # https://golangci-lint.run/usage/linters/#cyclop
-  cyclop:
-    max-complexity: 10
-    package-average: 0.5
-    skip-tests: true
-
-  # https://golangci-lint.run/usage/linters/#gocyclo
-  gocyclo:
-    min-complexity: 40
-
-  # https://golangci-lint.run/usage/linters/#maintidx
-  maintidx:
-    under: 10
-
-  # https://golangci-lint.run/usage/linters/#govet
-  govet:
-    enable-all: true
-    settings:
-      shadow:
-          strict: false
-    #disable:
-    #  - fieldalignment
-
-  # https://golangci-lint.run/usage/linters/#misspell
-  misspell:
-    ignore-words:
-      - ""
-    locale: US
-
-  # https://golangci-lint.run/usage/linters/#prealloc
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: true
-
-  # https://golangci-lint.run/usage/linters/#gofumpt
-  gofumpt:
-    module-path: github.com/moukoublen/pick
-    extra-rules: true
-
-  # https://golangci-lint.run/usage/linters/#revive
-  # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
-  revive:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
     rules:
-      - name: unused-parameter
-        disabled: true
+      - path: 'error_test.go'
+        linters: [thelper, errorlint]
+      - path: _test\.go
+        linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx, gocyclo, err113]
+      - path: _test\.go
+        linters:
+          - govet
+        text: 'fieldalignment:'
+      - path: _test\.go
+        linters:
+          - revive
+        text: 'unused-parameter:'
+      - path: _test\.go
+        linters:
+          - revive
+        text: 'context-as-argument:'
+      - path: internal/tesatingx/testdata
+        linters: [gochecknoglobals, goconst, goerr113, mnd, dupl, maintidx]
+
+
+# https://golangci-lint.run/usage/configuration/#fmt
+# https://golangci-lint.run/usage/formatters/
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    # - golines

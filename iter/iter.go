@@ -20,6 +20,18 @@ var defaultTags = []string{ //nolint:gochecknoglobals
 	"config",
 }
 
+// ForEachField applies the given operation to each field of the input if it has fields
+// (struct or map), or returns ErrNoFields for types that don't have fields (arrays, slices, etc.).
+// If the operation returns a non-nil error it will cause the entire ForEachField function to terminate without applying the
+// operation to the rest of the fields (if any).
+//
+// The function first tries to handle maps of basic types directly by avoiding reflection for performance reasons.
+// If the input is not one of the directly handled types, it uses reflection to determine the input type.
+// For structs, it iterates over fields using struct tags (json, config) for field names, falling back to actual field names.
+// For maps, it iterates over key-value pairs using keys as field names. For pointers or interfaces, it dereferences
+// the input and recursively applies ForEachField to the dereferenced value.
+//
+// The function uses deferred recovery to capture and return any panic as an error.
 func ForEachField(input any, operation func(item any, meta FieldOpMeta) error) (rErr error) { //nolint:gocyclo
 	defer errorsx.RecoverPanicToError(&rErr)
 
