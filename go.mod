@@ -6,7 +6,7 @@ go 1.23.0
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/ifnotnil/x/tst v0.0.2
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
