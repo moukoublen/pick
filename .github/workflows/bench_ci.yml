@@ -22,7 +22,7 @@ jobs:
 
     # https://github.com/actions/setup-go
     - name: set up go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: "1.24.x"
         check-latest: true

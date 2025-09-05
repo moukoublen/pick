@@ -22,7 +22,7 @@ jobs:
 
     # https://github.com/actions/setup-go
     - name: set up go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: "${{ matrix.go-version }}.x"
         check-latest: true
