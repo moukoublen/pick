@@ -228,7 +228,7 @@ type sizeOfInteger int
 // https://go.dev/ref/spec#Numeric_types
 
 const (
-	//nolint:mnd,gomnd // there are not magic numbers to be fair
+	//nolint:mnd // there are not magic numbers to be fair
 	sizeOfInt    sizeOfInteger = 32 << (^uint(0) >> 63) // 32 or 64 // https://github.com/golang/go/blob/3d33437c450aa74014ea1d41cd986b6ee6266984/src/math/const.go#L40
 	sizeOfInt8   sizeOfInteger = 8
 	sizeOfInt16  sizeOfInteger = 16
