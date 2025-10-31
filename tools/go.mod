@@ -10,7 +10,7 @@ require (
 	github.com/itchyny/gojq v0.12.17
 	golang.org/x/tools v0.38.0
 	honnef.co/go/tools v0.6.1
-	mvdan.cc/gofumpt v0.9.1
+	mvdan.cc/gofumpt v0.9.2
 	mvdan.cc/sh/v3 v3.12.0
 )
 
