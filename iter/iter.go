@@ -134,7 +134,7 @@ func valueAsString(v reflect.Value) string {
 }
 
 var (
-	stringType  = reflect.TypeOf("") //nolint:gochecknoglobals
+	stringType  = reflect.TypeFor[string]() //nolint:gochecknoglobals
 	ErrNoFields = errors.New("type does not have fields")
 )
 

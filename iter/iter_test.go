@@ -634,7 +634,7 @@ func BenchmarkIterForEach(b *testing.B) {
 
 	for name, tc := range tests {
 		b.Run(name, func(b *testing.B) {
-			for range b.N {
+			for b.Loop() {
 				_ = ForEach(tc.Input, noop)
 			}
 		})
@@ -838,7 +838,7 @@ func TestLen(t *testing.T) {
 func BenchmarkLen(b *testing.B) {
 	for name, tc := range lenTests {
 		b.Run(name, func(b *testing.B) {
-			for range b.N {
+			for b.Loop() {
 				_, _ = Len(tc.Input)
 			}
 		})
@@ -858,7 +858,7 @@ func BenchmarkValueAsString(b *testing.B) {
 	b.ResetTimer()
 	for name, input := range benchmarks {
 		b.Run(name, func(b *testing.B) {
-			for range b.N {
+			for b.Loop() {
 				_ = valueAsString(input)
 			}
 		})

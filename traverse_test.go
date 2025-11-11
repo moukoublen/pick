@@ -526,7 +526,7 @@ func BenchmarkDefaultTraverser(b *testing.B) {
 
 	for name, tc := range tests {
 		b.Run(name, func(b *testing.B) {
-			for range b.N {
+			for b.Loop() {
 				_, _ = dt.Retrieve(tc.input, tc.keys)
 			}
 		})
