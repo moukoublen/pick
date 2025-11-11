@@ -3,6 +3,7 @@ package pick
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -228,12 +229,7 @@ func (s fsmState) stateFieldSeparated(received rune) (fsmState, error) {
 }
 
 func (s fsmState) oneOf(states ...fsmState) bool {
-	for _, st := range states {
-		if s == st {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(states, s)
 }
 
 type dotNotationParser struct{}

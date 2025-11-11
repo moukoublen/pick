@@ -6,7 +6,7 @@ go 1.24.0
 // this go.mod is not used to actually run the tools, only to store the version.
 
 require (
-	github.com/golangci/golangci-lint/v2 v2.5.0
+	github.com/golangci/golangci-lint/v2 v2.6.1
 	github.com/itchyny/gojq v0.12.17
 	golang.org/x/tools v0.38.0
 	honnef.co/go/tools v0.6.1

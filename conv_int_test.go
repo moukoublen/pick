@@ -295,7 +295,7 @@ func BenchmarkIntConverter(b *testing.B) {
 func benchmarkIntegerConverter[T Integer](converter func(any) (T, error), input any) func(*testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
-		for range b.N {
+		for b.Loop() {
 			_, _ = converter(input)
 		}
 	}

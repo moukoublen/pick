@@ -1238,7 +1238,7 @@ func converterSubBenchmarks[Output any](testCases []any, convertFn func(any) (Ou
 func matrixSubBenchmark[Output any](input any, convertFn func(any) (Output, error)) func(b *testing.B) {
 	return func(b *testing.B) {
 		b.Helper()
-		for range b.N {
+		for b.Loop() {
 			_, err := convertFn(input)
 			if err != nil {
 				b.Skipf("skipped because of error %s", err.Error())
