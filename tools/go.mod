@@ -8,7 +8,7 @@ go 1.24.0
 require (
 	github.com/golangci/golangci-lint/v2 v2.7.2
 	github.com/itchyny/gojq v0.12.18
-	golang.org/x/tools v0.39.0
+	golang.org/x/tools v0.40.0
 	honnef.co/go/tools v0.6.1
 	mvdan.cc/gofumpt v0.9.2
 	mvdan.cc/sh/v3 v3.12.0
@@ -214,10 +214,10 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20251023183803-a4bb9ffd2546 // indirect
-	golang.org/x/mod v0.30.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/telemetry v0.0.0-20251111182119-bc8e575c7b54 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/telemetry v0.0.0-20251203150158-8fff8a5912fc // indirect
 	golang.org/x/term v0.32.0 // indirect
 	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
