@@ -1,8 +1,8 @@
 MODULE := $(shell cat go.mod | grep -e "^module" | sed "s/^module //")
 
-GO_PACKAGES = go list -tags='$(TAGS)' ./...
-GO_FOLDERS = go list -tags='$(TAGS)' -f '{{ .Dir }}' ./...
-GO_FILES = find . -type f -name '*.go' -not -path './vendor/*'
+GO_PACKAGES = go list ./...
+GO_FOLDERS = go list -f '{{ .Dir }}' ./...
+GO_FILES = find . -type f -name '*.go'
 
 export GO111MODULE := on
 #export GOFLAGS := -mod=vendor
@@ -17,11 +17,11 @@ mod:
 # https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
 # https://pkg.go.dev/cmd/compile
 # https://pkg.go.dev/cmd/link
-# -count=20
 
+# https://pkg.go.dev/cmd/go/internal/test
 .PHONY: test
 test:
-	CGO_ENABLED=1 go test -timeout 60s -race -tags='$(TAGS)' -coverprofile=coverage.txt -covermode=atomic ./...
+	CGO_ENABLED=1 go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: test-n-read
 test-n-read: test
@@ -29,8 +29,8 @@ test-n-read: test
 
 .PHONY: bench
 bench: # runs all benchmarks
-	CGO_ENABLED=1 go test -benchmem -run=^Benchmark$$ -mod=readonly -count=1 -v -race -bench=. ./...
+	go test -benchmem -run=^Benchmark$$ -mod=readonly -bench=. ./...
 
 .PHONY: ci-bench
 ci-bench: # runs all benchmarks
-	go test -benchtime=1s -count=7 -timeout 120m -benchmem -run=^Benchmark$ -mod=readonly -bench=. ./...
+	go test -benchtime=1s -count=7 -benchmem -run=^Benchmark$ -mod=readonly -bench=. ./...

@@ -9,41 +9,52 @@ on:
 
 jobs:
 
-  lint-and-test:
-    name: Lints and Tests
+  lints:
+    name: Lints
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [ '1.24', '1.25' ]
     steps:
 
     # https://github.com/actions/checkout
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
-    # https://github.com/actions/setup-go
-    - name: set up go
-      uses: actions/setup-go@v6
+    - uses: jdx/mise-action@v4
       with:
-        go-version: "${{ matrix.go-version }}.x"
-        check-latest: true
-        cache: false
+        install: true # [default: true] run `mise install`
+        cache: true # [default: true] cache mise using GitHub's cache
+        experimental: false # [default: false] enable experimental features
+        log_level: debug # [default: info] log level
+        cache_key: "mise-{{platform}}-{{install_args_hash}}-{{file_hash}}"
+
+
+    # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions
+    # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#environment-files
+    - id: go_version
+      name: Get Go version
+      run: |
+        GO_VER=$(go env GOVERSION | cut -d. -f1-2)
+        echo "Detected Go version: ${GO_VER}"
+        echo "GO_VER=${GO_VER}" >> "$GITHUB_OUTPUT"
+
+        GOCACHE=$(go env GOCACHE)
+        echo "Detected GOCACHE: ${GOCACHE}"
+        echo "GOCACHE=${GOCACHE}" >> "$GITHUB_OUTPUT"
+
+        GOPATH=$(go env GOPATH)
+        echo "Detected GOPATH: ${GOPATH}"
+        echo "GOPATH=${GOPATH}" >> "$GITHUB_OUTPUT"
+
 
     # https://github.com/actions/cache
-    - name: cache tools
-      id: cache-tools
-      uses: actions/cache@v5
+    - name: cache go deps
+      id: cache-go
+      uses: actions/cache@v6
       with:
         path: |
-          .tools/
-          ~/.cache/go-build
-          ~/go/pkg
-        key: ci-tools-${{ runner.os }}-${{ runner.arch }}-${{ matrix.go-version }}-${{ hashFiles('**/go.mod', '**/go.sum', '**/Makefile', 'tools/tools.mk', '.github/workflows/ci.yml', 'tools/tools.go') }}
+          ${{ steps.go_version.outputs.GOCACHE }}
+          ${{ steps.go_version.outputs.GOPATH }}
+        key: ci-go-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/go.mod', '**/go.sum', '.github/workflows/ci.yml') }}
         restore-keys: |
-          ci-tools-${{ runner.os }}-${{ runner.arch }}-${{ matrix.go-version }}
-
-    - name: install tools
-      # if: steps.cache-tools.outputs.cache-hit != 'true'
-      run: make tools
+          ci-go-${{ runner.os }}-${{ runner.arch }}-
 
     - name: env
       run: |
@@ -51,7 +62,7 @@ jobs:
         echo ""
         make env
 
-    - name: Check shell files
+    - name: check shell files
       run: make ci-sh
 
     - name: make mod
@@ -60,18 +71,46 @@ jobs:
     - name: format and check
       run: make ci-format
 
-    - name: staticcheck
-      run: make staticcheck
-
     - name: golangci-lint
       run: make golangci-lint
 
-    - name: Test
-      run: make test
+  tests:
+    name: Tests
+    strategy:
+      matrix:
+        go-version: [ '1.25', '1.26' ]
+        os: ['ubuntu-latest']
+        include:
+          - os: 'ubuntu-latest'
+            go-version: '1.26'
+            cover: true
+
+    runs-on: "${{ matrix.os }}"
+    steps:
+      # https://github.com/actions/checkout
+    - uses: actions/checkout@v7
+
+    # https://github.com/actions/setup-go
+    - name: set up go
+      uses: actions/setup-go@v7
+      with:
+        go-version: "${{ matrix.go-version }}.x"
+        check-latest: true
+        cache: false
+
+    - name: test
+      run: |
+        go test -timeout 30s ./...
+      if: ${{ !matrix.cover }}
+
+    - name: test with cover and race
+      run: |
+        go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic ./...
+      if: ${{ matrix.cover }}
 
     # https://github.com/codecov/codecov-action
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v6
+    - name: upload coverage reports to codecov
+      uses: codecov/codecov-action@v7
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      if: matrix.go-version == '1.24'
+      if: ${{ matrix.cover }}
